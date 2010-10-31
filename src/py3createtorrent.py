@@ -24,7 +24,7 @@ Some of the features:
 
 = Credits =
 
-  Robert Nitsch <dev+r.s.nitsch at gmail.com> - Aug 2010 (Version 0.8, 0.9)
+  Robert Nitsch <r.s.nitsch+dev at gmail.com> - Aug 2010 (Version 0.8, 0.9)
 
 
 = Documentation =
