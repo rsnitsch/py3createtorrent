@@ -654,15 +654,21 @@ torrent for a single file.", file=sys.stderr)
     # - info
     #   - piece length
     #   - name (eventually overwrite)
+    #   - private
     # - announce
     # - announce-list (if multiple trackers)
     # - creation date (may be disabled as well)
     # - created by
     # - comment (may be disabled as well (if ADVERTISE = False))
 
+    # Finish sub-dict "info".
     info['piece length'] = piece_length
 
-    # Add the non-optional fields
+    if options.private:
+        info['private'] = 1
+
+    # Construct outer metainfo dict, which contains the torrent's whole
+    # information.
     metainfo =  {
                 'info':           info,
                 'announce':       trackers[0],
