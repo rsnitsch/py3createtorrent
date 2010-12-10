@@ -732,6 +732,11 @@ torrent for a single file.", file=sys.stderr)
         if os.path.isdir(options.output):
             output_path = os.path.join(options.output,
                                        metainfo['info']['name']+".torrent")
+            if os.path.isfile(output_path):
+                if not options.force and os.path.exists(output_path):
+                    if "yes" != input("'%s' does already exist. Overwrite? \
+yes/no: " % output_path):
+                        parser.error("Aborted.")
 
         # The user specified a filename:
         else:
