@@ -83,7 +83,7 @@ ADVERTISE = True
 # do not touch anything below this line unless you know what you're doing!
 
 
-VERSION =   '0.9.2'
+VERSION =   '0.9.3'
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
