@@ -70,8 +70,8 @@ __all__ = ['calculate_piece_length',
 # CONFIGURATION
 
 # configure your tracker abbreviations here
-TRACKER_ABBR = {'openbt':       'udp://tracker.openbittorrent.com:80/announce',
-                'publicbt':     'udp://tracker.publicbt.com:80/announce'}
+TRACKER_ABBR = {'openbt':       'udp://tracker.openbittorrent.com:80/',
+                'publicbt':     'udp://tracker.publicbt.com:80/'}
 
 # whether or not py3createtorrent is allowed to advertise itself
 # through the torrents' comment fields
