@@ -1,54 +1,9 @@
 #!/usr/bin/env python3
 """
-py3createtorrent is a comprehensive command line utility for
-creating torrents.
+Create torrents via command line!
 
-Some of the features:
-- you can add a comment to the torrent file
-- you can create private torrents (disabled DHT, ...)
-- you can create torrents with multiple trackers
-- you can exclude specific files/folders
-- you can exclude files/folders based on regular expressions
-- you can specify custom piece sizes
-- you can specify custom creation dates
-
-
-= Motivation =
-
-  There already is rTorrent, but sadly it does not support creating
-  torrents. Thus, it is often a pain to seed torrents from your
-  servers directly.
-
-  py3createtorrent is intended to fill this gap.
-
-
-= Credits =
-
-  Robert Nitsch <r.s.nitsch+dev at gmail.com> - Aug 2010 (Version 0.8, 0.9)
-
-
-= Documentation =
-
-  Comprehensive documentation for py3createtorrent can be found on
-  its homepage:
-
-  http://wiki.robertnitsch.de/doku.php?id=en:coding:py3createtorrent
-
-
-= License =
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Copyright (C) 2010-2013 Robert Nitsch
+Licensed according to GPL v3.
 """
 
 import sys
