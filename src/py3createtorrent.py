@@ -58,6 +58,7 @@ import re
 import time
 import hashlib
 import datetime
+import math
 
 from py3bencode import bencode
 
@@ -791,7 +792,7 @@ privileges.", file=sys.stderr)
         backup_trackers = "    (none)"
 
     # Calculate piece count.
-    piece_count = torrent_size / metainfo['info']['piece length']
+    piece_count = math.ceil(torrent_size / metainfo['info']['piece length'])
 
     # Make torrent size human readable.
     if torrent_size > 10*MIB:
