@@ -51,14 +51,14 @@ Some of the features:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-import os
-import optparse
-import re
-import time
-import hashlib
 import datetime
+import hashlib
 import math
+import optparse
+import os
+import re
+import sys
+import time
 
 from py3bencode import bencode
 
