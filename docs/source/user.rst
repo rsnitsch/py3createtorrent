@@ -169,8 +169,8 @@ Syntax::
      -n NAME, --name=NAME  use this file (or directory) name instead of the real
                            one
 
-Some examples
-^^^^^^^^^^^^^
+Examples
+--------
 
 Assume there is a folder "example" with the following contents::
 
@@ -184,7 +184,7 @@ Assume there is a folder "example" with the following contents::
 Assume, we're currently inside the parent directory.
 
 Example 1 - from directory, no options, default behaviour
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Command**::
 
@@ -211,7 +211,7 @@ You can change this behaviour by editing the script. Find ``ADVERTISE = True``
 (line ~86) and replace ``True`` by ``False``. See [[#Configuration]].
 
 Example 2 - from directory, excluding subfolders
-""""""""""""""""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Command**::
 
@@ -231,7 +231,7 @@ In µTorrent it will look like this:
 .. image:: _static/example2.png
 
 Example 3 - from directory, excluding files
-"""""""""""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Command**::
 
