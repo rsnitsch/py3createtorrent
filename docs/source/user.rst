@@ -26,6 +26,41 @@ Thus, it is often a pain to seed torrents from your servers directly.
 
 py3createtorrent is intended to fill this gap.
 
+Requirements
+------------
+
+py3createtorrent requires at least Python 3.1 and the `py3bencode <https://bitbucket.org/rsnitsch/py3bencode>`_ module.
+
+Installation
+------------
+
+Download the desired version from here:
+https://bitbucket.org/rsnitsch/py3createtorrent/downloads
+
+If the version you downloaded is >= 0.9.4 you will have to install the
+`py3bencode <https://bitbucket.org/rsnitsch/py3bencode>`_ module yourself
+(up to 0.9.3 the py3bencode module was shipped with py3createtorrent). See the
+section below for instructions.
+
+Installing the py3bencode module
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can either download the ``py3bencode.py`` directly from its bitbucket repository
+and place it in the same directory as ``py3createtorrent.py`` or you can use
+`pip <http://www.pip-installer.org/>`_ to install the py3bencode module in
+your Python installation::
+
+   pip install hg+https://bitbucket.org/rsnitsch/py3bencode
+
+Make sure to use the pip executable that belongs to the Python interpreter
+with which you will execute py3createtorrent.
+
+If you don't have pip around (although I strongly recommend using it) you can
+also try to install py3bencode manually::
+
+   $ hg clone https://bitbucket.org/rsnitsch/py3bencode
+   $ python3 py3bencode/setup.py
+
 Usage
 -----
 
