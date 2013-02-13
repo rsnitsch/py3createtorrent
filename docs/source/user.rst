@@ -61,6 +61,79 @@ also try to install py3bencode manually::
    $ hg clone https://bitbucket.org/rsnitsch/py3bencode
    $ python3 py3bencode/setup.py
 
+Configuration
+-------------
+
+There is a small configuration section in the script, starting at line 25::
+
+   # #############
+   # CONFIGURATION
+
+   # configure your tracker abbreviations here
+   TRACKER_ABBR = {'openbt':       'udp://tracker.openbittorrent.com:80/announce',
+                   'publicbt':     'udp://tracker.publicbt.com:80/announce'}
+
+   # whether or not py3createtorrent is allowed to advertise itself
+   # through the torrents' comment fields
+   ADVERTISE = True
+
+   # /CONFIGURATION
+   # ##############
+
+Tracker abbreviations
+^^^^^^^^^^^^^^^^^^^^^
+
+Tracker abbrevations allow you to specify one or more tracker URLs with a single
+word, like 'openbt' in the default configuration. They add a lot of convenience,
+e.g. look at this neat & clear command::
+
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example openbt publicbt
+   Successfully created torrent:
+     Name:             example
+    (...)
+     Primary tracker:  udp://tracker.openbittorrent.com/announce
+     Backup trackers:
+       udp://tracker.publicbt.com:80/announce
+
+In this case, py3createtorrent recognizes the tracker abbreviations 'openbt' and
+'publicbt' and automatically inserts the according tracker announce URLs.
+
+.. note::
+
+   Single abbreviations may be replaced by multiple tracker announce URLs. This
+   way you can also create sort of "tracker groups" for different kinds of
+   torrents.
+
+   Example configuration::
+
+      TRACKER_ABBR = {'mytrackergroup':  ['udp://tracker.openbittorrent.com:80/announce',
+                                          'udp://tracker.publicbt.com:80/announce'],
+                      'openbt':          'udp://tracker.openbittorrent.com:80/announce',
+                      'publicbt':        'udp://tracker.publicbt.com:80/announce'}
+
+   Just specify lists of announce URLs instead of a single announce URL to define
+   such groups.
+
+Advertise setting
+^^^^^^^^^^^^^^^^^
+
+The ``ADVERTISE`` setting defines whether py3createtorrent is allowed to advertise
+itself through the comment field, if the user hasn't specified a comment.
+
+If you want to disable advertising for a single torrent only, you can remove
+the comment field of that torrent completely((unless, of course, you want to
+use your own comment)). To achieve this, you can use the --comment option to
+specify an empty comment::
+
+   py3createtorrent.py --comment "" ...
+
+Equivalently::
+
+   py3createtorrent.py -c "" ...
+
+py3createtorrent will not advertise itself in this case, because you explicitly
+specified the empty comment.
+
 Usage
 -----
 
@@ -95,79 +168,6 @@ Syntax::
                            (default). -2 = disable.
      -n NAME, --name=NAME  use this file (or directory) name instead of the real
                            one
-
-Configuration
-^^^^^^^^^^^^^
-
-There is a small configuration section in the script, starting at line 25::
-
-   # #############
-   # CONFIGURATION
-
-   # configure your tracker abbreviations here
-   TRACKER_ABBR = {'openbt':       'udp://tracker.openbittorrent.com:80/announce',
-                   'publicbt':     'udp://tracker.publicbt.com:80/announce'}
-
-   # whether or not py3createtorrent is allowed to advertise itself
-   # through the torrents' comment fields
-   ADVERTISE = True
-
-   # /CONFIGURATION
-   # ##############
-
-Tracker abbreviations
-"""""""""""""""""""""
-
-Tracker abbrevations allow you to specify one or more tracker URLs with a single
-word, like 'openbt' in the default configuration. They add a lot of convenience,
-e.g. look at this neat & clear command::
-
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example openbt publicbt
-   Successfully created torrent:
-     Name:             example
-    (...)
-     Primary tracker:  udp://tracker.openbittorrent.com/announce
-     Backup trackers:
-       udp://tracker.publicbt.com:80/announce
-
-In this case, py3createtorrent recognizes the tracker abbreviations 'openbt' and
-'publicbt' and automatically inserts the according tracker announce URLs.
-
-.. note::
-
-   Single abbreviations may be replaced by multiple tracker announce URLs. This
-   way you can also create sort of "tracker groups" for different kinds of
-   torrents.
-
-   Example configuration::
-
-      TRACKER_ABBR = {'mytrackergroup':  ['udp://tracker.openbittorrent.com:80/announce',
-                                          'udp://tracker.publicbt.com:80/announce'],
-                      'openbt':          'udp://tracker.openbittorrent.com:80/announce',
-                      'publicbt':        'udp://tracker.publicbt.com:80/announce'}
-
-   Just specify lists of announce URLs instead of a single announce URL to define
-   such groups.
-
-Advertise setting
-"""""""""""""""""
-
-The ``ADVERTISE`` setting defines whether py3createtorrent is allowed to advertise
-itself through the comment field, if the user hasn't specified a comment.
-
-If you want to disable advertising for a single torrent only, you can remove
-the comment field of that torrent completely((unless, of course, you want to
-use your own comment)). To achieve this, you can use the --comment option to
-specify an empty comment::
-
-   py3createtorrent.py --comment "" ...
-
-Equivalently::
-
-   py3createtorrent.py -c "" ...
-
-py3createtorrent will not advertise itself in this case, because you explicitly
-specified the empty comment.
 
 Some examples
 ^^^^^^^^^^^^^
