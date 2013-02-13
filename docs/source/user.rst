@@ -99,7 +99,7 @@ Syntax::
 Configuration
 ^^^^^^^^^^^^^
 
-There is a small configuration section in the script, starting at line 69::
+There is a small configuration section in the script, starting at line 25::
 
    # #############
    # CONFIGURATION
