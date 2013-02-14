@@ -778,6 +778,7 @@ privileges.", file=sys.stderr)
 
         for tracker in _backup_trackers:
             backup_trackers += "    " + tracker[0] + "\n"
+        backup_trackers = backup_trackers.rstrip()
     else:
         backup_trackers = "    (none)"
 
