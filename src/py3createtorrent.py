@@ -1,54 +1,9 @@
 #!/usr/bin/env python3
 """
-py3createtorrent is a comprehensive command line utility for
-creating torrents.
+Create torrents via command line!
 
-Some of the features:
-- you can add a comment to the torrent file
-- you can create private torrents (disabled DHT, ...)
-- you can create torrents with multiple trackers
-- you can exclude specific files/folders
-- you can exclude files/folders based on regular expressions
-- you can specify custom piece sizes
-- you can specify custom creation dates
-
-
-= Motivation =
-
-  There already is rTorrent, but sadly it does not support creating
-  torrents. Thus, it is often a pain to seed torrents from your
-  servers directly.
-
-  py3createtorrent is intended to fill this gap.
-
-
-= Credits =
-
-  Robert Nitsch <dev+r.s.nitsch at gmail.com> - Aug 2010 (Version 0.8, 0.9)
-
-
-= Documentation =
-
-  Comprehensive documentation for py3createtorrent can be found on
-  its homepage:
-
-  http://wiki.robertnitsch.de/doku.php?id=en:coding:py3createtorrent
-
-
-= License =
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Copyright (C) 2010-2013 Robert Nitsch
+Licensed according to GPL v3.
 """
 
 import sys
@@ -70,10 +25,8 @@ __all__ = ['calculate_piece_length',
 # CONFIGURATION
 
 # configure your tracker abbreviations here
-TRACKER_ABBR = {'obt':      ['http://tracker.openbittorrent.com/announce',
-                             'udp://tracker.openbittorrent.com:80/announce'],
-                'obt-http':  'http://tracker.openbittorrent.com/announce',
-                'obt-udp':   'udp://tracker.openbittorrent.com:80/announce'}
+TRACKER_ABBR = {'openbt':       'udp://tracker.openbittorrent.com:80',
+                'publicbt':     'udp://tracker.publicbt.com:80'}
 
 # whether or not py3createtorrent is allowed to advertise itself
 # through the torrents' comment fields
@@ -85,7 +38,7 @@ ADVERTISE = True
 # do not touch anything below this line unless you know what you're doing!
 
 
-VERSION =   '0.9'
+VERSION =   '0.9.3'
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
@@ -654,15 +607,21 @@ torrent for a single file.", file=sys.stderr)
     # - info
     #   - piece length
     #   - name (eventually overwrite)
+    #   - private
     # - announce
     # - announce-list (if multiple trackers)
     # - creation date (may be disabled as well)
     # - created by
     # - comment (may be disabled as well (if ADVERTISE = False))
 
+    # Finish sub-dict "info".
     info['piece length'] = piece_length
 
-    # Add the non-optional fields
+    if options.private:
+        info['private'] = 1
+
+    # Construct outer metainfo dict, which contains the torrent's whole
+    # information.
     metainfo =  {
                 'info':           info,
                 'announce':       trackers[0],
@@ -728,6 +687,11 @@ torrent for a single file.", file=sys.stderr)
         if os.path.isdir(options.output):
             output_path = os.path.join(options.output,
                                        metainfo['info']['name']+".torrent")
+            if os.path.isfile(output_path):
+                if not options.force and os.path.exists(output_path):
+                    if "yes" != input("'%s' does already exist. Overwrite? \
+yes/no: " % output_path):
+                        parser.error("Aborted.")
 
         # The user specified a filename:
         else:
