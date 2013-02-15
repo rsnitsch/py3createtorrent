@@ -61,6 +61,8 @@ also try to install py3bencode manually::
    $ hg clone https://bitbucket.org/rsnitsch/py3bencode
    $ python3 py3bencode/setup.py
 
+.. _configuration:
+
 Configuration
 -------------
 
@@ -225,7 +227,7 @@ The comment is a short text stored in the .torrent file and displayed by most
 BitTorrent clients in the torrent info.
 
 By default py3createtorrent uses "created by py3createtorrent <version>" as
-comment (to change this behavior, consult the Configuration section).
+comment (to change this behavior, consult the :ref:`configuration` section).
 
 Force (``-f``)
 ^^^^^^^^^^^^^^
@@ -341,7 +343,7 @@ In µTorrent it will look like this:
    py3createtorrent v0.8*).
 
 You can change this behaviour by editing the script. Find ``ADVERTISE = True``
-(line ~86) and replace ``True`` by ``False``. See [[#Configuration]].
+(line ~86) and replace ``True`` by ``False``. See :ref:`configuration`.
 
 Example 2 - from directory, excluding subfolders
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
