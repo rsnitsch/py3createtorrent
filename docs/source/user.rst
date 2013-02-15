@@ -342,8 +342,8 @@ In µTorrent it will look like this:
    you can see in the screenshot (Torrent Contents -> Comment: *created with
    py3createtorrent v0.8*).
 
-You can change this behaviour by editing the script. Find ``ADVERTISE = True``
-(line ~86) and replace ``True`` by ``False``. See :ref:`configuration`.
+   You can change this behaviour by editing the script. Find ``ADVERTISE = True``
+   (line ~86) and replace ``True`` by ``False``. See :ref:`configuration`.
 
 Example 2 - from directory, excluding subfolders
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
