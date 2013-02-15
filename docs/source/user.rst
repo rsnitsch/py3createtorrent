@@ -120,16 +120,14 @@ Advertise setting
 The ``ADVERTISE`` setting defines whether py3createtorrent is allowed to advertise
 itself through the comment field, if the user hasn't specified a comment.
 
-If you want to disable advertising for a single torrent only, you can remove
-the comment field of that torrent completely((unless, of course, you want to
-use your own comment)). To achieve this, you can use the --comment option to
-specify an empty comment::
+If you want to disable advertising for a single torrent only, you can use the
+--comment option to specify an empty comment::
 
-   py3createtorrent.py --comment "" ...
+   $ py3createtorrent.py --comment "" ...
 
-Equivalently::
+   or
 
-   py3createtorrent.py -c "" ...
+   $ py3createtorrent.py -c "" ...
 
 py3createtorrent will not advertise itself in this case, because you explicitly
 specified the empty comment.
