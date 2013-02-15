@@ -121,7 +121,7 @@ The ``ADVERTISE`` setting defines whether py3createtorrent is allowed to adverti
 itself through the comment field, if the user hasn't specified a comment.
 
 If you want to disable advertising for a single torrent only, you can use the
---comment option to specify an empty comment::
+``--comment`` option to specify an empty comment::
 
    $ py3createtorrent.py --comment "" ...
 
@@ -167,8 +167,8 @@ Syntax::
      -n NAME, --name=NAME  use this file (or directory) name instead of the real
                            one
 
-Piece size (-p)
-^^^^^^^^^^^^^^^
+Piece size (``-p``)
+^^^^^^^^^^^^^^^^^^^
 
 This switch allows you to specify a custom piece size. The piece size should be
 chosen with care, because it affects the following properties:
@@ -211,15 +211,15 @@ completely can be shared with other peers). Therefore, if the piece size is
 large, it will take longer for any peer to finish downloading a piece and to be
 able to share this piece with other peers.
 
-Private torrents (-P)
-^^^^^^^^^^^^^^^^^^^^^
+Private torrents (``-P``)
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Private torrents force the BitTorrent clients to only use the specified trackers
 for discovering other peers. Advanced peer discovery methods like DHT or
 peer list exchange are effectively disabled.
 
-Comment (-c)
-^^^^^^^^^^^^
+Comment (``-c``)
+^^^^^^^^^^^^^^^^
 
 The comment is a short text stored in the .torrent file and displayed by most
 BitTorrent clients in the torrent info.
@@ -227,55 +227,55 @@ BitTorrent clients in the torrent info.
 By default py3createtorrent uses "created by py3createtorrent <version>" as
 comment (to change this behavior, consult the Configuration section).
 
-Force (-f)
-^^^^^^^^^^
+Force (``-f``)
+^^^^^^^^^^^^^^
 
 Force makes py3createtorrent e.g. overwrite existing .torrent files without
 asking for your permission.
 
-Verbose (-v)
-^^^^^^^^^^^^
+Verbose (``-v``)
+^^^^^^^^^^^^^^^^
 
 Verbose mode makes py3createtorrent report about the individual steps it is
 undertaking while creating the .torrent file.
 
 This is particularly useful for debugging purposes.
 
-Quiet (-q)
-^^^^^^^^^^
+Quiet (``-q``)
+^^^^^^^^^^^^^^
 
 py3createtorrent will try to stay completely silent on the commandline.
 
-Output path (-o)
-^^^^^^^^^^^^^^^^
+Output path (``-o``)
+^^^^^^^^^^^^^^^^^^^^
 
 The output path is either the directory in which the .torrent file should be
 saved or the complete path to the destination .torrent file. In the former
 case, the name of the .torrent file is deduced from the input's name (i.e.
 the input directory's or file's name), unless this name is explicitly
-overwritten (using the -n switch). (In the latter case, the name of the
+overwritten (using the ``-n`` switch). (In the latter case, the name of the
 .torrent file is itself specified by the output path.)
 
 By default, py3createtorrent uses the current working directory as the output
 directory.
 
-Exclude path (-e)
-^^^^^^^^^^^^^^^^^
+Exclude path (``-e``)
+^^^^^^^^^^^^^^^^^^^^^
 
 This allows for the exclusion of specific files or directories.
 
 The switch may be used repeatedly to exclude multiple files/directories.
 
-Exclude pattern (--exclude-pattern)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Exclude pattern (``--exclude-pattern``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This allows for the exclusion of files or directories that match a certain
 pattern (regular expression).
 
 The switch may be used repeatedly to specify multiple exclusion patterns.
 
-Creation date (-d)
-^^^^^^^^^^^^^^^^^^
+Creation date (``-d``)
+^^^^^^^^^^^^^^^^^^^^^^
 
 This switch allows you to overwrite the creation date saved in the .torrent
 file. You can fake any creation date you like.
@@ -283,15 +283,15 @@ file. You can fake any creation date you like.
 The creation date is specified as `UNIX timestamp
 <https://en.wikipedia.org/wiki/Unix_time>`_.
 
-Name (-n)
-^^^^^^^^^
+Name (``-n``)
+^^^^^^^^^^^^^
 
 This setting overwrites the file or directory name stored inside the .torrent
 file. **Thus it affects the file or directory name that will be presented
 to downloaders as the real name of the data.** You can use it to avoid
 renaming your input data.
 
-Unless a destination .torrent file is explicitly specified (using the -o switch),
+Unless a destination .torrent file is explicitly specified (using the ``-o`` switch),
 this name will also be used to deduce the name of the resulting .torrent file.
 
 .. note::
@@ -300,7 +300,7 @@ this name will also be used to deduce the name of the resulting .torrent file.
    Therefore, please refrain from using this feature, unless you really know
    what you're doing.
 
-   For most intents and purposes, the -o switch is probably more suitable.
+   For most intents and purposes, the ``-o`` switch is probably more suitable.
 
 Examples
 --------
@@ -335,7 +335,7 @@ In µTorrent it will look like this:
 .. image:: _static/example1.png
 
 .. note::
-   Please note: If you do not specify a comment yourself using the -c / --comment
+   Please note: If you do not specify a comment yourself using the ``-c`` / ``--comment``
    option, py3createtorrent will advertise itself through the comment field, as
    you can see in the screenshot (Torrent Contents -> Comment: *created with
    py3createtorrent v0.8*).
