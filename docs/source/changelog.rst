@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Version 0.9.4
+-------------
+
+*Work in progress!*
+
+* new: documentation is now part of the repository, based on Sphinx (dd3d74f5cc26 and following)
+* fixed: UDP tracker announce urls (c639e2f8408a + 69afadea92e4)
+* fixed: piece count calculation (8450c6470d7f)
+* fixed: inconsistent number of blank lines after summary (30f870d55c56)
+
 Version 0.9.3
 -------------
 
