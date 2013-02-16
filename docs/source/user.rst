@@ -37,18 +37,19 @@ Installation
 Download the desired version from here:
 https://bitbucket.org/rsnitsch/py3createtorrent/downloads
 
-If the version you downloaded is >= 0.9.4 you will have to install the
-`py3bencode <https://bitbucket.org/rsnitsch/py3bencode>`_ module yourself
-(up to 0.9.3 the py3bencode module was shipped with py3createtorrent). See the
-section below for instructions.
+The required py3bencode module is shipped alongside py3createtorrent. As long
+as you extract py3bencode into the same directory as the py3createtorrent script,
+you should be fine. This is the easy way and should be appropriate for the
+majority of users.
 
-Installing the py3bencode module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Installing the py3bencode module globally
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can either download the ``py3bencode.py`` directly from its bitbucket repository
-and place it in the same directory as ``py3createtorrent.py`` or you can use
-`pip <http://www.pip-installer.org/>`_ to install the py3bencode module in
-your Python installation::
+Advanced users might prefer to install the py3bencode module globally in their
+Python installation.
+
+You can use `pip <http://www.pip-installer.org/>`_ to install the py3bencode
+module in your Python installation (in the site-packages, to be precise)::
 
    pip install hg+https://bitbucket.org/rsnitsch/py3bencode
 
@@ -60,6 +61,11 @@ also try to install py3bencode manually::
 
    $ hg clone https://bitbucket.org/rsnitsch/py3bencode
    $ python3 py3bencode/setup.py
+
+Note that any local version of py3bencode will take precedence over the global
+version installed in your site-packages. Thus, you will have to delete the
+py3bencode module that has been shipped alongside py3createtorrent, if you want
+the global version to be used.
 
 .. _configuration:
 
