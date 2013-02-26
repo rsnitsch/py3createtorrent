@@ -6,13 +6,14 @@ Copyright (C) 2010-2013 Robert Nitsch
 Licensed according to GPL v3.
 """
 
-import sys
-import os
-import optparse
-import re
-import time
-import hashlib
 import datetime
+import hashlib
+import math
+import optparse
+import os
+import re
+import sys
+import time
 
 from py3bencode import bencode
 
@@ -38,7 +39,7 @@ ADVERTISE = True
 # do not touch anything below this line unless you know what you're doing!
 
 
-VERSION =   '0.9.3'
+VERSION =   '0.9.5-dev'
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
@@ -230,8 +231,7 @@ def get_files_in_directory(directory,
                              (relative_to))
 
     if not isinstance(excluded_regexps, (set, frozenset)):
-        raise TypeError("excluded_regexps must be instance of: set or \
-frozenset")
+        raise TypeError("excluded_regexps must be instance of: set or frozenset")
 
     # Helper function:
     def _get_files_in_directory(directory,
@@ -266,9 +266,8 @@ frozenset")
                 continue
 
             if os.path.normcase(os.path.realpath(path)) in processed_paths:
-                print("Warning: skipping symlink '%s', because it's target has\
- already been processed." % path,
-                      file=sys.stderr)
+                print("Warning: skipping symlink '%s', because it's target "
+                      "has already been processed." % path, file=sys.stderr)
                 continue
             processed_paths.add(os.path.normcase(os.path.realpath(path)))
 
@@ -424,28 +423,28 @@ def main(argv):
     # Validate the configuration.
     for abbr, replacement in TRACKER_ABBR.items():
         if not isinstance(abbr, str):
-            print("Configuration error: invalid tracker abbrevation: '%s' \
-(must be a string instead)" % abbr,
+            print("Configuration error: invalid tracker abbrevation: '%s' "
+                  "(must be a string instead)" % abbr,
                   file=sys.stderr)
             return 1
         if not isinstance(replacement, (str, list)):
-            print("Configuration error: invalid tracker abbreviation: '%s' \
-(must be a string or list of strings instead)" % str(replacement),
+            print("Configuration error: invalid tracker abbreviation: '%s' "
+                  "(must be a string or list of strings instead)" % str(replacement),
                   file=sys.stderr)
             return 1
 
     # Create OptionParser.
     kwargs =  {
               'usage':
-              "%prog [options] <file-or-directory> <main-tracker-url> \
-[<backup-tracker-url> ...]",
+              "%prog [options] <file-or-directory> <main-tracker-url> "
+              "[<backup-tracker-url> ...]",
 
               'version':
               "%%prog v%s" % VERSION,
 
               'description':
-              "py3createtorrent is a comprehensive command line utility for \
-creating torrents."
+              "py3createtorrent is a comprehensive command line utility for "
+              "creating torrents."
               }
 
     parser = optparse.OptionParser(**kwargs)
@@ -454,8 +453,7 @@ creating torrents."
     # Note: Commonly used options are added first.
     parser.add_option("-p", "--piece-length", type="int", action="store",
                       dest="piece_length", default=0,
-                      help="piece size in KiB. 0 = automatic selection \
-(default).")
+                      help="piece size in KiB. 0 = automatic selection (default).")
 
     parser.add_option("-P", "--private", action="store_true",
                       dest="private", default=False,
@@ -479,8 +477,8 @@ creating torrents."
 
     parser.add_option("-o", "--output", type="string", action="store",
                       dest="output", default=None, metavar="PATH",
-                      help="custom output location (directory or complete \
-path). default = current directory.")
+                      help="custom output location (directory or complete "
+                           "path). default = current directory.")
 
     parser.add_option("-e", "--exclude", type="string", action="append",
                       dest="exclude", default=[], metavar="PATH",
@@ -488,18 +486,18 @@ path). default = current directory.")
 
     parser.add_option("--exclude-pattern", type="string", action="append",
                       dest="exclude_pattern", default=[], metavar="REGEXP",
-                      help="exclude paths matching the regular expression \
-(can be repeated)")
+                      help="exclude paths matching the regular expression "
+                           "(can be repeated)")
 
     parser.add_option("-d", "--date", type="int", action="store",
                       dest="date", default=-1, metavar="TIMESTAMP",
-                      help="set creation date (unix timestamp). -1 = now \
-(default). -2 = disable.")
+                      help="set creation date (unix timestamp). -1 = now "
+                           "(default). -2 = disable.")
 
     parser.add_option("-n", "--name", type="string", action="store",
                       dest="name", default=None,
-                      help="use this file (or directory) name instead of the \
-real one")
+                      help="use this file (or directory) name instead of the "
+                           "real one")
 
     (options, args) = parser.parse_args(args = argv[1:])
 
@@ -511,13 +509,15 @@ real one")
     # Ask the user if he really wants to use uncommon piece lengths.
     # (Unless the force option has been set.)
     if not options.force and 0 < options.piece_length < 16:
-        if "yes" != input("It is strongly recommended to use a piece length \
-greater or equal than 16 KiB! Do you really want to continue? yes/no: "):
+        if "yes" != input("It is strongly recommended to use a piece length "
+                          "greater or equal than 16 KiB! Do you really want "
+                          "to continue? yes/no: "):
             parser.error("Aborted.")
 
     if not options.force and options.piece_length > 1024:
-        if "yes" != input("It is strongly recommended to use a maximum piece \
-length of 1024 KiB! Do you really want to continue? yes/no: "):
+        if "yes" != input("It is strongly recommended to use a maximum piece "
+                          "length of 1024 KiB! Do you really want to "
+                          "continue? yes/no: "):
             parser.error("Aborted.")
 
     # Verbose and quiet options may not be used together.
@@ -559,8 +559,8 @@ length of 1024 KiB! Do you really want to continue? yes/no: "):
     # a torrent for a single file (makes no sense).
     if os.path.isfile(node) and (len(excluded_paths) > 0 or \
        len(excluded_regexps) > 0):
-        print("Warning: Excluding paths is not possible when creating a \
-torrent for a single file.", file=sys.stderr)
+        print("Warning: Excluding paths is not possible when creating a "
+              "torrent for a single file.", file=sys.stderr)
 
     # Warn the user if he attempts to exclude a specific path, that does not
     # even exist.
@@ -664,8 +664,8 @@ torrent for a single file.", file=sys.stderr)
         regexp = re.compile("^[A-Z0-9_\-\., ]+$", re.I)
 
         if not regexp.match(options.name):
-            parser.error("Invalid name: '%s'. Allowed chars: A_Z, a-z, \
-0-9, any of {.,_-} plus spaces." % options.name)
+            parser.error("Invalid name: '%s'. Allowed chars: A_Z, a-z, 0-9, "
+                         "any of {.,_-} plus spaces." % options.name)
 
         metainfo['info']['name'] = options.name
 
@@ -689,8 +689,8 @@ torrent for a single file.", file=sys.stderr)
                                        metainfo['info']['name']+".torrent")
             if os.path.isfile(output_path):
                 if not options.force and os.path.exists(output_path):
-                    if "yes" != input("'%s' does already exist. Overwrite? \
-yes/no: " % output_path):
+                    if "yes" != input("'%s' does already exist. Overwrite? "
+                                      "yes/no: " % output_path):
                         parser.error("Aborted.")
 
         # The user specified a filename:
@@ -698,8 +698,8 @@ yes/no: " % output_path):
             # Is there already a file with this path? -> overwrite?!
             if os.path.isfile(options.output):
                 if not options.force and os.path.exists(options.output):
-                    if "yes" != input("'%s' does already exist. Overwrite? \
-yes/no: " % options.output):
+                    if "yes" != input("'%s' does already exist. Overwrite? "
+                                      "yes/no: " % options.output):
                         parser.error("Aborted.")
 
             output_path = options.output
@@ -711,8 +711,8 @@ yes/no: " % options.output):
             fh.write(bencode(metainfo))
     except IOError as exc:
         print("IOError: " + str(exc), file=sys.stderr)
-        print("Could not write the torrent file. Check torrent name and your \
-privileges.", file=sys.stderr)
+        print("Could not write the torrent file. Check torrent name and your "
+              "privileges.", file=sys.stderr)
         print("Absolute output path: '%s'" % os.path.abspath(output_path),
               file=sys.stderr)
         return 1
@@ -747,7 +747,7 @@ privileges.", file=sys.stderr)
         backup_trackers = "    (none)"
 
     # Calculate piece count.
-    piece_count = torrent_size / metainfo['info']['piece length']
+    piece_count = math.ceil(torrent_size / metainfo['info']['piece length'])
 
     # Make torrent size human readable.
     if torrent_size > 10*MIB:
@@ -763,20 +763,20 @@ date']).isoformat(' ')
         creation_date = "(none)"
 
     # Now actually print the summary table.
-    print("""\
-  Name:             %s
-  Size:             %s
-  Pieces:           %d x %d KiB
-  Comment:          %s
-  Private:          %s
-  Creation date:    %s
-  Primary tracker:  %s
-  Backup trackers:
-%s""" % (metainfo['info']['name'],
+    print("  Name:             %s\n"
+          "  Size:             %s\n"
+          "  Pieces:           %d x %d KiB\n"
+          "  Comment:          %s\n"
+          "  Private:          %s\n"
+          "  Creation date:    %s\n"
+          "  Primary tracker:  %s\n"
+          "  Backup trackers:\n"
+          "%s"
+      % (metainfo['info']['name'],
          size,
          piece_count,
          piece_length / KIB,
-         metainfo['comment']  if 'comment'       in metainfo else "(none)",
+         metainfo['comment'] if 'comment'       in metainfo else "(none)",
          "yes" if options.private else "no",
          creation_date,
          metainfo['announce'],
