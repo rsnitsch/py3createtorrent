@@ -4,7 +4,7 @@ Changelog
 Version 0.9.4
 -------------
 
-*Work in progress!*
+*Release date: 2013/02/26*
 
 * new: documentation is now part of the repository, based on Sphinx (dd3d74f5cc26 and following)
 * fixed: UDP tracker announce urls (c639e2f8408a + 69afadea92e4)
