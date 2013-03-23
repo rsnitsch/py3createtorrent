@@ -60,7 +60,8 @@ If you don't have pip around (although I strongly recommend using it) you can
 also try to install py3bencode manually::
 
    $ hg clone https://bitbucket.org/rsnitsch/py3bencode
-   $ python3 py3bencode/setup.py
+   $ cd py3bencode
+   $ python3 setup.py install
 
 Note that any local version of py3bencode will take precedence over the global
 version installed in your site-packages. Thus, you will have to delete the
