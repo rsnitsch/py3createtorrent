@@ -259,7 +259,7 @@ def get_files_in_directory(directory,
 
             regexp_match = False
             for regexp in excluded_regexps:
-                if regexp.search(os.path.normcase(path)):
+                if regexp.search(path):
                     printv("Skipping '%s' due to pattern exclusion." %
                            os.path.relpath(path, relative_to))
                     regexp_match = True

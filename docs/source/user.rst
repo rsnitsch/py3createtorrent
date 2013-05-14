@@ -286,7 +286,9 @@ pattern (regular expression).
 
 The switches may be used repeatedly to specify multiple exclusion patterns.
 
-The ``--exclude-pattern-ci`` variant is case-insensitive.
+*New in version 0.9.5:* The ``--exclude-pattern-ci`` variant (case-insensitive).
+On Windows, the ``--exclude-pattern`` has been made case-sensitive (previously
+it was case-insensitive on Windows and case-sensitive on UNIX etc.).
 
 Creation date (``-d``)
 ^^^^^^^^^^^^^^^^^^^^^^
