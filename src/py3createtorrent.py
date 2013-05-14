@@ -660,7 +660,6 @@ def main(argv):
     if options.name:
         options.name = options.name.strip()
 
-        import re
         regexp = re.compile("^[A-Z0-9_\-\., ]+$", re.I)
 
         if not regexp.match(options.name):
