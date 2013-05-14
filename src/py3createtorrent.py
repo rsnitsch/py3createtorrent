@@ -207,13 +207,15 @@ def get_files_in_directory(directory,
     Paths in excluded_paths are skipped. These should be os.path.normcase()-d.
     Of course, the initial directory cannot be excluded.
     Paths matching any of the regular expressions in excluded_regexps are
-    skipped, too. Do not compile the regular expressions!
+    skipped, too. The regexps must be compiled by the caller.
     In both cases, absolute paths are used for matching.
 
     The paths may be returned relative to a specific directory. By default,
     this is the initial directory itself.
 
     Please note: Only paths to files are returned!
+    
+    @param excluded_regexps: A set or frozenset of compiled regular expressions.
     """
     # Argument validation:
     if not isinstance(directory, str):
@@ -292,9 +294,6 @@ def get_files_in_directory(directory,
 
     if not relative_to:
         relative_to = directory
-
-    # Compile the regular expressions.
-    excluded_regexps = set(re.compile(regexp) for regexp in excluded_regexps)
 
     # Now do the main work.
     files = _get_files_in_directory(directory,
@@ -488,6 +487,11 @@ def main(argv):
                       dest="exclude_pattern", default=[], metavar="REGEXP",
                       help="exclude paths matching the regular expression "
                            "(can be repeated)")
+                           
+    parser.add_option("--exclude-pattern-ci", type="string", action="append",
+                      dest="exclude_pattern_ci", default=[], metavar="REGEXP",
+                      help="exclude paths matching the case-insensitive regular "
+                           "expression (can be repeated)")
 
     parser.add_option("-d", "--date", type="int", action="store",
                       dest="date", default=-1, metavar="TIMESTAMP",
@@ -553,7 +557,9 @@ def main(argv):
                                 for path in options.exclude])
 
     # Parse exclude patterns.
-    excluded_regexps = frozenset(options.exclude_pattern)
+    excluded_regexps = set(re.compile(regexp) for regexp in options.exclude_pattern)
+    excluded_regexps |= set(re.compile(regexp, re.IGNORECASE)
+                            for regexp in options.exclude_pattern_ci)
 
     # Warn the user if he attempts to exclude any paths when creating
     # a torrent for a single file (makes no sense).

@@ -13,7 +13,6 @@ Todo
 * validate tracker URLs
 * improve behaviour when detecting the need for overwriting an existing torrent
   (if the user aborts, the torrent has to be calculated again)
-* add switch to make regular expressions case insensitive
 * add switch to disable the calculation of MD5 hashes
 * isn't the comment field supposed to be multi-lined?
 * create test cases, unit tests, ...

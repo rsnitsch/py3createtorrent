@@ -170,6 +170,9 @@ Syntax::
      --exclude-pattern=REGEXP
                            exclude paths matching the regular expression (can be
                            repeated)
+     --exclude-pattern-ci=REGEXP
+                           exclude paths matching the case-insensitive regular
+                           expression (can be repeated)
      -d TIMESTAMP, --date=TIMESTAMP
                            set creation date (unix timestamp). -1 = now
                            (default). -2 = disable.
@@ -275,13 +278,15 @@ This allows for the exclusion of specific files or directories.
 
 The switch may be used repeatedly to exclude multiple files/directories.
 
-Exclude pattern (``--exclude-pattern``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Exclude pattern (``--exclude-pattern``, ``--exclude-pattern-ci``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This allows for the exclusion of files or directories that match a certain
 pattern (regular expression).
 
-The switch may be used repeatedly to specify multiple exclusion patterns.
+The switches may be used repeatedly to specify multiple exclusion patterns.
+
+The ``--exclude-pattern-ci`` variant is case-insensitive.
 
 Creation date (``-d``)
 ^^^^^^^^^^^^^^^^^^^^^^
