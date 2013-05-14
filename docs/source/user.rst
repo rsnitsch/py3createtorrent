@@ -278,6 +278,8 @@ This allows for the exclusion of specific files or directories.
 
 The switch may be used repeatedly to exclude multiple files/directories.
 
+On Windows, this is case-insensitive.
+
 Exclude pattern (``--exclude-pattern``, ``--exclude-pattern-ci``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
