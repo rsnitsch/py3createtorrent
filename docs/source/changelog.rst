@@ -1,6 +1,17 @@
 Changelog
 =========
 
+Version 0.9.5
+-------------
+
+*Work in progress!*
+
+* new: switch ``--exclude-pattern-ci`` for case-insensitive regular expressions
+  (1c68ad21c72f)
+* fixed: On Windows, the ``--exclude-pattern`` switch has not been case-sensitive
+  (f5c00b9eccbc)
+* fixed docs: installation instructions for py3bencode using ``setup.py`` (276a82e1cbc3)
+
 Version 0.9.4
 -------------
 
