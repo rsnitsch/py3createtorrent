@@ -6,6 +6,8 @@ Version 0.9.5
 
 *Work in progress!*
 
+* new: switch ``--md5`` to request MD5 hashes; they are now turned off by default,
+  resulting in a **significant performance improvement** (cb3e9ae84626)
 * new: switch ``--exclude-pattern-ci`` for case-insensitive regular expressions
   (1c68ad21c72f)
 * fixed: On Windows, the ``--exclude-pattern`` switch has not been case-sensitive
