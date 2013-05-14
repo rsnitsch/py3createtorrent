@@ -60,16 +60,16 @@ def sha1_20(data):
     m.update(data)
     return m.digest()[:20]
 
-def create_single_file_info(file, piece_length):
+def create_single_file_info(file, piece_length, include_md5=True):
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
       - name:   basename of the file
       - length: size of the file in bytes
-      - md5sum: md5sum of the file
+      - md5sum: md5sum of the file (unless disabled via include_md5)
 
     @see:   BitTorrent Metainfo Specification.
-    @note:  md5sum actually is optional
+    @note:  md5 hashes in torrents are actually optional
     """
     assert os.path.isfile(file), "not a file"
 
@@ -79,7 +79,7 @@ def create_single_file_info(file, piece_length):
     # Concatenated 20byte sha1-hashes of all the file's pieces.
     pieces = bytearray()
 
-    md5 = hashlib.md5()
+    md5 = hashlib.md5() if include_md5 else None
 
     printv("Hashing file... ", end="")
 
@@ -91,7 +91,8 @@ def create_single_file_info(file, piece_length):
             if _len == 0:
                 break
 
-            md5.update(piece_data)
+            if include_md5:
+                md5.update(piece_data)
 
             length += _len
 
@@ -105,21 +106,25 @@ def create_single_file_info(file, piece_length):
             'pieces': pieces,
             'name':   os.path.basename(file),
             'length': length,
-            'md5sum': md5.hexdigest()
+            
             }
+
+    if include_md5:
+        info['md5sum'] = md5.hexdigest()
 
     return info
 
 def create_multi_file_info(directory,
                            files,
-                           piece_length):
+                           piece_length,
+                           include_md5=True):
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
       - name:   basename of the directory (default name of all torrents)
       - files:  a list of dictionaries with the following keys:
         - length: size of the file in bytes
-        - md5sum: md5 sum of the file
+        - md5sum: md5 sum of the file (unless disabled via include_md5)
         - path:   path to the file, relative to the initial directory,
                   given as list.
                   Examples:
@@ -127,7 +132,7 @@ def create_multi_file_info(directory,
                   -> ["just_in_the_initial_directory_itself.ext"]
 
     @see:   BitTorrent Metainfo Specification.
-    @note:  md5sum actually is optional
+    @note:  md5 hashes in torrents are actually optional
     """
     assert os.path.isdir(directory), "not a directory"
 
@@ -150,7 +155,7 @@ def create_multi_file_info(directory,
         length = 0
 
         # File's md5sum.
-        md5 = hashlib.md5()
+        md5 = hashlib.md5() if include_md5 else None
 
         printv("Processing file '%s'... " % os.path.relpath(path, directory),
                end="")
@@ -170,16 +175,19 @@ def create_multi_file_info(directory,
                     info_pieces  +=  sha1_20(data[:piece_length])
                     data          =  data[piece_length:]
 
-                md5.update(filedata)
+                if include_md5:
+                    md5.update(filedata)
 
         printv("done")
 
         # Build the current file's dictionary.
         fdict = {
                 'length': length,
-                'md5sum': md5.hexdigest(),
                 'path':   split_path(file)
                 }
+
+        if include_md5:
+            fdict['md5sum'] = md5.hexdigest()
 
         info_files.append(fdict)
 
@@ -503,6 +511,10 @@ def main(argv):
                       help="use this file (or directory) name instead of the "
                            "real one")
 
+    parser.add_option("--md5", action="store_true",
+                      dest="include_md5", default=False,
+                      help="include MD5 hashes in torrent file")
+
     (options, args) = parser.parse_args(args = argv[1:])
 
     # Positional arguments must have been provided:
@@ -602,9 +614,9 @@ def main(argv):
     # Do the main work now.
     # -> prepare the metainfo dictionary.
     if os.path.isfile(node):
-        info = create_single_file_info(node, piece_length)
+        info = create_single_file_info(node, piece_length, options.include_md5)
     else:
-        info = create_multi_file_info(node, torrent_files, piece_length)
+        info = create_multi_file_info(node, torrent_files, piece_length, options.include_md5)
 
     assert len(info['pieces']) % 20 == 0, "len(pieces) not a multiple of 20"
 

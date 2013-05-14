@@ -178,6 +178,7 @@ Syntax::
                            (default). -2 = disable.
      -n NAME, --name=NAME  use this file (or directory) name instead of the real
                            one
+     --md5                 include MD5 hashes in torrent file
 
 Piece size (``-p``)
 ^^^^^^^^^^^^^^^^^^^
@@ -319,6 +320,15 @@ this name will also be used to deduce the name of the resulting .torrent file.
    what you're doing.
 
    For most intents and purposes, the ``-o`` switch is probably more suitable.
+
+MD5 hashes (``--md5``)
+^^^^^^^^^^^^^^^^^^^^^^
+
+As of py3createtorrent 0.9.5 the calculation of MD5 hashes must be explicitly
+requested, because it significantly slows down the torrent creation process (and
+makes the torrent file a little larger, although this is probably negligible).
+
+*New in 0.9.5.*
 
 Examples
 --------
