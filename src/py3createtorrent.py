@@ -564,6 +564,18 @@ def main(argv):
     # Remove duplicate trackers.
     trackers = remove_duplicates(trackers)
 
+    # Validate tracker URLs.
+    invalid_trackers = False
+    regexp = re.compile(r"^(http|https|udp)://", re.I)
+    for t in trackers:
+        if not regexp.search(t):
+            print("Warning: Not a valid tracker URL: %s" % t, file=sys.stderr)
+            invalid_trackers = True
+
+    if invalid_trackers and not options.force:
+        if "yes" != input("Some tracker URLs are invalid. Continue? yes/no: "):
+            parser.error("Aborted.")
+
     # Parse and validate excluded paths.
     excluded_paths = frozenset([os.path.normcase(os.path.abspath(path)) \
                                 for path in options.exclude])
