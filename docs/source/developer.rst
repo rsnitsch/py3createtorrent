@@ -10,7 +10,6 @@ Todo
   Extension <http://bittorrent.org/beps/bep_0012.html>`_)
 * add webseed support (`Hoffman style <http://bittorrent.org/beps/bep_0017.html>`_ &
   `GetRight style <http://bittorrent.org/beps/bep_0019.html>`_)
-* validate tracker URLs
 * improve behaviour when detecting the need for overwriting an existing torrent
   (if the user aborts, the torrent has to be calculated again)
 * isn't the comment field supposed to be multi-lined?
