@@ -39,7 +39,7 @@ ADVERTISE = True
 # do not touch anything below this line unless you know what you're doing!
 
 
-VERSION =   '0.9.5-dev'
+VERSION =   '0.9.6-dev'
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
@@ -60,16 +60,16 @@ def sha1_20(data):
     m.update(data)
     return m.digest()[:20]
 
-def create_single_file_info(file, piece_length):
+def create_single_file_info(file, piece_length, include_md5=True):
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
       - name:   basename of the file
       - length: size of the file in bytes
-      - md5sum: md5sum of the file
+      - md5sum: md5sum of the file (unless disabled via include_md5)
 
     @see:   BitTorrent Metainfo Specification.
-    @note:  md5sum actually is optional
+    @note:  md5 hashes in torrents are actually optional
     """
     assert os.path.isfile(file), "not a file"
 
@@ -79,7 +79,7 @@ def create_single_file_info(file, piece_length):
     # Concatenated 20byte sha1-hashes of all the file's pieces.
     pieces = bytearray()
 
-    md5 = hashlib.md5()
+    md5 = hashlib.md5() if include_md5 else None
 
     printv("Hashing file... ", end="")
 
@@ -91,7 +91,8 @@ def create_single_file_info(file, piece_length):
             if _len == 0:
                 break
 
-            md5.update(piece_data)
+            if include_md5:
+                md5.update(piece_data)
 
             length += _len
 
@@ -105,21 +106,25 @@ def create_single_file_info(file, piece_length):
             'pieces': pieces,
             'name':   os.path.basename(file),
             'length': length,
-            'md5sum': md5.hexdigest()
+            
             }
+
+    if include_md5:
+        info['md5sum'] = md5.hexdigest()
 
     return info
 
 def create_multi_file_info(directory,
                            files,
-                           piece_length):
+                           piece_length,
+                           include_md5=True):
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
       - name:   basename of the directory (default name of all torrents)
       - files:  a list of dictionaries with the following keys:
         - length: size of the file in bytes
-        - md5sum: md5 sum of the file
+        - md5sum: md5 sum of the file (unless disabled via include_md5)
         - path:   path to the file, relative to the initial directory,
                   given as list.
                   Examples:
@@ -127,7 +132,7 @@ def create_multi_file_info(directory,
                   -> ["just_in_the_initial_directory_itself.ext"]
 
     @see:   BitTorrent Metainfo Specification.
-    @note:  md5sum actually is optional
+    @note:  md5 hashes in torrents are actually optional
     """
     assert os.path.isdir(directory), "not a directory"
 
@@ -150,7 +155,7 @@ def create_multi_file_info(directory,
         length = 0
 
         # File's md5sum.
-        md5 = hashlib.md5()
+        md5 = hashlib.md5() if include_md5 else None
 
         printv("Processing file '%s'... " % os.path.relpath(path, directory),
                end="")
@@ -170,16 +175,19 @@ def create_multi_file_info(directory,
                     info_pieces  +=  sha1_20(data[:piece_length])
                     data          =  data[piece_length:]
 
-                md5.update(filedata)
+                if include_md5:
+                    md5.update(filedata)
 
         printv("done")
 
         # Build the current file's dictionary.
         fdict = {
                 'length': length,
-                'md5sum': md5.hexdigest(),
                 'path':   split_path(file)
                 }
+
+        if include_md5:
+            fdict['md5sum'] = md5.hexdigest()
 
         info_files.append(fdict)
 
@@ -207,13 +215,15 @@ def get_files_in_directory(directory,
     Paths in excluded_paths are skipped. These should be os.path.normcase()-d.
     Of course, the initial directory cannot be excluded.
     Paths matching any of the regular expressions in excluded_regexps are
-    skipped, too. Do not compile the regular expressions!
+    skipped, too. The regexps must be compiled by the caller.
     In both cases, absolute paths are used for matching.
 
     The paths may be returned relative to a specific directory. By default,
     this is the initial directory itself.
 
     Please note: Only paths to files are returned!
+    
+    @param excluded_regexps: A set or frozenset of compiled regular expressions.
     """
     # Argument validation:
     if not isinstance(directory, str):
@@ -257,7 +267,7 @@ def get_files_in_directory(directory,
 
             regexp_match = False
             for regexp in excluded_regexps:
-                if regexp.search(os.path.normcase(path)):
+                if regexp.search(path):
                     printv("Skipping '%s' due to pattern exclusion." %
                            os.path.relpath(path, relative_to))
                     regexp_match = True
@@ -292,9 +302,6 @@ def get_files_in_directory(directory,
 
     if not relative_to:
         relative_to = directory
-
-    # Compile the regular expressions.
-    excluded_regexps = set(re.compile(regexp) for regexp in excluded_regexps)
 
     # Now do the main work.
     files = _get_files_in_directory(directory,
@@ -488,6 +495,11 @@ def main(argv):
                       dest="exclude_pattern", default=[], metavar="REGEXP",
                       help="exclude paths matching the regular expression "
                            "(can be repeated)")
+                           
+    parser.add_option("--exclude-pattern-ci", type="string", action="append",
+                      dest="exclude_pattern_ci", default=[], metavar="REGEXP",
+                      help="exclude paths matching the case-insensitive regular "
+                           "expression (can be repeated)")
 
     parser.add_option("-d", "--date", type="int", action="store",
                       dest="date", default=-1, metavar="TIMESTAMP",
@@ -498,6 +510,10 @@ def main(argv):
                       dest="name", default=None,
                       help="use this file (or directory) name instead of the "
                            "real one")
+
+    parser.add_option("--md5", action="store_true",
+                      dest="include_md5", default=False,
+                      help="include MD5 hashes in torrent file")
 
     (options, args) = parser.parse_args(args = argv[1:])
 
@@ -548,12 +564,26 @@ def main(argv):
     # Remove duplicate trackers.
     trackers = remove_duplicates(trackers)
 
+    # Validate tracker URLs.
+    invalid_trackers = False
+    regexp = re.compile(r"^(http|https|udp)://", re.I)
+    for t in trackers:
+        if not regexp.search(t):
+            print("Warning: Not a valid tracker URL: %s" % t, file=sys.stderr)
+            invalid_trackers = True
+
+    if invalid_trackers and not options.force:
+        if "yes" != input("Some tracker URLs are invalid. Continue? yes/no: "):
+            parser.error("Aborted.")
+
     # Parse and validate excluded paths.
     excluded_paths = frozenset([os.path.normcase(os.path.abspath(path)) \
                                 for path in options.exclude])
 
     # Parse exclude patterns.
-    excluded_regexps = frozenset(options.exclude_pattern)
+    excluded_regexps = set(re.compile(regexp) for regexp in options.exclude_pattern)
+    excluded_regexps |= set(re.compile(regexp, re.IGNORECASE)
+                            for regexp in options.exclude_pattern_ci)
 
     # Warn the user if he attempts to exclude any paths when creating
     # a torrent for a single file (makes no sense).
@@ -596,9 +626,9 @@ def main(argv):
     # Do the main work now.
     # -> prepare the metainfo dictionary.
     if os.path.isfile(node):
-        info = create_single_file_info(node, piece_length)
+        info = create_single_file_info(node, piece_length, options.include_md5)
     else:
-        info = create_multi_file_info(node, torrent_files, piece_length)
+        info = create_multi_file_info(node, torrent_files, piece_length, options.include_md5)
 
     assert len(info['pieces']) % 20 == 0, "len(pieces) not a multiple of 20"
 
@@ -660,7 +690,6 @@ def main(argv):
     if options.name:
         options.name = options.name.strip()
 
-        import re
         regexp = re.compile("^[A-Z0-9_\-\., ]+$", re.I)
 
         if not regexp.match(options.name):

@@ -60,7 +60,8 @@ If you don't have pip around (although I strongly recommend using it) you can
 also try to install py3bencode manually::
 
    $ hg clone https://bitbucket.org/rsnitsch/py3bencode
-   $ python3 py3bencode/setup.py
+   $ cd py3bencode
+   $ python3 setup.py install
 
 Note that any local version of py3bencode will take precedence over the global
 version installed in your site-packages. Thus, you will have to delete the
@@ -169,11 +170,15 @@ Syntax::
      --exclude-pattern=REGEXP
                            exclude paths matching the regular expression (can be
                            repeated)
+     --exclude-pattern-ci=REGEXP
+                           exclude paths matching the case-insensitive regular
+                           expression (can be repeated)
      -d TIMESTAMP, --date=TIMESTAMP
                            set creation date (unix timestamp). -1 = now
                            (default). -2 = disable.
      -n NAME, --name=NAME  use this file (or directory) name instead of the real
                            one
+     --md5                 include MD5 hashes in torrent file
 
 Piece size (``-p``)
 ^^^^^^^^^^^^^^^^^^^
@@ -274,13 +279,19 @@ This allows for the exclusion of specific files or directories.
 
 The switch may be used repeatedly to exclude multiple files/directories.
 
-Exclude pattern (``--exclude-pattern``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+On Windows, this is case-insensitive.
+
+Exclude pattern (``--exclude-pattern``, ``--exclude-pattern-ci``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This allows for the exclusion of files or directories that match a certain
 pattern (regular expression).
 
-The switch may be used repeatedly to specify multiple exclusion patterns.
+The switches may be used repeatedly to specify multiple exclusion patterns.
+
+*New in version 0.9.5:* The ``--exclude-pattern-ci`` variant (case-insensitive).
+On Windows, the ``--exclude-pattern`` has been made case-sensitive (previously
+it was case-insensitive on Windows and case-sensitive on UNIX etc.).
 
 Creation date (``-d``)
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -309,6 +320,15 @@ this name will also be used to deduce the name of the resulting .torrent file.
    what you're doing.
 
    For most intents and purposes, the ``-o`` switch is probably more suitable.
+
+MD5 hashes (``--md5``)
+^^^^^^^^^^^^^^^^^^^^^^
+
+As of py3createtorrent 0.9.5 the calculation of MD5 hashes must be explicitly
+requested, because it significantly slows down the torrent creation process (and
+makes the torrent file a little larger, although this is probably negligible).
+
+*New in 0.9.5.*
 
 Examples
 --------
