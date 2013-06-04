@@ -4,7 +4,7 @@ Changelog
 Version 0.9.5
 -------------
 
-*Work in progress!*
+*Release date: 2013/06/04*
 
 * new: switch ``--md5`` to request MD5 hashes; they are now turned off by default,
   resulting in a **significant performance improvement** (af745c8581de)
