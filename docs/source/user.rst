@@ -73,21 +73,13 @@ the global version to be used.
 Configuration
 -------------
 
-There is a small configuration section in the script, starting at line 25::
+There is a small configuration section in the script (at the top):
 
-   # #############
-   # CONFIGURATION
-
-   # configure your tracker abbreviations here
-   TRACKER_ABBR = {'openbt':       'udp://tracker.openbittorrent.com:80/announce',
-                   'publicbt':     'udp://tracker.publicbt.com:80/announce'}
-
-   # whether or not py3createtorrent is allowed to advertise itself
-   # through the torrents' comment fields
-   ADVERTISE = True
-
-   # /CONFIGURATION
-   # ##############
+.. literalinclude:: ../../src/py3createtorrent.py
+   :start-after: # #############
+   :end-before: # ##############
+   :prepend: # #############
+   :append: # ##############
 
 Tracker abbreviations
 ^^^^^^^^^^^^^^^^^^^^^
