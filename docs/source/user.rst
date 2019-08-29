@@ -29,13 +29,13 @@ py3createtorrent is intended to fill this gap.
 Requirements
 ------------
 
-py3createtorrent requires at least Python 3.1 and the `py3bencode <https://bitbucket.org/rsnitsch/py3bencode>`_ module.
+py3createtorrent requires at least Python 3.1 and the `py3bencode <https://github.com/rsnitsch/py3bencode>`_ module.
 
 Installation
 ------------
 
 Download the desired version from here:
-https://bitbucket.org/rsnitsch/py3createtorrent/downloads
+https://github.com/rsnitsch/py3createtorrent/releases
 
 The required py3bencode module is shipped alongside py3createtorrent. As long
 as you extract py3bencode into the same directory as the py3createtorrent script,
@@ -51,7 +51,7 @@ Python installation.
 You can use `pip <http://www.pip-installer.org/>`_ to install the py3bencode
 module in your Python installation (in the site-packages, to be precise)::
 
-   pip install hg+https://bitbucket.org/rsnitsch/py3bencode
+   pip install git+https://github.com/rsnitsch/py3bencode
 
 Make sure to use the pip executable that belongs to the Python interpreter
 with which you will execute py3createtorrent.
@@ -59,7 +59,7 @@ with which you will execute py3createtorrent.
 If you don't have pip around (although I strongly recommend using it) you can
 also try to install py3bencode manually::
 
-   $ hg clone https://bitbucket.org/rsnitsch/py3bencode
+   $ git clone https://github.com/rsnitsch/py3bencode
    $ cd py3bencode
    $ python3 setup.py install
 
