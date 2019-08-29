@@ -15,7 +15,23 @@ import re
 import sys
 import time
 
-from py3bencode import bencode
+try:
+    from py3bencode import bencode
+except ImportError as exc:
+    print("ERROR:")
+    print("""py3bencode module could not be imported.
+
+Please install the py3bencode module using
+
+    pip install git+https://github.com/rsnitsch/py3bencode
+
+or refer to the documentation on how to install it:
+https://py3createtorrent.readthedocs.io/en/latest/""")
+    print()
+    print()
+    print("-"*40)
+    print()
+    raise
 
 __all__ = ['calculate_piece_length',
            'get_files_in_directory',
