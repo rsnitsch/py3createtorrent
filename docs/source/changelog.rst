@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.9.6
+-------------
+
+*Release date: 2019/08/29*
+
+* new: exit gracefully if py3bencode module could not be imported and show
+  instructions on how to fix this
+* docs: Updated docs after migration from Mercurial/Bitbucket.org to Git/Github.com
+
 Version 0.9.5
 -------------
 
