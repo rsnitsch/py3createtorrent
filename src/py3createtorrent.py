@@ -486,6 +486,10 @@ def main(argv):
                       dest="comment", default=False,
                       help="include comment")
 
+    parser.add_option("-s", "--source", type="string", action="store",
+                      dest="source", default=False,
+                      help="include source")
+
     parser.add_option("-f", "--force", action="store_true",
                       dest="force", default=False,
                       help="dont ask anything, just do it")
