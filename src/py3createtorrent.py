@@ -670,6 +670,18 @@ def main(argv):
     if options.private:
         info['private'] = 1
 
+    # re-use the name regex for source
+    if options.source:
+        options.source = options.source.strip()
+
+        regexp = re.compile("^[A-Z0-9_\-\., ]+$", re.I)
+
+        if not regexp.match(options.source):
+            parser.error("Invalid source: '%s'. Allowed chars: A_Z, a-z, 0-9, "
+                         "any of {.,_-} plus spaces." % options.source)
+
+        info['source'] = options.source
+
     # Construct outer metainfo dict, which contains the torrent's whole
     # information.
     metainfo =  {
