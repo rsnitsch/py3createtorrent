@@ -151,6 +151,8 @@ Syntax::
      -P, --private         create private torrent
      -c COMMENT, --comment=COMMENT
                            include comment
+     -s SOURCE, --source=SOURCE
+	                       include torrent source
      -f, --force           dont ask anything, just do it
      -v, --verbose         verbose mode
      -q, --quiet           be quiet, e.g. don't print summary
