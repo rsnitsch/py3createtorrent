@@ -670,7 +670,7 @@ def main(argv):
     if options.private:
         info['private'] = 1
 
-    # re-use the name regex for source
+    # Re-use the name regex for source parameter.
     if options.source:
         options.source = options.source.strip()
 
