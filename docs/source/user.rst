@@ -1,4 +1,4 @@
-py3createtorrent
+﻿py3createtorrent
 ================
 
 *Create torrents via command line!*
@@ -233,6 +233,15 @@ BitTorrent clients in the torrent info.
 
 By default py3createtorrent uses "created by py3createtorrent <version>" as
 comment (to change this behavior, consult the :ref:`configuration` section).
+
+Source (``-s``)
+^^^^^^^^^^^^^^^
+
+The source field is a non-standard metainfo field used by private trackers to
+reduce issues (such as misreported stats) caused by cross-seeding.  For
+private trackers that forbid their torrent files from being uploaded elsewhere,
+it ensures that torrent files uploaded to the tracker from a different source
+are unique to the private tracker.
 
 Force (``-f``)
 ^^^^^^^^^^^^^^
