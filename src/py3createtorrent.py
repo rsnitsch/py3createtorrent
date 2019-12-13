@@ -486,6 +486,10 @@ def main(argv):
                       dest="comment", default=False,
                       help="include comment")
 
+    parser.add_option("-s", "--source", type="string", action="store",
+                      dest="source", default=False,
+                      help="include source")
+
     parser.add_option("-f", "--force", action="store_true",
                       dest="force", default=False,
                       help="dont ask anything, just do it")
@@ -665,6 +669,18 @@ def main(argv):
 
     if options.private:
         info['private'] = 1
+
+    # Re-use the name regex for source parameter.
+    if options.source:
+        options.source = options.source.strip()
+
+        regexp = re.compile("^[A-Z0-9_\-\., ]+$", re.I)
+
+        if not regexp.match(options.source):
+            parser.error("Invalid source: '%s'. Allowed chars: A_Z, a-z, 0-9, "
+                         "any of {.,_-} plus spaces." % options.source)
+
+        info['source'] = options.source
 
     # Construct outer metainfo dict, which contains the torrent's whole
     # information.
