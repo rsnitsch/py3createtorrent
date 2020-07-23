@@ -2,7 +2,7 @@
 """
 Create torrents via command line!
 
-Copyright (C) 2010-2013 Robert Nitsch
+Copyright (C) 2010-2020 Robert Nitsch
 Licensed according to GPL v3.
 """
 
@@ -55,7 +55,7 @@ ADVERTISE = True
 # do not touch anything below this line unless you know what you're doing!
 
 
-VERSION =   '0.9.6'
+VERSION =   '0.9.7'
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes

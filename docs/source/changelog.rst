@@ -1,6 +1,18 @@
 Changelog
 =========
 
+Version 0.9.7
+-------------
+
+*Release date: 2020/07/23*
+
+* new: switch ``--source`` to include a metainfo field 'source', which is required
+  by some private trackers (contributed by cpurules)
+* changed: slightly improved docs on ``--date`` switch (now mentions the special
+  value -2 for disabling the date field altogether)
+* changed:  slightly improve handling of negative timestamp values for
+  ``--date`` switch
+
 Version 0.9.6
 -------------
 
