@@ -122,7 +122,7 @@ def create_single_file_info(file, piece_length, include_md5=True):
             'pieces': pieces,
             'name':   os.path.basename(file),
             'length': length,
-            
+
             }
 
     if include_md5:
@@ -238,7 +238,7 @@ def get_files_in_directory(directory,
     this is the initial directory itself.
 
     Please note: Only paths to files are returned!
-    
+
     @param excluded_regexps: A set or frozenset of compiled regular expressions.
     """
     # Argument validation:
@@ -515,7 +515,7 @@ def main(argv):
                       dest="exclude_pattern", default=[], metavar="REGEXP",
                       help="exclude paths matching the regular expression "
                            "(can be repeated)")
-                           
+
     parser.add_option("--exclude-pattern-ci", type="string", action="append",
                       dest="exclude_pattern_ci", default=[], metavar="REGEXP",
                       help="exclude paths matching the case-insensitive regular "

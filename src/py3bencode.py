@@ -382,4 +382,3 @@ if __name__ == '__main__':
                 bdecode(b"l12:normalstring-5:badstringe")
 
     unittest.main(testRunner=unittest.TextTestRunner(verbosity=2), exit=False)
-
