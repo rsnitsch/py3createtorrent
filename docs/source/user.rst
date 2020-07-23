@@ -27,7 +27,7 @@ py3createtorrent is intended to fill this gap.
 Requirements
 ------------
 
-py3createtorrent requires at least Python 3.2 and the `py3bencode <https://github.com/rsnitsch/py3bencode>`_ module.
+py3createtorrent requires at least Python 3.5 and the `py3bencode <https://github.com/rsnitsch/py3bencode>`_ module.
 
 Installation
 ------------

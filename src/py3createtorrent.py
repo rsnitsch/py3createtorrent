@@ -14,6 +14,7 @@ import os
 import re
 import sys
 import time
+from typing import Any, Dict, List, Optional, Pattern, Set, Union
 
 try:
     from py3bencode import bencode
@@ -60,20 +61,20 @@ MIB = KIB * KIB
 VERBOSE = False
 
 
-def printv(*args, **kwargs):
+def printv(*args: Any, **kwargs: Any) -> None:
     """If VERBOSE is True, act as an alias for print. Else do nothing."""
     if VERBOSE:
         print(*args, **kwargs)
 
 
-def sha1_20(data):
+def sha1_20(data: bytes) -> bytes:
     """Return the first 20 bytes of the given data's SHA-1 hash."""
     m = hashlib.sha1()
     m.update(data)
     return m.digest()[:20]
 
 
-def create_single_file_info(file, piece_length, include_md5=True):
+def create_single_file_info(file: str, piece_length: int, include_md5: bool = True) -> Dict:
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
@@ -92,7 +93,8 @@ def create_single_file_info(file, piece_length, include_md5=True):
     # Concatenated 20byte sha1-hashes of all the file's pieces.
     pieces = bytearray()
 
-    md5 = hashlib.md5() if include_md5 else None
+    if include_md5:
+        md5 = hashlib.md5()
 
     printv("Hashing file... ", end="")
 
@@ -127,7 +129,7 @@ def create_single_file_info(file, piece_length, include_md5=True):
     return info
 
 
-def create_multi_file_info(directory, files, piece_length, include_md5=True):
+def create_multi_file_info(directory: str, files: List[str], piece_length: int, include_md5: bool = True) -> Dict:
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
@@ -164,7 +166,8 @@ def create_multi_file_info(directory, files, piece_length, include_md5=True):
         length = 0
 
         # File's md5sum.
-        md5 = hashlib.md5() if include_md5 else None
+        if include_md5:
+            md5 = hashlib.md5()
 
         printv("Processing file '%s'... " % os.path.relpath(path, directory), end="")
 
@@ -206,7 +209,10 @@ def create_multi_file_info(directory, files, piece_length, include_md5=True):
     return info
 
 
-def get_files_in_directory(directory, excluded_paths=set(), relative_to=None, excluded_regexps=set()):
+def get_files_in_directory(directory: str,
+                           excluded_paths: Set[str] = set(),
+                           relative_to: Optional[str] = None,
+                           excluded_regexps: Set[Pattern[str]] = set()) -> List[str]:
     """
     Return a list containing the paths to all files in the given directory.
 
@@ -221,14 +227,14 @@ def get_files_in_directory(directory, excluded_paths=set(), relative_to=None, ex
 
     Please note: Only paths to files are returned!
 
-    @param excluded_regexps: A set or frozenset of compiled regular expressions.
+    @param excluded_regexps: A set of compiled regular expressions.
     """
     # Argument validation:
     if not isinstance(directory, str):
         raise TypeError("directory must be instance of: str")
 
-    if not isinstance(excluded_paths, (set, frozenset)):
-        raise TypeError("excluded_paths must be instance of: set or frozenset")
+    if not isinstance(excluded_paths, set):
+        raise TypeError("excluded_paths must be instance of: set")
 
     if relative_to is not None:
         if not isinstance(relative_to, str):
@@ -237,16 +243,16 @@ def get_files_in_directory(directory, excluded_paths=set(), relative_to=None, ex
         if not os.path.isdir(relative_to):
             raise ValueError("relative_to: '%s' is not a valid directory" % (relative_to))
 
-    if not isinstance(excluded_regexps, (set, frozenset)):
-        raise TypeError("excluded_regexps must be instance of: set or frozenset")
+    if not isinstance(excluded_regexps, set):
+        raise TypeError("excluded_regexps must be instance of: set")
 
     # Helper function:
-    def _get_files_in_directory(directory,
-                                files,
-                                excluded_paths=set(),
-                                relative_to=None,
-                                excluded_regexps=set(),
-                                processed_paths=set()):
+    def _get_files_in_directory(directory: str,
+                                files: List[str],
+                                excluded_paths: Set[str] = set(),
+                                relative_to: Optional[str] = None,
+                                excluded_regexps: Set[Pattern[str]] = set(),
+                                processed_paths: Set[str] = set()):
         # Improve consistency across platforms.
         # Note:
         listdir = os.listdir(directory)
@@ -309,7 +315,7 @@ def get_files_in_directory(directory, excluded_paths=set(), relative_to=None, ex
     return files
 
 
-def split_path(path):
+def split_path(path: str):
     """
     Return a list containing all of a path's components.
 
@@ -321,7 +327,7 @@ def split_path(path):
     if not isinstance(path, str):
         raise TypeError("path must be instance of: str")
 
-    parts = []
+    parts: List[str] = []
 
     path = os.path.normpath(path)
 
@@ -334,7 +340,7 @@ def split_path(path):
     return parts
 
 
-def remove_duplicates(old_list):
+def remove_duplicates(old_list: List) -> List:
     """
     Remove any duplicates in old_list, preserving the order of its elements.
 
@@ -353,7 +359,7 @@ def remove_duplicates(old_list):
     return new_list
 
 
-def replace_in_list(old_list, replacements):
+def replace_in_list(old_list: List, replacements: Dict) -> List:
     """
     Replace specific items in a list.
 
@@ -388,7 +394,7 @@ def replace_in_list(old_list, replacements):
     return new_list
 
 
-def calculate_piece_length(size):
+def calculate_piece_length(size: int) -> int:
     """
     Calculate a reasonable piece length for the given torrent size.
 
@@ -416,7 +422,7 @@ def calculate_piece_length(size):
         piece_length *= 2
 
     while size / piece_length < 8:
-        piece_length /= 2
+        piece_length //= 2
 
     # Ensure that: 16 KIB <= piece_length <= 1 * MIB
     piece_length = max(min(piece_length, 1 * MIB), 16 * KIB)
@@ -424,7 +430,7 @@ def calculate_piece_length(size):
     return int(piece_length)
 
 
-def main(argv):
+def main(argv) -> int:
     # Validate the configuration.
     for abbr, replacement in TRACKER_ABBR.items():
         if not isinstance(abbr, str):
@@ -585,8 +591,8 @@ def main(argv):
     #   - length and md5sum (if single file)
     #   - name (may be overwritten in the next section by the --name option)
 
-    node = args.path
-    trackers = args.tracker
+    node: str = args.path
+    trackers: List[str] = args.tracker
 
     # Validate the given path.
     if not os.path.isfile(node) and not os.path.isdir(node):
@@ -611,7 +617,7 @@ def main(argv):
             parser.error("Aborted.")
 
     # Parse and validate excluded paths.
-    excluded_paths = frozenset([os.path.normcase(os.path.abspath(path)) \
+    excluded_paths = set([os.path.normcase(os.path.abspath(path)) \
                                 for path in args.exclude])
 
     # Parse exclude patterns.
