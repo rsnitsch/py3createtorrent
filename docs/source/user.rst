@@ -243,6 +243,8 @@ private trackers that forbid their torrent files from being uploaded elsewhere,
 it ensures that torrent files uploaded to the tracker from a different source
 are unique to the private tracker.
 
+*New in 0.9.7.*
+
 Force (``-f``)
 ^^^^^^^^^^^^^^
 
