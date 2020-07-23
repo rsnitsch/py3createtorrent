@@ -561,15 +561,13 @@ def main(argv):
     # Ask the user if he really wants to use uncommon piece lengths.
     # (Unless the force option has been set.)
     if not args.force and 0 < args.piece_length < 16:
-        if "yes" != input("It is strongly recommended to use a piece length "
-                          "greater or equal than 16 KiB! Do you really want "
-                          "to continue? yes/no: "):
+        if "yes" != input("It is strongly recommended to use a piece length greater or equal than 16 KiB! Do you "
+                          "really want to continue? yes/no: "):
             parser.error("Aborted.")
 
     if not args.force and args.piece_length > 1024:
-        if "yes" != input("It is strongly recommended to use a maximum piece "
-                          "length of 1024 KiB! Do you really want to "
-                          "continue? yes/no: "):
+        if "yes" != input("It is strongly recommended to use a maximum piece length of 1024 KiB! Do you really "
+                          "want to continue? yes/no: "):
             parser.error("Aborted.")
 
     # Verbose and quiet options may not be used together.
@@ -623,7 +621,7 @@ def main(argv):
     # Warn the user if he attempts to exclude any paths when creating a torrent for a single file (makes no sense).
     if os.path.isfile(node) and (len(excluded_paths) > 0 or \
        len(excluded_regexps) > 0):
-        print("Warning: Excluding paths is not possible when creating a " "torrent for a single file.", file=sys.stderr)
+        print("Warning: Excluding paths is not possible when creating a torrent for a single file.", file=sys.stderr)
 
     # Warn the user if he attempts to exclude a specific path, that does not even exist.
     for path in excluded_paths:
@@ -685,8 +683,7 @@ def main(argv):
         regexp = re.compile("^[A-Z0-9_\-\., ]+$", re.I)
 
         if not regexp.match(args.source):
-            parser.error("Invalid source: '%s'. Allowed chars: A_Z, a-z, 0-9, "
-                         "any of {.,_-} plus spaces." % args.source)
+            parser.error("Invalid source: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-} plus spaces." % args.source)
 
         info['source'] = args.source
 
@@ -709,9 +706,8 @@ def main(argv):
         # use specified timestamp directly
         metainfo['creation date'] = args.date
     elif args.date < -2:
-        parser.error("Invalid date: Negative timestamp values are not possible "
-                     "(except for -1 to use current date automatically or -2 to"
-                     " disable storing a creation date altogether).")
+        parser.error("Invalid date: Negative timestamp values are not possible (except for -1 to use current date "
+                     "automatically or -2 to disable storing a creation date altogether).")
 
     # Add the "created by" field.
     metainfo['created by'] = 'py3createtorrent v%s' % VERSION
@@ -732,7 +728,7 @@ def main(argv):
         regexp = re.compile("^[A-Z0-9_\-\., ]+$", re.I)
 
         if not regexp.match(args.name):
-            parser.error("Invalid name: '%s'. Allowed chars: A_Z, a-z, 0-9, " "any of {.,_-} plus spaces." % args.name)
+            parser.error("Invalid name: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-} plus spaces." % args.name)
 
         metainfo['info']['name'] = args.name
 
@@ -755,7 +751,7 @@ def main(argv):
             output_path = os.path.join(args.output, metainfo['info']['name'] + ".torrent")
             if os.path.isfile(output_path):
                 if not args.force and os.path.exists(output_path):
-                    if "yes" != input("'%s' does already exist. Overwrite? " "yes/no: " % output_path):
+                    if "yes" != input("'%s' does already exist. Overwrite? yes/no: " % output_path):
                         parser.error("Aborted.")
 
         # The user specified a filename:
@@ -763,7 +759,7 @@ def main(argv):
             # Is there already a file with this path? -> overwrite?!
             if os.path.isfile(args.output):
                 if not args.force and os.path.exists(args.output):
-                    if "yes" != input("'%s' does already exist. Overwrite? " "yes/no: " % args.output):
+                    if "yes" != input("'%s' does already exist. Overwrite? yes/no: " % args.output):
                         parser.error("Aborted.")
 
             output_path = args.output
@@ -774,7 +770,7 @@ def main(argv):
             fh.write(bencode(metainfo))
     except IOError as exc:
         print("IOError: " + str(exc), file=sys.stderr)
-        print("Could not write the torrent file. Check torrent name and your " "privileges.", file=sys.stderr)
+        print("Could not write the torrent file. Check torrent name and your privileges.", file=sys.stderr)
         print("Absolute output path: '%s'" % os.path.abspath(output_path), file=sys.stderr)
         return 1
     except KeyboardInterrupt:
