@@ -2,7 +2,7 @@
 """
 Create torrents via command line!
 
-Copyright (C) 2010-2013 Robert Nitsch
+Copyright (C) 2010-2020 Robert Nitsch
 Licensed according to GPL v3.
 """
 
@@ -55,7 +55,7 @@ ADVERTISE = True
 # do not touch anything below this line unless you know what you're doing!
 
 
-VERSION =   '0.9.6'
+VERSION =   '0.9.7'
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
@@ -486,6 +486,10 @@ def main(argv):
                       dest="comment", default=False,
                       help="include comment")
 
+    parser.add_option("-s", "--source", type="string", action="store",
+                      dest="source", default=False,
+                      help="include source")
+
     parser.add_option("-f", "--force", action="store_true",
                       dest="force", default=False,
                       help="dont ask anything, just do it")
@@ -666,6 +670,18 @@ def main(argv):
     if options.private:
         info['private'] = 1
 
+    # Re-use the name regex for source parameter.
+    if options.source:
+        options.source = options.source.strip()
+
+        regexp = re.compile("^[A-Z0-9_\-\., ]+$", re.I)
+
+        if not regexp.match(options.source):
+            parser.error("Invalid source: '%s'. Allowed chars: A_Z, a-z, 0-9, "
+                         "any of {.,_-} plus spaces." % options.source)
+
+        info['source'] = options.source
+
     # Construct outer metainfo dict, which contains the torrent's whole
     # information.
     metainfo =  {
@@ -686,6 +702,10 @@ def main(argv):
     elif options.date >= 0:
         # use specified timestamp directly
         metainfo['creation date'] = options.date
+    elif options.date < -2:
+        parser.error("Invalid date: Negative timestamp values are not possible "
+                     "(except for -1 to use current date automatically or -2 to"
+                     " disable storing a creation date altogether).")
 
     # Add the "created by" field.
     metainfo['created by'] = 'py3createtorrent v%s' % VERSION
