@@ -305,6 +305,9 @@ file. You can fake any creation date you like.
 The creation date is specified as `UNIX timestamp
 <https://en.wikipedia.org/wiki/Unix_time>`_.
 
+You can disable storing a creation date altogether by providing a timestamp
+of -2.
+
 Name (``-n``)
 ^^^^^^^^^^^^^
 

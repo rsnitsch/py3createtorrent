@@ -702,6 +702,10 @@ def main(argv):
     elif options.date >= 0:
         # use specified timestamp directly
         metainfo['creation date'] = options.date
+    elif options.date < -2:
+        parser.error("Invalid date: Negative timestamp values are not possible "
+                     "(except for -1 to use current date automatically or -2 to"
+                     " disable storing a creation date altogether).")
 
     # Add the "created by" field.
     metainfo['created by'] = 'py3createtorrent v%s' % VERSION
