@@ -38,17 +38,16 @@ __all__ = ['calculate_piece_length', 'get_files_in_directory', 'sha1_20', 'split
 # #############
 # CONFIGURATION
 
-# configure your tracker abbreviations here
+# Configure your tracker abbreviations here.
 TRACKER_ABBR = {'openbt': 'udp://tracker.openbittorrent.com:80', 'publicbt': 'udp://tracker.publicbt.com:80'}
 
-# whether or not py3createtorrent is allowed to advertise itself
-# through the torrents' comment fields
+# Whether or not py3createtorrent is allowed to advertise itself through the torrents' comment fields.
 ADVERTISE = True
 
 # /CONFIGURATION
 # ##############
 
-# do not touch anything below this line unless you know what you're doing!
+# Do not touch anything below this line unless you know what you're doing!
 
 VERSION = '0.9.7'
 
@@ -154,9 +153,8 @@ def create_multi_file_info(directory, files, piece_length, include_md5=True):
     info_files = []
 
     # This bytearray will be used for the calculation of info_pieces.
-    # At some point, every file's data will be written into data. Consecutive
-    # files will be written into data as a continuous stream, as required
-    # by info_pieces' BitTorrent specification.
+    # At some point, every file's data will be written into data. Consecutive files will be written into data as a
+    # continuous stream, as required by info_pieces' BitTorrent specification.
     data = bytearray()
 
     for file in files:
@@ -198,8 +196,7 @@ def create_multi_file_info(directory, files, piece_length, include_md5=True):
 
         info_files.append(fdict)
 
-    # Don't forget to hash the last piece.
-    # (Probably the piece that has not reached the regular piece size.)
+    # Don't forget to hash the last piece. (Probably the piece that has not reached the regular piece size.)
     if len(data) > 0:
         info_pieces += sha1_20(data)
 
@@ -339,11 +336,9 @@ def split_path(path):
 
 def remove_duplicates(old_list):
     """
-    Remove any duplicates in old_list, preserving the order of its
-    elements.
+    Remove any duplicates in old_list, preserving the order of its elements.
 
-    Thus, for all duplicate entries only the first entry is kept in
-    the list.
+    Thus, for all duplicate entries only the first entry is kept in the list.
     """
     new_list = list()
     added_items = set()
@@ -362,9 +357,8 @@ def replace_in_list(old_list, replacements):
     """
     Replace specific items in a list.
 
-    Note that one element may be replaced by multiple new elements.
-    However, this also makes it impossible to replace an item with a
-    list.
+    Note that one element may be replaced by multiple new elements. However, this also makes it impossible to
+    replace an item with a list.
 
     Example given:
     >>> replace_in_list(['dont',
@@ -635,14 +629,12 @@ def main(argv):
     excluded_regexps = set(re.compile(regexp) for regexp in options.exclude_pattern)
     excluded_regexps |= set(re.compile(regexp, re.IGNORECASE) for regexp in options.exclude_pattern_ci)
 
-    # Warn the user if he attempts to exclude any paths when creating
-    # a torrent for a single file (makes no sense).
+    # Warn the user if he attempts to exclude any paths when creating a torrent for a single file (makes no sense).
     if os.path.isfile(node) and (len(excluded_paths) > 0 or \
        len(excluded_regexps) > 0):
         print("Warning: Excluding paths is not possible when creating a " "torrent for a single file.", file=sys.stderr)
 
-    # Warn the user if he attempts to exclude a specific path, that does not
-    # even exist.
+    # Warn the user if he attempts to exclude a specific path, that does not even exist.
     for path in excluded_paths:
         if not os.path.exists(path):
             print("Warning: You're excluding a path that does not exist: '%s'" % path, file=sys.stderr)
@@ -707,8 +699,7 @@ def main(argv):
 
         info['source'] = options.source
 
-    # Construct outer metainfo dict, which contains the torrent's whole
-    # information.
+    # Construct outer metainfo dict, which contains the torrent's whole information.
     metainfo = {
         'info': info,
         'announce': trackers[0],
@@ -719,8 +710,7 @@ def main(argv):
         metainfo['announce-list'] = [[tracker] for tracker in trackers]
 
     # Set "creation date".
-    # The user may specify a custom creation date. He may also decide not
-    # to include the creation date field at all.
+    # The user may specify a custom creation date. He may also decide not to include the creation date field at all.
     if options.date == -1:
         # use current time
         metainfo['creation date'] = int(time.time())
@@ -735,10 +725,8 @@ def main(argv):
     # Add the "created by" field.
     metainfo['created by'] = 'py3createtorrent v%s' % VERSION
 
-    # Add user's comment or advertise py3createtorrent (unless this behaviour
-    # has been disabled by the user).
-    # The user may also decide not to include the comment field at all
-    # by specifying an empty comment.
+    # Add user's comment or advertise py3createtorrent (unless this behaviour has been disabled by the user).
+    # The user may also decide not to include the comment field at all by specifying an empty comment.
     if isinstance(options.comment, str):
         if len(options.comment) > 0:
             metainfo['comment'] = options.comment
@@ -746,8 +734,7 @@ def main(argv):
         metainfo['comment'] = "created with " + metainfo['created by']
 
     # Add the name field.
-    # By default this is the name of directory or file the torrent
-    # is being created for.
+    # By default this is the name of directory or file the torrent is being created for.
     if options.name:
         options.name = options.name.strip()
 
@@ -810,8 +797,7 @@ def main(argv):
     # PREPARE AND PRINT SUMMARY
     # - but check quiet option
 
-    # If the quiet option has been set, we're already finished here,
-    # because we don't print a summary in this case.
+    # If the quiet option has been set, we're already finished here, because we don't print a summary in this case.
     if options.quiet:
         return 0
 
