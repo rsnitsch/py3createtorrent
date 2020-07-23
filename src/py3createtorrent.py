@@ -6,10 +6,10 @@ Copyright (C) 2010-2020 Robert Nitsch
 Licensed according to GPL v3.
 """
 
+import argparse
 import datetime
 import hashlib
 import math
-import optparse
 import os
 import re
 import sys
@@ -440,153 +440,144 @@ def main(argv):
 
     # Create OptionParser.
     kwargs = {
-        'usage': "%prog [options] <file-or-directory> <main-tracker-url> "
-        "[<backup-tracker-url> ...]",
-        'version': "%%prog v%s" % VERSION,
-        'description': "py3createtorrent is a comprehensive command line utility for "
-        "creating torrents."
+        #'usage': "%(prog)s [options] <file-or-directory> <main-tracker-url> "
+        #"[<backup-tracker-url> ...]",
+        'description': "py3createtorrent is a comprehensive command line utility for creating torrents."
     }
 
-    parser = optparse.OptionParser(**kwargs)
+    parser = argparse.ArgumentParser(**kwargs)
 
     # Add options to the OptionParser.
     # Note: Commonly used options are added first.
-    parser.add_option("-p",
-                      "--piece-length",
-                      type="int",
-                      action="store",
-                      dest="piece_length",
-                      default=0,
-                      help="piece size in KiB. 0 = automatic selection (default).")
+    parser.add_argument("-p",
+                        "--piece-length",
+                        type=int,
+                        action="store",
+                        dest="piece_length",
+                        default=0,
+                        help="piece size in KiB. 0 = automatic selection (default).")
 
-    parser.add_option("-P",
-                      "--private",
-                      action="store_true",
-                      dest="private",
-                      default=False,
-                      help="create private torrent")
+    parser.add_argument("-P",
+                        "--private",
+                        action="store_true",
+                        dest="private",
+                        default=False,
+                        help="create private torrent")
 
-    parser.add_option("-c",
-                      "--comment",
-                      type="string",
-                      action="store",
-                      dest="comment",
-                      default=False,
-                      help="include comment")
+    parser.add_argument("-c",
+                        "--comment",
+                        type=str,
+                        action="store",
+                        dest="comment",
+                        default=False,
+                        help="include comment")
 
-    parser.add_option("-s",
-                      "--source",
-                      type="string",
-                      action="store",
-                      dest="source",
-                      default=False,
-                      help="include source")
+    parser.add_argument("-s", "--source", type=str, action="store", dest="source", default=False, help="include source")
 
-    parser.add_option("-f",
-                      "--force",
-                      action="store_true",
-                      dest="force",
-                      default=False,
-                      help="dont ask anything, just do it")
+    parser.add_argument("-f",
+                        "--force",
+                        action="store_true",
+                        dest="force",
+                        default=False,
+                        help="dont ask anything, just do it")
 
-    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="verbose mode")
+    parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", default=False, help="verbose mode")
 
-    parser.add_option("-q",
-                      "--quiet",
-                      action="store_true",
-                      dest="quiet",
-                      default=False,
-                      help="be quiet, e.g. don't print summary")
+    parser.add_argument("-q",
+                        "--quiet",
+                        action="store_true",
+                        dest="quiet",
+                        default=False,
+                        help="be quiet, e.g. don't print summary")
 
-    parser.add_option("-o",
-                      "--output",
-                      type="string",
-                      action="store",
-                      dest="output",
-                      default=None,
-                      metavar="PATH",
-                      help="custom output location (directory or complete "
-                      "path). default = current directory.")
+    parser.add_argument("-o",
+                        "--output",
+                        type=str,
+                        action="store",
+                        dest="output",
+                        default=None,
+                        metavar="PATH",
+                        help="custom output location (directory or complete "
+                        "path). default = current directory.")
 
-    parser.add_option("-e",
-                      "--exclude",
-                      type="string",
-                      action="append",
-                      dest="exclude",
-                      default=[],
-                      metavar="PATH",
-                      help="exclude path (can be repeated)")
+    parser.add_argument("-e",
+                        "--exclude",
+                        type=str,
+                        action="append",
+                        dest="exclude",
+                        default=[],
+                        metavar="PATH",
+                        help="exclude path (can be repeated)")
 
-    parser.add_option("--exclude-pattern",
-                      type="string",
-                      action="append",
-                      dest="exclude_pattern",
-                      default=[],
-                      metavar="REGEXP",
-                      help="exclude paths matching the regular expression "
-                      "(can be repeated)")
+    parser.add_argument("--exclude-pattern",
+                        type=str,
+                        action="append",
+                        dest="exclude_pattern",
+                        default=[],
+                        metavar="REGEXP",
+                        help="exclude paths matching the regular expression "
+                        "(can be repeated)")
 
-    parser.add_option("--exclude-pattern-ci",
-                      type="string",
-                      action="append",
-                      dest="exclude_pattern_ci",
-                      default=[],
-                      metavar="REGEXP",
-                      help="exclude paths matching the case-insensitive regular "
-                      "expression (can be repeated)")
+    parser.add_argument("--exclude-pattern-ci",
+                        type=str,
+                        action="append",
+                        dest="exclude_pattern_ci",
+                        default=[],
+                        metavar="REGEXP",
+                        help="exclude paths matching the case-insensitive regular "
+                        "expression (can be repeated)")
 
-    parser.add_option("-d",
-                      "--date",
-                      type="int",
-                      action="store",
-                      dest="date",
-                      default=-1,
-                      metavar="TIMESTAMP",
-                      help="set creation date (unix timestamp). -1 = now "
-                      "(default). -2 = disable.")
+    parser.add_argument("-d",
+                        "--date",
+                        type=int,
+                        action="store",
+                        dest="date",
+                        default=-1,
+                        metavar="TIMESTAMP",
+                        help="set creation date (unix timestamp). -1 = now "
+                        "(default). -2 = disable.")
 
-    parser.add_option("-n",
-                      "--name",
-                      type="string",
-                      action="store",
-                      dest="name",
-                      default=None,
-                      help="use this file (or directory) name instead of the "
-                      "real one")
+    parser.add_argument("-n",
+                        "--name",
+                        type=str,
+                        action="store",
+                        dest="name",
+                        default=None,
+                        help="use this file (or directory) name instead of the "
+                        "real one")
 
-    parser.add_option("--md5",
-                      action="store_true",
-                      dest="include_md5",
-                      default=False,
-                      help="include MD5 hashes in torrent file")
+    parser.add_argument("--md5",
+                        action="store_true",
+                        dest="include_md5",
+                        default=False,
+                        help="include MD5 hashes in torrent file")
 
-    (options, args) = parser.parse_args(args=argv[1:])
+    parser.add_argument("path", help="file or folder for which to create a torrent")
 
-    # Positional arguments must have been provided:
-    # -> file / directory plus at least one tracker.
-    if len(args) < 2:
-        parser.error("You must specify a valid path and at least one tracker.")
+    parser.add_argument("tracker", nargs='+', help="trackers to use for the torrent")
+
+    args = parser.parse_args()
 
     # Ask the user if he really wants to use uncommon piece lengths.
     # (Unless the force option has been set.)
-    if not options.force and 0 < options.piece_length < 16:
+    if not args.force and 0 < args.piece_length < 16:
         if "yes" != input("It is strongly recommended to use a piece length "
                           "greater or equal than 16 KiB! Do you really want "
                           "to continue? yes/no: "):
             parser.error("Aborted.")
 
-    if not options.force and options.piece_length > 1024:
+    if not args.force and args.piece_length > 1024:
         if "yes" != input("It is strongly recommended to use a maximum piece "
                           "length of 1024 KiB! Do you really want to "
                           "continue? yes/no: "):
             parser.error("Aborted.")
 
     # Verbose and quiet options may not be used together.
-    if options.verbose and options.quiet:
+    if args.verbose and args.quiet:
         parser.error("Being verbose and quiet exclude each other.")
 
     global VERBOSE
-    VERBOSE = options.verbose
+    VERBOSE = args.verbose
 
     # ##########################################
     # CALCULATE/SET THE FOLLOWING METAINFO DATA:
@@ -596,8 +587,8 @@ def main(argv):
     #   - length and md5sum (if single file)
     #   - name (may be overwritten in the next section by the --name option)
 
-    node = os.path.abspath(args[0])
-    trackers = args[1:]
+    node = args.path
+    trackers = args.tracker
 
     # Validate the given path.
     if not os.path.isfile(node) and not os.path.isdir(node):
@@ -617,17 +608,17 @@ def main(argv):
             print("Warning: Not a valid tracker URL: %s" % t, file=sys.stderr)
             invalid_trackers = True
 
-    if invalid_trackers and not options.force:
+    if invalid_trackers and not args.force:
         if "yes" != input("Some tracker URLs are invalid. Continue? yes/no: "):
             parser.error("Aborted.")
 
     # Parse and validate excluded paths.
     excluded_paths = frozenset([os.path.normcase(os.path.abspath(path)) \
-                                for path in options.exclude])
+                                for path in args.exclude])
 
     # Parse exclude patterns.
-    excluded_regexps = set(re.compile(regexp) for regexp in options.exclude_pattern)
-    excluded_regexps |= set(re.compile(regexp, re.IGNORECASE) for regexp in options.exclude_pattern_ci)
+    excluded_regexps = set(re.compile(regexp) for regexp in args.exclude_pattern)
+    excluded_regexps |= set(re.compile(regexp, re.IGNORECASE) for regexp in args.exclude_pattern_ci)
 
     # Warn the user if he attempts to exclude any paths when creating a torrent for a single file (makes no sense).
     if os.path.isfile(node) and (len(excluded_paths) > 0 or \
@@ -653,19 +644,19 @@ def main(argv):
         return 1
 
     # Calculate or parse the piece size.
-    if options.piece_length == 0:
+    if args.piece_length == 0:
         piece_length = calculate_piece_length(torrent_size)
-    elif options.piece_length > 0:
-        piece_length = options.piece_length * KIB
+    elif args.piece_length > 0:
+        piece_length = args.piece_length * KIB
     else:
-        parser.error("Invalid piece size: '%d'" % options.piece_length)
+        parser.error("Invalid piece size: '%d'" % args.piece_length)
 
     # Do the main work now.
     # -> prepare the metainfo dictionary.
     if os.path.isfile(node):
-        info = create_single_file_info(node, piece_length, options.include_md5)
+        info = create_single_file_info(node, piece_length, args.include_md5)
     else:
-        info = create_multi_file_info(node, torrent_files, piece_length, options.include_md5)
+        info = create_multi_file_info(node, torrent_files, piece_length, args.include_md5)
 
     assert len(info['pieces']) % 20 == 0, "len(pieces) not a multiple of 20"
 
@@ -684,20 +675,20 @@ def main(argv):
     # Finish sub-dict "info".
     info['piece length'] = piece_length
 
-    if options.private:
+    if args.private:
         info['private'] = 1
 
     # Re-use the name regex for source parameter.
-    if options.source:
-        options.source = options.source.strip()
+    if args.source:
+        args.source = args.source.strip()
 
         regexp = re.compile("^[A-Z0-9_\-\., ]+$", re.I)
 
-        if not regexp.match(options.source):
+        if not regexp.match(args.source):
             parser.error("Invalid source: '%s'. Allowed chars: A_Z, a-z, 0-9, "
-                         "any of {.,_-} plus spaces." % options.source)
+                         "any of {.,_-} plus spaces." % args.source)
 
-        info['source'] = options.source
+        info['source'] = args.source
 
     # Construct outer metainfo dict, which contains the torrent's whole information.
     metainfo = {
@@ -711,13 +702,13 @@ def main(argv):
 
     # Set "creation date".
     # The user may specify a custom creation date. He may also decide not to include the creation date field at all.
-    if options.date == -1:
+    if args.date == -1:
         # use current time
         metainfo['creation date'] = int(time.time())
-    elif options.date >= 0:
+    elif args.date >= 0:
         # use specified timestamp directly
-        metainfo['creation date'] = options.date
-    elif options.date < -2:
+        metainfo['creation date'] = args.date
+    elif args.date < -2:
         parser.error("Invalid date: Negative timestamp values are not possible "
                      "(except for -1 to use current date automatically or -2 to"
                      " disable storing a creation date altogether).")
@@ -727,24 +718,23 @@ def main(argv):
 
     # Add user's comment or advertise py3createtorrent (unless this behaviour has been disabled by the user).
     # The user may also decide not to include the comment field at all by specifying an empty comment.
-    if isinstance(options.comment, str):
-        if len(options.comment) > 0:
-            metainfo['comment'] = options.comment
+    if isinstance(args.comment, str):
+        if len(args.comment) > 0:
+            metainfo['comment'] = args.comment
     elif ADVERTISE:
         metainfo['comment'] = "created with " + metainfo['created by']
 
     # Add the name field.
     # By default this is the name of directory or file the torrent is being created for.
-    if options.name:
-        options.name = options.name.strip()
+    if args.name:
+        args.name = args.name.strip()
 
         regexp = re.compile("^[A-Z0-9_\-\., ]+$", re.I)
 
-        if not regexp.match(options.name):
-            parser.error("Invalid name: '%s'. Allowed chars: A_Z, a-z, 0-9, "
-                         "any of {.,_-} plus spaces." % options.name)
+        if not regexp.match(args.name):
+            parser.error("Invalid name: '%s'. Allowed chars: A_Z, a-z, 0-9, " "any of {.,_-} plus spaces." % args.name)
 
-        metainfo['info']['name'] = options.name
+        metainfo['info']['name'] = args.name
 
     # ###################################################
     # BENCODE METAINFO DICTIONARY AND WRITE TORRENT FILE:
@@ -752,31 +742,31 @@ def main(argv):
     # - properly handle KeyboardInterrups while writing the file
 
     # Respect the custom output location.
-    if not options.output:
+    if not args.output:
         # Use current directory.
         output_path = metainfo['info']['name'] + ".torrent"
 
     else:
         # Use the directory or filename specified by the user.
-        options.output = os.path.abspath(options.output)
+        args.output = os.path.abspath(args.output)
 
         # The user specified an output directory:
-        if os.path.isdir(options.output):
-            output_path = os.path.join(options.output, metainfo['info']['name'] + ".torrent")
+        if os.path.isdir(args.output):
+            output_path = os.path.join(args.output, metainfo['info']['name'] + ".torrent")
             if os.path.isfile(output_path):
-                if not options.force and os.path.exists(output_path):
+                if not args.force and os.path.exists(output_path):
                     if "yes" != input("'%s' does already exist. Overwrite? " "yes/no: " % output_path):
                         parser.error("Aborted.")
 
         # The user specified a filename:
         else:
             # Is there already a file with this path? -> overwrite?!
-            if os.path.isfile(options.output):
-                if not options.force and os.path.exists(options.output):
-                    if "yes" != input("'%s' does already exist. Overwrite? " "yes/no: " % options.output):
+            if os.path.isfile(args.output):
+                if not args.force and os.path.exists(args.output):
+                    if "yes" != input("'%s' does already exist. Overwrite? " "yes/no: " % args.output):
                         parser.error("Aborted.")
 
-            output_path = options.output
+            output_path = args.output
 
     # Actually write the torrent file now.
     try:
@@ -798,7 +788,7 @@ def main(argv):
     # - but check quiet option
 
     # If the quiet option has been set, we're already finished here, because we don't print a summary in this case.
-    if options.quiet:
+    if args.quiet:
         return 0
 
     # Print summary!
@@ -843,7 +833,7 @@ date']).isoformat(' ')
           "  Backup trackers:\n"
           "%s" %
           (metainfo['info']['name'], size, piece_count, piece_length / KIB, metainfo['comment'] if 'comment' in metainfo
-           else "(none)", "yes" if options.private else "no", creation_date, metainfo['announce'], backup_trackers))
+           else "(none)", "yes" if args.private else "no", creation_date, metainfo['announce'], backup_trackers))
 
     return 0
 

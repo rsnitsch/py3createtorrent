@@ -3,9 +3,7 @@
 
 *Create torrents via command line!*
 
-py3createtorrent is a comprehensive shell/commandline utility for creating
-torrents (Linux & Windows). It's a GPL-licensed Python v3.1 script. I tested it
-with Ubuntu 8.04 / rTorrent and Windows 7 / µTorrent.
+py3createtorrent is a comprehensive shell/commandline utility for creating torrents (Linux & Windows).
 
 Some of the features:
 
@@ -29,7 +27,7 @@ py3createtorrent is intended to fill this gap.
 Requirements
 ------------
 
-py3createtorrent requires at least Python 3.1 and the `py3bencode <https://github.com/rsnitsch/py3bencode>`_ module.
+py3createtorrent requires at least Python 3.2 and the `py3bencode <https://github.com/rsnitsch/py3bencode>`_ module.
 
 Installation
 ------------
@@ -136,42 +134,43 @@ specified the empty comment.
 Usage
 -----
 
-Syntax::
+Syntax:
 
-   Usage: py3createtorrent.py [options] <file-or-directory> <main-tracker-url> [<backup-tracker-url> ...]
+.. code-block:: none
 
-   py3createtorrent is a comprehensive command line utility for creating
-   torrents.
+   usage: py3createtorrent.py [-h] [-p PIECE_LENGTH] [-P] [-c COMMENT] [-s SOURCE] [-f] [-v] [-q] [-o PATH] [-e PATH]
+                              [--exclude-pattern REGEXP] [--exclude-pattern-ci REGEXP] [-d TIMESTAMP] [-n NAME] [--md5]
+                              path tracker [tracker ...]
 
-   Options:
-     --version             show program's version number and exit
+   py3createtorrent is a comprehensive command line utility for creating torrents.
+
+   positional arguments:
+     path                  file or folder for which to create a torrent
+     tracker               trackers to use for the torrent
+
+   optional arguments:
      -h, --help            show this help message and exit
-     -p PIECE_LENGTH, --piece-length=PIECE_LENGTH
+     -p PIECE_LENGTH, --piece-length PIECE_LENGTH
                            piece size in KiB. 0 = automatic selection (default).
      -P, --private         create private torrent
-     -c COMMENT, --comment=COMMENT
+     -c COMMENT, --comment COMMENT
                            include comment
-     -s SOURCE, --source=SOURCE
-	                       include torrent source
+     -s SOURCE, --source SOURCE
+                           include source
      -f, --force           dont ask anything, just do it
      -v, --verbose         verbose mode
      -q, --quiet           be quiet, e.g. don't print summary
-     -o PATH, --output=PATH
-                           custom output location (directory or complete path).
-                           default = current directory.
-     -e PATH, --exclude=PATH
+     -o PATH, --output PATH
+                           custom output location (directory or complete path). default = current directory.
+     -e PATH, --exclude PATH
                            exclude path (can be repeated)
-     --exclude-pattern=REGEXP
-                           exclude paths matching the regular expression (can be
-                           repeated)
-     --exclude-pattern-ci=REGEXP
-                           exclude paths matching the case-insensitive regular
-                           expression (can be repeated)
-     -d TIMESTAMP, --date=TIMESTAMP
-                           set creation date (unix timestamp). -1 = now
-                           (default). -2 = disable.
-     -n NAME, --name=NAME  use this file (or directory) name instead of the real
-                           one
+     --exclude-pattern REGEXP
+                          exclude paths matching the regular expression (can be repeated)
+     --exclude-pattern-ci REGEXP
+                           exclude paths matching the case-insensitive regular expression (can be repeated)
+     -d TIMESTAMP, --date TIMESTAMP
+                           set creation date (unix timestamp). -1 = now (default). -2 = disable.
+     -n NAME, --name NAME  use this file (or directory) name instead of the real one
      --md5                 include MD5 hashes in torrent file
 
 Piece size (``-p``)

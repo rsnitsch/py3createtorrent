@@ -3,9 +3,7 @@ py3createtorrent
 
 *Create torrents via command line!*
 
-py3createtorrent is a comprehensive shell/commandline utility for creating
-torrents (Linux & Windows). It's a GPL-licensed Python v3.1 script. I tested it
-with Ubuntu 8.04 / rTorrent and Windows 7 / µTorrent.
+py3createtorrent is a comprehensive shell/commandline utility for creating torrents (Linux & Windows).
 
 Some of the features:
 
