@@ -33,18 +33,13 @@ https://py3createtorrent.readthedocs.io/en/latest/""")
     print()
     raise
 
-__all__ = [
-    'calculate_piece_length', 'get_files_in_directory', 'sha1_20', 'split_path'
-]
+__all__ = ['calculate_piece_length', 'get_files_in_directory', 'sha1_20', 'split_path']
 
 # #############
 # CONFIGURATION
 
 # configure your tracker abbreviations here
-TRACKER_ABBR = {
-    'openbt': 'udp://tracker.openbittorrent.com:80',
-    'publicbt': 'udp://tracker.publicbt.com:80'
-}
+TRACKER_ABBR = {'openbt': 'udp://tracker.openbittorrent.com:80', 'publicbt': 'udp://tracker.publicbt.com:80'}
 
 # whether or not py3createtorrent is allowed to advertise itself
 # through the torrents' comment fields
@@ -173,8 +168,7 @@ def create_multi_file_info(directory, files, piece_length, include_md5=True):
         # File's md5sum.
         md5 = hashlib.md5() if include_md5 else None
 
-        printv("Processing file '%s'... " % os.path.relpath(path, directory),
-               end="")
+        printv("Processing file '%s'... " % os.path.relpath(path, directory), end="")
 
         with open(path, "rb") as fh:
             while True:
@@ -210,19 +204,12 @@ def create_multi_file_info(directory, files, piece_length, include_md5=True):
         info_pieces += sha1_20(data)
 
     # Build the final dictionary.
-    info = {
-        'pieces': info_pieces,
-        'name': os.path.basename(directory.strip("/\\")),
-        'files': info_files
-    }
+    info = {'pieces': info_pieces, 'name': os.path.basename(directory.strip("/\\")), 'files': info_files}
 
     return info
 
 
-def get_files_in_directory(directory,
-                           excluded_paths=set(),
-                           relative_to=None,
-                           excluded_regexps=set()):
+def get_files_in_directory(directory, excluded_paths=set(), relative_to=None, excluded_regexps=set()):
     """
     Return a list containing the paths to all files in the given directory.
 
@@ -251,12 +238,10 @@ def get_files_in_directory(directory,
             raise TypeError("relative_to must be instance of: str")
 
         if not os.path.isdir(relative_to):
-            raise ValueError("relative_to: '%s' is not a valid directory" %
-                             (relative_to))
+            raise ValueError("relative_to: '%s' is not a valid directory" % (relative_to))
 
     if not isinstance(excluded_regexps, (set, frozenset)):
-        raise TypeError(
-            "excluded_regexps must be instance of: set or frozenset")
+        raise TypeError("excluded_regexps must be instance of: set or frozenset")
 
     # Helper function:
     def _get_files_in_directory(directory,
@@ -276,15 +261,13 @@ def get_files_in_directory(directory,
             path = os.path.join(directory, node)
 
             if os.path.normcase(path) in excluded_paths:
-                printv("Skipping '%s' due to explicit exclusion." %
-                       os.path.relpath(path, relative_to))
+                printv("Skipping '%s' due to explicit exclusion." % os.path.relpath(path, relative_to))
                 continue
 
             regexp_match = False
             for regexp in excluded_regexps:
                 if regexp.search(path):
-                    printv("Skipping '%s' due to pattern exclusion." %
-                           os.path.relpath(path, relative_to))
+                    printv("Skipping '%s' due to pattern exclusion." % os.path.relpath(path, relative_to))
                     regexp_match = True
                     break
             if regexp_match:
@@ -457,20 +440,16 @@ def main(argv):
             return 1
         if not isinstance(replacement, (str, list)):
             print("Configuration error: invalid tracker abbreviation: '%s' "
-                  "(must be a string or list of strings instead)" %
-                  str(replacement),
+                  "(must be a string or list of strings instead)" % str(replacement),
                   file=sys.stderr)
             return 1
 
     # Create OptionParser.
     kwargs = {
-        'usage':
-        "%prog [options] <file-or-directory> <main-tracker-url> "
+        'usage': "%prog [options] <file-or-directory> <main-tracker-url> "
         "[<backup-tracker-url> ...]",
-        'version':
-        "%%prog v%s" % VERSION,
-        'description':
-        "py3createtorrent is a comprehensive command line utility for "
+        'version': "%%prog v%s" % VERSION,
+        'description': "py3createtorrent is a comprehensive command line utility for "
         "creating torrents."
     }
 
@@ -478,14 +457,13 @@ def main(argv):
 
     # Add options to the OptionParser.
     # Note: Commonly used options are added first.
-    parser.add_option(
-        "-p",
-        "--piece-length",
-        type="int",
-        action="store",
-        dest="piece_length",
-        default=0,
-        help="piece size in KiB. 0 = automatic selection (default).")
+    parser.add_option("-p",
+                      "--piece-length",
+                      type="int",
+                      action="store",
+                      dest="piece_length",
+                      default=0,
+                      help="piece size in KiB. 0 = automatic selection (default).")
 
     parser.add_option("-P",
                       "--private",
@@ -517,12 +495,7 @@ def main(argv):
                       default=False,
                       help="dont ask anything, just do it")
 
-    parser.add_option("-v",
-                      "--verbose",
-                      action="store_true",
-                      dest="verbose",
-                      default=False,
-                      help="verbose mode")
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="verbose mode")
 
     parser.add_option("-q",
                       "--quiet",
@@ -559,15 +532,14 @@ def main(argv):
                       help="exclude paths matching the regular expression "
                       "(can be repeated)")
 
-    parser.add_option(
-        "--exclude-pattern-ci",
-        type="string",
-        action="append",
-        dest="exclude_pattern_ci",
-        default=[],
-        metavar="REGEXP",
-        help="exclude paths matching the case-insensitive regular "
-        "expression (can be repeated)")
+    parser.add_option("--exclude-pattern-ci",
+                      type="string",
+                      action="append",
+                      dest="exclude_pattern_ci",
+                      default=[],
+                      metavar="REGEXP",
+                      help="exclude paths matching the case-insensitive regular "
+                      "expression (can be repeated)")
 
     parser.add_option("-d",
                       "--date",
@@ -660,41 +632,27 @@ def main(argv):
                                 for path in options.exclude])
 
     # Parse exclude patterns.
-    excluded_regexps = set(
-        re.compile(regexp) for regexp in options.exclude_pattern)
-    excluded_regexps |= set(
-        re.compile(regexp, re.IGNORECASE)
-        for regexp in options.exclude_pattern_ci)
+    excluded_regexps = set(re.compile(regexp) for regexp in options.exclude_pattern)
+    excluded_regexps |= set(re.compile(regexp, re.IGNORECASE) for regexp in options.exclude_pattern_ci)
 
     # Warn the user if he attempts to exclude any paths when creating
     # a torrent for a single file (makes no sense).
     if os.path.isfile(node) and (len(excluded_paths) > 0 or \
        len(excluded_regexps) > 0):
-        print(
-            "Warning: Excluding paths is not possible when creating a "
-            "torrent for a single file.",
-            file=sys.stderr)
+        print("Warning: Excluding paths is not possible when creating a " "torrent for a single file.", file=sys.stderr)
 
     # Warn the user if he attempts to exclude a specific path, that does not
     # even exist.
     for path in excluded_paths:
         if not os.path.exists(path):
-            print(
-                "Warning: You're excluding a path that does not exist: '%s'" %
-                path,
-                file=sys.stderr)
+            print("Warning: You're excluding a path that does not exist: '%s'" % path, file=sys.stderr)
 
     # Get the torrent's files and / or calculate its size.
     if os.path.isfile(node):
         torrent_size = os.path.getsize(node)
     else:
-        torrent_files = get_files_in_directory(
-            node,
-            excluded_paths=excluded_paths,
-            excluded_regexps=excluded_regexps)
-        torrent_size = sum([
-            os.path.getsize(os.path.join(node, file)) for file in torrent_files
-        ])
+        torrent_files = get_files_in_directory(node, excluded_paths=excluded_paths, excluded_regexps=excluded_regexps)
+        torrent_size = sum([os.path.getsize(os.path.join(node, file)) for file in torrent_files])
 
     # Torrents for 0 byte data can't be created.
     if torrent_size == 0:
@@ -715,8 +673,7 @@ def main(argv):
     if os.path.isfile(node):
         info = create_single_file_info(node, piece_length, options.include_md5)
     else:
-        info = create_multi_file_info(node, torrent_files, piece_length,
-                                      options.include_md5)
+        info = create_multi_file_info(node, torrent_files, piece_length, options.include_md5)
 
     assert len(info['pieces']) % 20 == 0, "len(pieces) not a multiple of 20"
 
@@ -771,10 +728,9 @@ def main(argv):
         # use specified timestamp directly
         metainfo['creation date'] = options.date
     elif options.date < -2:
-        parser.error(
-            "Invalid date: Negative timestamp values are not possible "
-            "(except for -1 to use current date automatically or -2 to"
-            " disable storing a creation date altogether).")
+        parser.error("Invalid date: Negative timestamp values are not possible "
+                     "(except for -1 to use current date automatically or -2 to"
+                     " disable storing a creation date altogether).")
 
     # Add the "created by" field.
     metainfo['created by'] = 'py3createtorrent v%s' % VERSION
@@ -819,12 +775,10 @@ def main(argv):
 
         # The user specified an output directory:
         if os.path.isdir(options.output):
-            output_path = os.path.join(options.output,
-                                       metainfo['info']['name'] + ".torrent")
+            output_path = os.path.join(options.output, metainfo['info']['name'] + ".torrent")
             if os.path.isfile(output_path):
                 if not options.force and os.path.exists(output_path):
-                    if "yes" != input("'%s' does already exist. Overwrite? "
-                                      "yes/no: " % output_path):
+                    if "yes" != input("'%s' does already exist. Overwrite? " "yes/no: " % output_path):
                         parser.error("Aborted.")
 
         # The user specified a filename:
@@ -832,8 +786,7 @@ def main(argv):
             # Is there already a file with this path? -> overwrite?!
             if os.path.isfile(options.output):
                 if not options.force and os.path.exists(options.output):
-                    if "yes" != input("'%s' does already exist. Overwrite? "
-                                      "yes/no: " % options.output):
+                    if "yes" != input("'%s' does already exist. Overwrite? " "yes/no: " % options.output):
                         parser.error("Aborted.")
 
             output_path = options.output
@@ -844,12 +797,8 @@ def main(argv):
             fh.write(bencode(metainfo))
     except IOError as exc:
         print("IOError: " + str(exc), file=sys.stderr)
-        print(
-            "Could not write the torrent file. Check torrent name and your "
-            "privileges.",
-            file=sys.stderr)
-        print("Absolute output path: '%s'" % os.path.abspath(output_path),
-              file=sys.stderr)
+        print("Could not write the torrent file. Check torrent name and your " "privileges.", file=sys.stderr)
+        print("Absolute output path: '%s'" % os.path.abspath(output_path), file=sys.stderr)
         return 1
     except KeyboardInterrupt:
         # Properly handle KeyboardInterrupts.
@@ -907,10 +856,8 @@ date']).isoformat(' ')
           "  Primary tracker:  %s\n"
           "  Backup trackers:\n"
           "%s" %
-          (metainfo['info']['name'], size, piece_count, piece_length / KIB,
-           metainfo['comment'] if 'comment' in metainfo else "(none)",
-           "yes" if options.private else "no", creation_date,
-           metainfo['announce'], backup_trackers))
+          (metainfo['info']['name'], size, piece_count, piece_length / KIB, metainfo['comment'] if 'comment' in metainfo
+           else "(none)", "yes" if options.private else "no", creation_date, metainfo['announce'], backup_trackers))
 
     return 0
 
