@@ -553,9 +553,13 @@ def main(argv) -> int:
                         default=False,
                         help="include MD5 hashes in torrent file")
 
-    parser.add_argument("path", help="file or folder for which to create a torrent")
+    parser.add_argument("-t", "--tracker", nargs="*", default=[], help="trackers to use for the torrent")
+    parser.add_argument("--node",
+                        nargs="*",
+                        default=[],
+                        help="DHT bootstrap nodes to use for the torrent. format: host,port")
 
-    parser.add_argument("tracker", nargs='+', help="trackers to use for the torrent")
+    parser.add_argument("path", help="file or folder for which to create a torrent")
 
     args = parser.parse_args()
 
@@ -593,12 +597,12 @@ def main(argv) -> int:
     #   - length and md5sum (if single file)
     #   - name (may be overwritten in the next section by the --name option)
 
-    node: str = args.path
+    input_path: str = args.path
     trackers: List[str] = args.tracker
 
     # Validate the given path.
-    if not os.path.isfile(node) and not os.path.isdir(node):
-        parser.error("'%s' neither is a file nor a directory." % node)
+    if not os.path.isfile(input_path) and not os.path.isdir(input_path):
+        parser.error("'%s' neither is a file nor a directory." % input_path)
 
     # Evaluate / apply the tracker abbreviations.
     trackers = replace_in_list(trackers, TRACKER_ABBR)
@@ -618,6 +622,33 @@ def main(argv) -> int:
         if "yes" != input("Some tracker URLs are invalid. Continue? yes/no: "):
             parser.error("Aborted.")
 
+    # Disallow DHT bootstrap nodes for private torrents.
+    if args.node and args.private:
+        parser.error(
+            "DHT bootstrap nodes cannot be specified for a private torrent. Private torrents do not support DHT.")
+
+    # Validate DHT bootstrap nodes.
+    nodes = args.node
+    parsed_nodes = list()
+    invalid_nodes = False
+    for n in nodes:
+        splitted = n.split(",")
+        if len(splitted) != 2:
+            print("Invalid format for DHT bootstrap node '%s'. Please use the format 'host,port'." % n, file=sys.stderr)
+            invalid_nodes = True
+            continue
+
+        host, port = splitted
+        if not port.isdigit():
+            print("Invalid port number for DHT bootstrap node '%s'. Ports must be numeric." % n, file=sys.stderr)
+            invalid_nodes = True
+
+        parsed_nodes.append([host, int(port)])
+
+    if invalid_nodes and not args.force:
+        if "yes" != input("Some DHT bootstrap nodes are invalid. Continue? yes/no: "):
+            parser.error("Aborted.")
+
     # Parse and validate excluded paths.
     excluded_paths = set([os.path.normcase(os.path.abspath(path)) \
                                 for path in args.exclude])
@@ -627,7 +658,7 @@ def main(argv) -> int:
     excluded_regexps |= set(re.compile(regexp, re.IGNORECASE) for regexp in args.exclude_pattern_ci)
 
     # Warn the user if he attempts to exclude any paths when creating a torrent for a single file (makes no sense).
-    if os.path.isfile(node) and (len(excluded_paths) > 0 or \
+    if os.path.isfile(input_path) and (len(excluded_paths) > 0 or \
        len(excluded_regexps) > 0):
         print("Warning: Excluding paths is not possible when creating a torrent for a single file.", file=sys.stderr)
 
@@ -637,11 +668,13 @@ def main(argv) -> int:
             print("Warning: You're excluding a path that does not exist: '%s'" % path, file=sys.stderr)
 
     # Get the torrent's files and / or calculate its size.
-    if os.path.isfile(node):
-        torrent_size = os.path.getsize(node)
+    if os.path.isfile(input_path):
+        torrent_size = os.path.getsize(input_path)
     else:
-        torrent_files = get_files_in_directory(node, excluded_paths=excluded_paths, excluded_regexps=excluded_regexps)
-        torrent_size = sum([os.path.getsize(os.path.join(node, file)) for file in torrent_files])
+        torrent_files = get_files_in_directory(input_path,
+                                               excluded_paths=excluded_paths,
+                                               excluded_regexps=excluded_regexps)
+        torrent_size = sum([os.path.getsize(os.path.join(input_path, file)) for file in torrent_files])
 
     # Torrents for 0 byte data can't be created.
     if torrent_size == 0:
@@ -659,10 +692,10 @@ def main(argv) -> int:
 
     # Do the main work now.
     # -> prepare the metainfo dictionary.
-    if os.path.isfile(node):
-        info = create_single_file_info(node, piece_length, args.include_md5)
+    if os.path.isfile(input_path):
+        info = create_single_file_info(input_path, piece_length, args.include_md5)
     else:
-        info = create_multi_file_info(node, torrent_files, piece_length, args.include_md5)
+        info = create_multi_file_info(input_path, torrent_files, piece_length, args.include_md5)
 
     assert len(info['pieces']) % 20 == 0, "len(pieces) not a multiple of 20"
 
@@ -672,8 +705,9 @@ def main(argv) -> int:
     #   - piece length
     #   - name (eventually overwrite)
     #   - private
-    # - announce
-    # - announce-list (if multiple trackers)
+    # - announce (if at least one tracker was specified)
+    # - announce-list (if multiple trackers were specified)
+    # - nodes (if at least one DHT bootstrap node was specified)
     # - creation date (may be disabled as well)
     # - created by
     # - comment (may be disabled as well (if ADVERTISE = False))
@@ -696,14 +730,17 @@ def main(argv) -> int:
         info['source'] = args.source
 
     # Construct outer metainfo dict, which contains the torrent's whole information.
-    metainfo = {
-        'info': info,
-        'announce': trackers[0],
-    }
+    metainfo = {'info': info}
+    if trackers:
+        metainfo['announce'] = trackers[0]
 
     # Make "announce-list" field, if there are multiple trackers.
     if len(trackers) > 1:
         metainfo['announce-list'] = [[tracker] for tracker in trackers]
+
+    # Set DHT bootstrap nodes.
+    if parsed_nodes:
+        metainfo['nodes'] = parsed_nodes
 
     # Set "creation date".
     # The user may specify a custom creation date. He may also decide not to include the creation date field at all.
@@ -827,17 +864,19 @@ date']).isoformat(' ')
         creation_date = "(none)"
 
     # Now actually print the summary table.
-    print("  Name:             %s\n"
-          "  Size:             %s\n"
-          "  Pieces:           %d x %d KiB\n"
-          "  Comment:          %s\n"
-          "  Private:          %s\n"
-          "  Creation date:    %s\n"
-          "  Primary tracker:  %s\n"
+    print("  Name:                %s\n"
+          "  Size:                %s\n"
+          "  Pieces:              %d x %d KiB\n"
+          "  Comment:             %s\n"
+          "  Private:             %s\n"
+          "  Creation date:       %s\n"
+          "  DHT bootstrap nodes: %s\n"
+          "  Primary tracker:     %s\n"
           "  Backup trackers:\n"
           "%s" %
           (metainfo['info']['name'], size, piece_count, piece_length / KIB, metainfo['comment'] if 'comment' in metainfo
-           else "(none)", "yes" if args.private else "no", creation_date, metainfo['announce'], backup_trackers))
+           else "(none)", "yes" if args.private else "no", creation_date, metainfo['nodes'] if 'nodes' in metainfo else
+           "(none)", metainfo['announce'] if 'announce' in metainfo else "(none)", backup_trackers))
 
     return 0
 

@@ -11,6 +11,7 @@ Some of the features:
 * you can add a **comment** to the torrent file
 * you can create **private torrents** (disabled DHT, ...)
 * you can create torrents with **multiple trackers**
+* you can create **trackerless torrents**
 * you can **exclude specific files/folders**
 * you can exclude files/folders based on **regular expressions**
 * you can specify **custom piece sizes**
@@ -138,40 +139,64 @@ Syntax:
 
 .. code-block:: none
 
-   usage: py3createtorrent.py [-h] [-p PIECE_LENGTH] [-P] [-c COMMENT] [-s SOURCE] [-f] [-v] [-q] [-o PATH] [-e PATH]
-                              [--exclude-pattern REGEXP] [--exclude-pattern-ci REGEXP] [-d TIMESTAMP] [-n NAME] [--md5]
-                              path tracker [tracker ...]
+  usage: py3createtorrent.py [-h] [-p PIECE_LENGTH] [-P] [-c COMMENT] [-s SOURCE] [-f] [-v] [-q] [-o PATH] [-e PATH]
+                             [--exclude-pattern REGEXP] [--exclude-pattern-ci REGEXP] [-d TIMESTAMP] [-n NAME] [--md5]
+                             [-t [TRACKER [TRACKER ...]]] [--node [NODE [NODE ...]]]
+                             path
 
-   py3createtorrent is a comprehensive command line utility for creating torrents.
+  py3createtorrent is a comprehensive command line utility for creating torrents.
 
-   positional arguments:
-     path                  file or folder for which to create a torrent
-     tracker               trackers to use for the torrent
+  positional arguments:
+    path                  file or folder for which to create a torrent
 
-   optional arguments:
-     -h, --help            show this help message and exit
-     -p PIECE_LENGTH, --piece-length PIECE_LENGTH
-                           piece size in KiB. 0 = automatic selection (default).
-     -P, --private         create private torrent
-     -c COMMENT, --comment COMMENT
-                           include comment
-     -s SOURCE, --source SOURCE
-                           include source
-     -f, --force           dont ask anything, just do it
-     -v, --verbose         verbose mode
-     -q, --quiet           be quiet, e.g. don't print summary
-     -o PATH, --output PATH
-                           custom output location (directory or complete path). default = current directory.
-     -e PATH, --exclude PATH
-                           exclude path (can be repeated)
-     --exclude-pattern REGEXP
+  optional arguments:
+    -h, --help            show this help message and exit
+    -p PIECE_LENGTH, --piece-length PIECE_LENGTH
+                          piece size in KiB. 0 = automatic selection (default).
+    -P, --private         create private torrent
+    -c COMMENT, --comment COMMENT
+                          include comment
+    -s SOURCE, --source SOURCE
+                          include source
+    -f, --force           dont ask anything, just do it
+    -v, --verbose         verbose mode
+    -q, --quiet           be quiet, e.g. don't print summary
+    -o PATH, --output PATH
+                          custom output location (directory or complete path). default = current directory.
+    -e PATH, --exclude PATH
+                          exclude path (can be repeated)
+    --exclude-pattern REGEXP
                           exclude paths matching the regular expression (can be repeated)
-     --exclude-pattern-ci REGEXP
-                           exclude paths matching the case-insensitive regular expression (can be repeated)
-     -d TIMESTAMP, --date TIMESTAMP
-                           set creation date (unix timestamp). -1 = now (default). -2 = disable.
-     -n NAME, --name NAME  use this file (or directory) name instead of the real one
-     --md5                 include MD5 hashes in torrent file
+    --exclude-pattern-ci REGEXP
+                          exclude paths matching the case-insensitive regular expression (can be repeated)
+    -d TIMESTAMP, --date TIMESTAMP
+                          set creation date (unix timestamp). -1 = now (default). -2 = disable.
+    -n NAME, --name NAME  use this file (or directory) name instead of the real one
+    --md5                 include MD5 hashes in torrent file
+    -t [TRACKER [TRACKER ...]], --tracker [TRACKER [TRACKER ...]]
+                          trackers to use for the torrent
+    --node [NODE [NODE ...]]
+                          DHT bootstrap nodes to use for the torrent. format: host,port
+
+Specifying trackers (``-t``, ``--tracker``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+One or multiple tracker URLs can be specified after the ``-t`` or ``--tracker`` switch. For example::
+
+    py3createtorrent.py -t udp://tracker.openbittorrent.com/announce udp://backup.tracker.com/announce my_data_folder/
+
+You can create a trackerless torrent by not specifying any tracker URLs at all (i.e. don't
+use the ``-t`` switch at all).
+
+Specifying DHT bootstrap nodes (``--node``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+One or multiple DHT bootstrap nodes can be specified after the ``--node`` switch. Each bootstrap node must be
+specified in the form ``host,port``. For example::
+
+    py3createtorrent.py --node router.bittorrent.com,8991 second.node.com,1337 my_data_folder/
+
+It is recommended to specify some DHT bootstrap nodes for trackerless torrents.
 
 Piece size (``-p``)
 ^^^^^^^^^^^^^^^^^^^
@@ -356,11 +381,11 @@ Example 1 - from directory, no options, default behaviour
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example udp://tracker.openbittorrent.com/announce
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t udp://tracker.openbittorrent.com/announce
 
 Alternative, equivalent command using a tracker abbreviation for convenience::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example openbt
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t openbt
 
 **Effect**:
 Creates example.torrent inside the current directory.
@@ -382,7 +407,7 @@ Example 2 - from directory, excluding subfolders
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py -e example\subfolder example udp://tracker.openbittorrent.com/announce
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py -e example\subfolder example -t udp://tracker.openbittorrent.com/announce
 
 **Effect**:
 Creates example.torrent inside the current directory. example\subfolder has
@@ -402,13 +427,13 @@ Example 3 - from directory, excluding files
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py -e example\anotherimage.jpg -e example\subfolder\10_more_minutes_please.JPG example udp://tracker.openbittorrent.com/announce
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py -e example\anotherimage.jpg -e example\subfolder\10_more_minutes_please.JPG example -t udp://tracker.openbittorrent.com/announce
 
 Alternative, equivalent command using **regular expressions** instead of
 specifying each jpg seperately (also using a tracker abbreviation to make it
 even shorter)::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py --exclude-pattern "(jpg|JPG)$" example openbt
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py --exclude-pattern "(jpg|JPG)$" example -t openbt
 
 **Effect**:
 Creates example.torrent inside the current directory. example\anotherimage.jpg
