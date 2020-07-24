@@ -405,7 +405,7 @@ def calculate_piece_length(size: int) -> int:
 
     However, enforce these bounds:
     - minimum piece length = 16 KiB.
-    - maximum piece length =  1 MiB.
+    - maximum piece length = 16 MiB.
     """
     if not isinstance(size, int):
         raise TypeError("size must be instance of: int")
@@ -425,7 +425,7 @@ def calculate_piece_length(size: int) -> int:
         piece_length //= 2
 
     # Ensure that: 16 KIB <= piece_length <= 1 * MIB
-    piece_length = max(min(piece_length, 1 * MIB), 16 * KIB)
+    piece_length = max(min(piece_length, 16 * MIB), 16 * KIB)
 
     return int(piece_length)
 
@@ -571,9 +571,16 @@ def main(argv) -> int:
                           "really want to continue? yes/no: "):
             parser.error("Aborted.")
 
-    if not args.force and args.piece_length > 1024:
-        if "yes" != input("It is strongly recommended to use a maximum piece length of 1024 KiB! Do you really "
-                          "want to continue? yes/no: "):
+    if not args.force and args.piece_length > 16384:
+        if "yes" != input(
+                "It is strongly recommended to use a maximum piece length of 16384 KiB (16 MiB)! Do you really "
+                "want to continue? yes/no: "):
+            parser.error("Aborted.")
+
+    if not args.force and args.piece_length % 16 != 0:
+        if "yes" != input(
+                "It is strongly recommended to use a piece length that is a multiple of 16 KiB! Do you really "
+                "want to continue? yes/no: "):
             parser.error("Aborted.")
 
     # Verbose and quiet options may not be used together.
