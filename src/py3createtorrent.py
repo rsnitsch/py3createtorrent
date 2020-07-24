@@ -503,8 +503,7 @@ def main(argv) -> int:
                         dest="output",
                         default=None,
                         metavar="PATH",
-                        help="custom output location (directory or complete "
-                        "path). default = current directory.")
+                        help="custom output location (directory or complete path). default = current directory.")
 
     parser.add_argument("-e",
                         "--exclude",
@@ -521,8 +520,7 @@ def main(argv) -> int:
                         dest="exclude_pattern",
                         default=[],
                         metavar="REGEXP",
-                        help="exclude paths matching the regular expression "
-                        "(can be repeated)")
+                        help="exclude paths matching the regular expression (can be repeated)")
 
     parser.add_argument("--exclude-pattern-ci",
                         type=str,
@@ -530,8 +528,7 @@ def main(argv) -> int:
                         dest="exclude_pattern_ci",
                         default=[],
                         metavar="REGEXP",
-                        help="exclude paths matching the case-insensitive regular "
-                        "expression (can be repeated)")
+                        help="exclude paths matching the case-insensitive regular expression (can be repeated)")
 
     parser.add_argument("-d",
                         "--date",
@@ -540,8 +537,7 @@ def main(argv) -> int:
                         dest="date",
                         default=-1,
                         metavar="TIMESTAMP",
-                        help="set creation date (unix timestamp). -1 = now "
-                        "(default). -2 = disable.")
+                        help="set creation date (unix timestamp). -1 = now (default). -2 = disable.")
 
     parser.add_argument("-n",
                         "--name",
@@ -549,8 +545,7 @@ def main(argv) -> int:
                         action="store",
                         dest="name",
                         default=None,
-                        help="use this file (or directory) name instead of the "
-                        "real one")
+                        help="use this file (or directory) name instead of the real one")
 
     parser.add_argument("--md5",
                         action="store_true",
