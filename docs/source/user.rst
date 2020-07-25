@@ -64,7 +64,7 @@ Tracker abbrevations allow you to specify one or more tracker URLs with a single
 word, like 'openbt' in the default configuration. They add a lot of convenience,
 e.g. look at this neat & clear command::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example openbt publicbt
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t openbt publicbt
    Successfully created torrent:
      Name:             example
     (...)
@@ -156,7 +156,7 @@ Syntax:
                           DHT bootstrap nodes to use for the torrent. format: host,port
 
 Specifying trackers (``-t``, ``--trackers``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 One or multiple tracker URLs can be specified after the ``-t`` or ``--trackers`` switch. For example::
 
@@ -166,7 +166,7 @@ You can create a trackerless torrent by not specifying any tracker URLs at all (
 use the ``-t`` switch at all).
 
 Specifying DHT bootstrap nodes (``--nodes``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 One or multiple DHT bootstrap nodes can be specified after the ``--nodes`` switch. Each bootstrap node must be
 specified in the form ``host,port``. For example::
