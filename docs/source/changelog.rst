@@ -4,7 +4,7 @@ Changelog
 Changes since 0.9.7
 -------------------
 
-* changed: requires Python 3.2+ now
+* changed: requires Python 3.5+ now
 * changed: specifying trackers is now optional with the new `-t` option, thus trackerless torrents are now possible
 * added: DHT bootstrap nodes can now be specified, which is useful and recommended for trackerless torrents
 * changed: increased max piece size to 16 MiB

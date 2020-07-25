@@ -30,6 +30,14 @@ Requirements
 
 py3createtorrent requires at least Python 3.5 and the `bencode.py <https://pypi.org/project/bencode.py/>`_ module.
 
+.. note::
+
+  It may be possible to use the script with older Python versions. For Python 3.2, 3.3, 3.4 you need to install
+  the backport of Python's ``typing`` module: https://pypi.org/project/typing/. For Python 3.1 you need to
+  additionally install the backport of Python's ``argparse`` module: https://pypi.org/project/argparse/.
+
+  This has not been tested, though. Feedback is welcome.
+
 Installation
 ------------
 
