@@ -57,23 +57,25 @@ There is a small configuration section in the script (at the top):
    :prepend: # #############
    :append: # ##############
 
+.. _tracker_abbreviations:
+
 Tracker abbreviations
 ^^^^^^^^^^^^^^^^^^^^^
 
 Tracker abbrevations allow you to specify one or more tracker URLs with a single
-word, like 'openbt' in the default configuration. They add a lot of convenience,
+word, like 'opentrackr' in the default configuration. They add a lot of convenience,
 e.g. look at this neat & clear command::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t openbt publicbt
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t opentrackr coppersurfer
    Successfully created torrent:
      Name:             example
     (...)
-     Primary tracker:  udp://tracker.openbittorrent.com/announce
+     Primary tracker:  udp://tracker.opentrackr.org:1337/announce
      Backup trackers:
-       udp://tracker.publicbt.com:80/announce
+       udp://tracker.coppersurfer.tk:6969/announce
 
-In this case, py3createtorrent recognizes the tracker abbreviations 'openbt' and
-'publicbt' and automatically inserts the according tracker announce URLs.
+In this case, py3createtorrent recognizes the tracker abbreviations 'opentrackr' and
+'coppersurfer' and automatically inserts the according tracker announce URLs.
 
 .. note::
 
@@ -83,10 +85,10 @@ In this case, py3createtorrent recognizes the tracker abbreviations 'openbt' and
 
    Example configuration::
 
-      TRACKER_ABBR = {'mytrackergroup':  ['udp://tracker.openbittorrent.com:80/announce',
-                                          'udp://tracker.publicbt.com:80/announce'],
-                      'openbt':          'udp://tracker.openbittorrent.com:80/announce',
-                      'publicbt':        'udp://tracker.publicbt.com:80/announce'}
+      TRACKER_ABBR = {'mytrackergroup': ['udp://tracker.opentrackr.org:1337/announce',
+                                         'udp://tracker.coppersurfer.tk:6969/announce'],
+                      'opentrackr': 'udp://tracker.opentrackr.org:1337/announce',
+                      'coppersurfer': 'udp://tracker.coppersurfer.tk:6969/announce'}
 
    Just specify lists of announce URLs instead of a single announce URL to define
    such groups.
@@ -158,9 +160,21 @@ Syntax:
 Specifying trackers (``-t``, ``--trackers``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-One or multiple tracker URLs can be specified after the ``-t`` or ``--trackers`` switch. For example::
+One or multiple tracker URLs can be specified after the ``-t`` or ``--trackers`` switch. Single tracker example::
 
-    py3createtorrent.py -t udp://tracker.openbittorrent.com/announce udp://backup.tracker.com/announce my_data_folder/
+    py3createtorrent.py -t udp://tracker.opentrackr.org:1337/announce my_data_folder/
+
+This is equivalent to the short form using the :ref:`tracker abbreviation <tracker_abbreviations>` for opentrackr.org::
+
+    py3createtorrent.py -t opentrackr my_data_folder/
+
+Multiple tracker example::
+
+    py3createtorrent.py -t udp://tracker.opentrackr.org:1337/announce udp://tracker.coppersurfer.tk:6969/announce udp://tracker.cyberia.is:6969/announce my_data_folder/
+
+This is equivalent to the short form using the tracker abbreviations::
+
+    py3createtorrent.py -t opentrackr coppersurfer cyberia my_data_folder/
 
 You can create a trackerless torrent by not specifying any tracker URLs at all (i.e. don't
 use the ``-t`` switch at all).
@@ -358,11 +372,11 @@ Example 1 - from directory, no options, default behaviour
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t udp://tracker.openbittorrent.com/announce
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t udp://tracker.opentrackr.org:1337/announce
 
 Alternative, equivalent command using a tracker abbreviation for convenience::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t openbt
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t opentrackr
 
 **Effect**:
 Creates example.torrent inside the current directory.
@@ -384,7 +398,7 @@ Example 2 - from directory, excluding subfolders
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py -e example\subfolder example -t udp://tracker.openbittorrent.com/announce
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py -e example\subfolder example -t udp://tracker.opentrackr.org:1337/announce
 
 **Effect**:
 Creates example.torrent inside the current directory. example\subfolder has
@@ -404,13 +418,13 @@ Example 3 - from directory, excluding files
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py -e example\anotherimage.jpg -e example\subfolder\10_more_minutes_please.JPG example -t udp://tracker.openbittorrent.com/announce
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py -e example\anotherimage.jpg -e example\subfolder\10_more_minutes_please.JPG example -t udp://tracker.opentrackr.org:1337/announce
 
 Alternative, equivalent command using **regular expressions** instead of
 specifying each jpg seperately (also using a tracker abbreviation to make it
 even shorter)::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py --exclude-pattern "(jpg|JPG)$" example -t openbt
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py --exclude-pattern "(jpg|JPG)$" example -t opentrackr
 
 **Effect**:
 Creates example.torrent inside the current directory. example\anotherimage.jpg

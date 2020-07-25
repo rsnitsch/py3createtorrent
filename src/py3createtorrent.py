@@ -40,7 +40,11 @@ __all__ = ['calculate_piece_length', 'get_files_in_directory', 'sha1_20', 'split
 # CONFIGURATION
 
 # Configure your tracker abbreviations here.
-TRACKER_ABBR = {'openbt': 'udp://tracker.openbittorrent.com:80', 'publicbt': 'udp://tracker.publicbt.com:80'}
+TRACKER_ABBR = {
+    'opentrackr': 'udp://tracker.opentrackr.org:1337/announce',
+    'coppersurfer': 'udp://tracker.coppersurfer.tk:6969/announce',
+    'cyberia': 'udp://tracker.cyberia.is:6969/announce'
+}
 
 # Whether or not py3createtorrent is allowed to advertise itself through the torrents' comment fields.
 ADVERTISE = True
