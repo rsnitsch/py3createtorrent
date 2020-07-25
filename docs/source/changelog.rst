@@ -1,6 +1,22 @@
 Changelog
 =========
 
+Changes since 0.9.7
+-------------------
+
+* changed: requires Python 3.2+ now
+* changed: specifying trackers is now optional with the new `-t` option, thus trackerless torrents are now possible
+* added: DHT bootstrap nodes can now be specified, which is useful and recommended for trackerless torrents
+* changed: increased max piece size to 16 MiB
+* changed: show warning if piece size is not a multiple of 16 KiB
+* changed: updated the default trackers (openbt is now opentrackr, dropped publicbt, added cyberia and coppersurfer)
+* changed: switched to bencode.py module for encoding the torrent data
+* changed: added Pipfile and Pipfile.lock
+* changed: switched from optparse to argparse (thus Python 3.2+ is now required)
+* changed: reformatted code with yapf, using a new column limit of 120
+* changed: added type hints to enable analysis with mypy
+* changed: added README.md
+
 Version 0.9.7
 -------------
 
