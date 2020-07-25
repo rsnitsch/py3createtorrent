@@ -312,7 +312,7 @@ if __name__ == '__main__':
             # Testing with integers only.
             test_data = [-1337, 0, 1337**2, 2**33]
             for data in test_data:
-                self.assertEquals(data, bdecode(bencode(data)))
+                self.assertEqual(data, bdecode(bencode(data)))
 
         def test_single_strings_decoding(self):
             # Testing with strings only, automatic decoding enabled (the default).
@@ -321,7 +321,7 @@ if __name__ == '__main__':
                 "utf8-string: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¶ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼"
             ]
             for data in test_data:
-                self.assertEquals(data, bdecode(bencode(data)))
+                self.assertEqual(data, bdecode(bencode(data)))
 
         def test_single_strings_nodecoding(self):
             # same like above but without internal decoding attempts
@@ -331,55 +331,55 @@ if __name__ == '__main__':
                 "utf8-string: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¶ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼"
             ]
             for data in test_data:
-                self.assertEquals(data, bdecode(bencode(data), decode_strings=False).decode("utf-8"))
+                self.assertEqual(data, bdecode(bencode(data), decode_strings=False).decode("utf-8"))
 
         def test_single_strings_more(self):
             # decoding b"test" will result in "test" due
             # to string decoding, which is activated by default
-            self.assertEquals("test", bdecode(bencode(b"test")))
+            self.assertEqual("test", bdecode(bencode(b"test")))
 
             # decoding b"test" will result in b"test"
             # if the string decoding gets disabled explicitly
-            self.assertEquals(b"test", bdecode(bencode(b"test"), decode_strings=False))
+            self.assertEqual(b"test", bdecode(bencode(b"test"), decode_strings=False))
 
             # however, if string decoding gets disabled explicility,
             # even "test" will not be restored. instead, b"test" will be
             # returned.
-            self.assertEquals(b"test", bdecode(bencode("test"), decode_strings=False))
+            self.assertEqual(b"test", bdecode(bencode("test"), decode_strings=False))
 
         def test_empty_list(self):
-            self.assertEquals([], bdecode(bencode([])))
+            self.assertEqual([], bdecode(bencode([])))
 
         def test_empty_dict(self):
-            self.assertEquals({}, bdecode(bencode({})))
+            self.assertEqual({}, bdecode(bencode({})))
 
         def test_detect_bad_dict_keys(self):
-            with self.assertRaisesRegexp(DecodingException, "^Invalid dictionary key"):
+            with self.assertRaisesRegex(DecodingException, "^Invalid dictionary key"):
                 bdecode(b"di123e4:spame")
 
         def test_detect_unterminated_list(self):
-            with self.assertRaisesRegexp(DecodingException, "^Unexpected end of data"):
+            with self.assertRaisesRegex(DecodingException, "^Unexpected end of data"):
                 bdecode(b"li123e")
 
         def test_detect_empty_integer(self):
-            with self.assertRaisesRegexp(DecodingException, "^Empty integer"):
+            with self.assertRaisesRegex(DecodingException, "^Empty integer"):
                 bdecode(b"l4:spamiee")
 
         def test_detect_leading_zeroes(self):
             # Detect leading zero
-            with self.assertRaisesRegexp(DecodingException, "^Leading zeroes"):
+            with self.assertRaisesRegex(DecodingException, "^Leading zeroes"):
                 bdecode(b"i01e", strict=True)
 
             # Detect leading zero of negative number
-            with self.assertRaisesRegexp(DecodingException, "^Leading zeroes"):
+            with self.assertRaisesRegex(DecodingException, "^Leading zeroes"):
                 bdecode(b"i-01e", strict=True)
 
             # Detect negative zero
-            with self.assertRaisesRegexp(DecodingException, "negative zero"):
+            with self.assertRaisesRegex(DecodingException, "negative zero"):
                 bdecode(b"i-0e", strict=True)
 
             # However, the zero itself must be accepted...
-            self.assertEquals(0, bdecode(b"i0e", strict=True))
+            self.assertEqual(0, bdecode(b"i0e", strict=True))
 
         def test_bad_sized_string(self):
             with self.assertRaises(DecodingException):
