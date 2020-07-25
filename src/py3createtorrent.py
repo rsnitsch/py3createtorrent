@@ -553,8 +553,8 @@ def main(argv) -> int:
                         default=False,
                         help="include MD5 hashes in torrent file")
 
-    parser.add_argument("-t", "--tracker", nargs="*", default=[], help="trackers to use for the torrent")
-    parser.add_argument("--node",
+    parser.add_argument("-t", "--trackers", nargs="*", default=[], help="trackers to use for the torrent")
+    parser.add_argument("--nodes",
                         nargs="*",
                         default=[],
                         help="DHT bootstrap nodes to use for the torrent. format: host,port")
@@ -598,7 +598,7 @@ def main(argv) -> int:
     #   - name (may be overwritten in the next section by the --name option)
 
     input_path: str = args.path
-    trackers: List[str] = args.tracker
+    trackers: List[str] = args.trackers
 
     # Validate the given path.
     if not os.path.isfile(input_path) and not os.path.isdir(input_path):
@@ -623,15 +623,14 @@ def main(argv) -> int:
             parser.error("Aborted.")
 
     # Disallow DHT bootstrap nodes for private torrents.
-    if args.node and args.private:
+    if args.nodes and args.private:
         parser.error(
             "DHT bootstrap nodes cannot be specified for a private torrent. Private torrents do not support DHT.")
 
     # Validate DHT bootstrap nodes.
-    nodes = args.node
     parsed_nodes = list()
     invalid_nodes = False
-    for n in nodes:
+    for n in args.nodes:
         splitted = n.split(",")
         if len(splitted) != 2:
             print("Invalid format for DHT bootstrap node '%s'. Please use the format 'host,port'." % n, file=sys.stderr)

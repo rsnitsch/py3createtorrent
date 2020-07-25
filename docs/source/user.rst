@@ -173,28 +173,28 @@ Syntax:
                           set creation date (unix timestamp). -1 = now (default). -2 = disable.
     -n NAME, --name NAME  use this file (or directory) name instead of the real one
     --md5                 include MD5 hashes in torrent file
-    -t [TRACKER [TRACKER ...]], --tracker [TRACKER [TRACKER ...]]
+    -t [TRACKER [TRACKER ...]], --trackers [TRACKER [TRACKER ...]]
                           trackers to use for the torrent
-    --node [NODE [NODE ...]]
+    --nodes [NODE [NODE ...]]
                           DHT bootstrap nodes to use for the torrent. format: host,port
 
-Specifying trackers (``-t``, ``--tracker``)
+Specifying trackers (``-t``, ``--trackers``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-One or multiple tracker URLs can be specified after the ``-t`` or ``--tracker`` switch. For example::
+One or multiple tracker URLs can be specified after the ``-t`` or ``--trackers`` switch. For example::
 
     py3createtorrent.py -t udp://tracker.openbittorrent.com/announce udp://backup.tracker.com/announce my_data_folder/
 
 You can create a trackerless torrent by not specifying any tracker URLs at all (i.e. don't
 use the ``-t`` switch at all).
 
-Specifying DHT bootstrap nodes (``--node``)
+Specifying DHT bootstrap nodes (``--nodes``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-One or multiple DHT bootstrap nodes can be specified after the ``--node`` switch. Each bootstrap node must be
+One or multiple DHT bootstrap nodes can be specified after the ``--nodes`` switch. Each bootstrap node must be
 specified in the form ``host,port``. For example::
 
-    py3createtorrent.py --node router.bittorrent.com,8991 second.node.com,1337 my_data_folder/
+    py3createtorrent.py --nodes router.bittorrent.com,8991 second.node.com,1337 my_data_folder/
 
 It is recommended to specify some DHT bootstrap nodes for trackerless torrents.
 
