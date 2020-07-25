@@ -43,8 +43,9 @@ py3bencode is a new GPL-licensed Bencode module developed for Python 3.
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+from typing import Any, Dict, List, Union
 
-def _bytes(_str):
+def _bytes(_str: str) -> bytes:
     """
     Convert ordinary Python string (utf-8) into byte array (should be considered
     as c-string).
@@ -53,7 +54,7 @@ def _bytes(_str):
     """
     return bytes(str(_str), "utf-8")
 
-def _str(_bytes):
+def _str(_bytes: bytes) -> Union[str, bytes]:
     """
     Attempt to decode byte array back to ordinary Python string (utf-8).
 
@@ -66,7 +67,7 @@ def _str(_bytes):
     except UnicodeDecodeError:
         return _bytes
 
-def bencode(thing):
+def bencode(thing: Any) -> bytes:
     """
     bencodes the given object, returning a byte array
     containing the bencoded data.
@@ -111,7 +112,7 @@ def bencode(thing):
 
     raise TypeError("bencoding objects of type %s not supported" % type(thing))
 
-def bdecode(data, decode_strings=True, strict=False):
+def bdecode(data: bytes, decode_strings: bool = True, strict: bool = False) -> Any:
     """
     Restores/decodes bencoded data. The bencoded data must be given as byte array.
 
@@ -151,14 +152,14 @@ class BDecoder(object):
 
     See bdecode() for how to use it. (Though I recommend not to do so.)
     """
-    def __init__(self, data, decode_strings, strict):
+    def __init__(self, data: bytes, decode_strings: bool, strict: bool):
         self.data   = data
         self.pos    = 0
 
         self.strict         = strict
         self.decode_strings = decode_strings
 
-    def get_pos_char(self):
+    def get_pos_char(self) -> bytes:
         """
         Get char (byte) at current position.
         """
@@ -175,7 +176,7 @@ class BDecoder(object):
         return _res
     pos_char = property(get_pos_char)
 
-    def decode(self):
+    def decode(self) -> Any:
         """Decode whatever we find at the current position."""
         _pos_char  =  self.pos_char
 
@@ -193,7 +194,7 @@ class BDecoder(object):
         else:
             raise DecodingException
 
-    def decode_int(self):
+    def decode_int(self) -> int:
         _start = self.pos
         _end   = self.data.index(b'e', _start)
 
@@ -211,8 +212,8 @@ class BDecoder(object):
 
         return _int
 
-    def decode_list(self):
-        _list = []
+    def decode_list(self) -> List[Any]:
+        _list: List[Any] = []
 
         while True:
             if self.pos_char == b'e':
@@ -232,8 +233,8 @@ class BDecoder(object):
 
         assert False
 
-    def decode_dict(self):
-        _dict = {}
+    def decode_dict(self) -> Dict[Union[bytes, str], Any]:
+        _dict: Dict[Union[bytes, str], Any] = {}
 
         while True:
             if self.pos_char == b'e':
@@ -248,7 +249,7 @@ class BDecoder(object):
 
         assert False
 
-    def decode_string(self):
+    def decode_string(self) -> Union[str, bytes]:
         _start = self.pos
         _colon = self.data.index(b':', _start)
         _len   = int(self.data[_start:_colon])

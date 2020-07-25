@@ -444,17 +444,10 @@ def main(argv) -> int:
                   file=sys.stderr)
             return 1
 
-    # Create OptionParser.
-    kwargs = {
-        #'usage': "%(prog)s [options] <file-or-directory> <main-tracker-url> "
-        #"[<backup-tracker-url> ...]",
-        'description': "py3createtorrent is a comprehensive command line utility for creating torrents."
-    }
+    # Create and configure ArgumentParser.
+    parser = argparse.ArgumentParser(
+        description="py3createtorrent is a comprehensive command line utility for creating torrents.")
 
-    parser = argparse.ArgumentParser(**kwargs)
-
-    # Add options to the OptionParser.
-    # Note: Commonly used options are added first.
     parser.add_argument("-p",
                         "--piece-length",
                         type=int,
@@ -729,7 +722,7 @@ def main(argv) -> int:
         info['source'] = args.source
 
     # Construct outer metainfo dict, which contains the torrent's whole information.
-    metainfo = {'info': info}
+    metainfo: Dict[str, Any] = {'info': info}
     if trackers:
         metainfo['announce'] = trackers[0]
 
