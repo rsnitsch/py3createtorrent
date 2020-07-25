@@ -11,6 +11,7 @@ Some of the features:
 * you can add a **comment** to the torrent file
 * you can create **private torrents** (disabled DHT, ...)
 * you can create torrents with **multiple trackers**
+* you can create **trackerless torrents** (not yet released, but already implemented in develop branch)
 * you can **exclude specific files/folders**
 * you can exclude files/folders based on **regular expressions**
 * you can specify **custom piece sizes**
