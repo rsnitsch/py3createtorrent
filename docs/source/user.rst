@@ -28,7 +28,7 @@ py3createtorrent is intended to fill this gap.
 Requirements
 ------------
 
-py3createtorrent requires at least Python 3.5 and the `py3bencode <https://github.com/rsnitsch/py3bencode>`_ module.
+py3createtorrent requires at least Python 3.5 and the `bencode.py <https://pypi.org/project/bencode.py/>`_ module.
 
 Installation
 ------------
@@ -36,36 +36,13 @@ Installation
 Download the desired version from here:
 https://github.com/rsnitsch/py3createtorrent/releases
 
-The required py3bencode module is shipped alongside py3createtorrent. As long
-as you extract py3bencode into the same directory as the py3createtorrent script,
-you should be fine. This is the easy way and should be appropriate for the
-majority of users.
+And then install the dependencies::
 
-Installing the py3bencode module globally
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  pip install bencode.py
 
-Advanced users might prefer to install the py3bencode module globally in their
-Python installation.
+Alternatively, use pipenv::
 
-You can use `pip <http://www.pip-installer.org/>`_ to install the py3bencode
-module in your Python installation (in the site-packages, to be precise)::
-
-   pip install git+https://github.com/rsnitsch/py3bencode
-
-Make sure to use the pip executable that belongs to the Python interpreter
-with which you will execute py3createtorrent.
-
-If you don't have pip around (although I strongly recommend using it) you can
-also try to install py3bencode manually::
-
-   $ git clone https://github.com/rsnitsch/py3bencode
-   $ cd py3bencode
-   $ python3 setup.py install
-
-Note that any local version of py3bencode will take precedence over the global
-version installed in your site-packages. Thus, you will have to delete the
-py3bencode module that has been shipped alongside py3createtorrent, if you want
-the global version to be used.
+  pipenv install
 
 .. _configuration:
 

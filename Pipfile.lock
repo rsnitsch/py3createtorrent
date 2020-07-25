@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "dd23e0d1d8b566b82cab661dee8b64004985366afdc5e906bd34129d4a21d1a7"
+            "sha256": "bfde8d3eff160721aafbf6f6df2f68aa843baff921602aa392ddf83027c7554c"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -13,7 +13,16 @@
             }
         ]
     },
-    "default": {},
+    "default": {
+        "bencode.py": {
+            "hashes": [
+                "sha256:2a24ccda1725a51a650893d0b63260138359eaa299bb6e7a09961350a2a6e05c",
+                "sha256:99c06a55764e85ffe81622fdf9ee78bd737bad3ea61d119784a54bb28860d962"
+            ],
+            "index": "pypi",
+            "version": "==4.0.0"
+        }
+    },
     "develop": {
         "alabaster": {
             "hashes": [

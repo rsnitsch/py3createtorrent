@@ -17,14 +17,14 @@ import time
 from typing import Any, Dict, List, Optional, Pattern, Set, Union
 
 try:
-    from py3bencode import bencode
+    from bencodepy import encode as bencode
 except ImportError as exc:
     print("ERROR:")
-    print("""py3bencode module could not be imported.
+    print("""bencodepy module could not be imported.
 
-Please install the py3bencode module using
+Please install the bencodepy module using
 
-    pip install git+https://github.com/rsnitsch/py3bencode
+    pip install bencode.py
 
 or refer to the documentation on how to install it:
 https://py3createtorrent.readthedocs.io/en/latest/""")
@@ -118,7 +118,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     assert length > 0, "empty file"
 
     info = {
-        'pieces': pieces,
+        'pieces': bytes(pieces),
         'name': os.path.basename(file),
         'length': length,
     }
@@ -204,7 +204,7 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
         info_pieces += sha1_20(data)
 
     # Build the final dictionary.
-    info = {'pieces': info_pieces, 'name': os.path.basename(directory.strip("/\\")), 'files': info_files}
+    info = {'pieces': bytes(info_pieces), 'name': os.path.basename(directory.strip("/\\")), 'files': info_files}
 
     return info
 
