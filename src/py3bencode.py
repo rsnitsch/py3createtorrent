@@ -45,6 +45,7 @@ py3bencode is a new GPL-licensed Bencode module developed for Python 3.
 """
 from typing import Any, Dict, List, Union
 
+
 def _bytes(_str: str) -> bytes:
     """
     Convert ordinary Python string (utf-8) into byte array (should be considered
@@ -53,6 +54,7 @@ def _bytes(_str: str) -> bytes:
     @rtype:   bytes
     """
     return bytes(str(_str), "utf-8")
+
 
 def _str(_bytes: bytes) -> Union[str, bytes]:
     """
@@ -66,6 +68,7 @@ def _str(_bytes: bytes) -> Union[str, bytes]:
         return _bytes.decode("utf-8")
     except UnicodeDecodeError:
         return _bytes
+
 
 def bencode(thing: Any) -> bytes:
     """
@@ -84,7 +87,7 @@ def bencode(thing: Any) -> bytes:
 
     @rtype:   bytes
     """
-    if   isinstance(thing, int):
+    if isinstance(thing, int):
         return _bytes("i%se" % thing)
 
     elif isinstance(thing, str):
@@ -111,6 +114,7 @@ def bencode(thing: Any) -> bytes:
         return result + b"e"
 
     raise TypeError("bencoding objects of type %s not supported" % type(thing))
+
 
 def bdecode(data: bytes, decode_strings: bool = True, strict: bool = False) -> Any:
     """
@@ -140,11 +144,13 @@ def bdecode(data: bytes, decode_strings: bool = True, strict: bool = False) -> A
 
     return BDecoder(data, decode_strings, strict).decode()
 
+
 class DecodingException(Exception):
     """
     Raised by the decoder on error.
     """
     pass
+
 
 class BDecoder(object):
     """
@@ -153,17 +159,17 @@ class BDecoder(object):
     See bdecode() for how to use it. (Though I recommend not to do so.)
     """
     def __init__(self, data: bytes, decode_strings: bool, strict: bool):
-        self.data   = data
-        self.pos    = 0
+        self.data = data
+        self.pos = 0
 
-        self.strict         = strict
+        self.strict = strict
         self.decode_strings = decode_strings
 
     def get_pos_char(self) -> bytes:
         """
         Get char (byte) at current position.
         """
-        _res = self.data[self.pos:self.pos+1]
+        _res = self.data[self.pos:self.pos + 1]
 
         # why use slice syntax instead of ordinary random access?
         # because self.data[some_index] would return a byte,
@@ -174,20 +180,21 @@ class BDecoder(object):
         if len(_res) == 0:
             raise DecodingException("Unexpected end of data. Unterminated list/dictionary?")
         return _res
+
     pos_char = property(get_pos_char)
 
     def decode(self) -> Any:
         """Decode whatever we find at the current position."""
-        _pos_char  =  self.pos_char
+        _pos_char = self.pos_char
 
-        if   _pos_char == b'i':
-            self.pos  +=  1
+        if _pos_char == b'i':
+            self.pos += 1
             return self.decode_int()
         elif _pos_char == b'l':
-            self.pos  +=  1
+            self.pos += 1
             return self.decode_list()
         elif _pos_char == b'd':
-            self.pos  +=  1
+            self.pos += 1
             return self.decode_dict()
         elif _pos_char.isdigit():
             return self.decode_string()
@@ -196,12 +203,12 @@ class BDecoder(object):
 
     def decode_int(self) -> int:
         _start = self.pos
-        _end   = self.data.index(b'e', _start)
+        _end = self.data.index(b'e', _start)
 
         if _start == _end:
             raise DecodingException("Empty integer.")
 
-        self.pos = _end+1
+        self.pos = _end + 1
 
         _int = int(self.data[_start:_end])
 
@@ -244,7 +251,7 @@ class BDecoder(object):
             if not self.pos_char.isdigit():
                 raise DecodingException("Invalid dictionary key (must be string).")
 
-            key        = self.decode_string()
+            key = self.decode_string()
             _dict[key] = self.decode()
 
         assert False
@@ -252,14 +259,14 @@ class BDecoder(object):
     def decode_string(self) -> Union[str, bytes]:
         _start = self.pos
         _colon = self.data.index(b':', _start)
-        _len   = int(self.data[_start:_colon])
+        _len = int(self.data[_start:_colon])
 
         if _len < 0:
             raise DecodingException("String with length < 0 found.")
 
-        self.pos = _colon+1+_len
+        self.pos = _colon + 1 + _len
 
-        _res = self.data[_colon+1:_colon+1+_len]
+        _res = self.data[_colon + 1:_colon + 1 + _len]
 
         if self.decode_strings:
             return _str(_res)
@@ -293,9 +300,7 @@ if __name__ == '__main__':
 
         def test_complex(self):
             # Complex tests with a lot of hierarchy in the data.
-            test_data = [{'bar': 'spam', 'foo': 42},
-                         {'foo': ['bar', [42, 'morespam'], 'spam']},
-                         'gedons']
+            test_data = [{'bar': 'spam', 'foo': 42}, {'foo': ['bar', [42, 'morespam'], 'spam']}, 'gedons']
 
             for data in test_data:
                 self.assertEqual(data, bdecode(bencode(data)))
@@ -311,23 +316,27 @@ if __name__ == '__main__':
 
         def test_single_strings_decoding(self):
             # Testing with strings only, automatic decoding enabled (the default).
-            test_data = ["", "test", "utf8-string: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¶ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼"]
+            test_data = [
+                "", "test",
+                "utf8-string: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¶ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼"
+            ]
             for data in test_data:
                 self.assertEquals(data, bdecode(bencode(data)))
 
         def test_single_strings_nodecoding(self):
             # same like above but without internal decoding attempts
             # (decode_strings = False)
-            test_data = ["", "test", "utf8-string: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¶ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼"]
+            test_data = [
+                "", "test",
+                "utf8-string: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¶ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼"
+            ]
             for data in test_data:
-                self.assertEquals(data,
-                                  bdecode(bencode(data),
-                                          decode_strings=False).decode("utf-8"))
+                self.assertEquals(data, bdecode(bencode(data), decode_strings=False).decode("utf-8"))
 
         def test_single_strings_more(self):
             # decoding b"test" will result in "test" due
             # to string decoding, which is activated by default
-            self.assertEquals("test",  bdecode(bencode(b"test")))
+            self.assertEquals("test", bdecode(bencode(b"test")))
 
             # decoding b"test" will result in b"test"
             # if the string decoding gets disabled explicitly
@@ -345,34 +354,28 @@ if __name__ == '__main__':
             self.assertEquals({}, bdecode(bencode({})))
 
         def test_detect_bad_dict_keys(self):
-            with self.assertRaisesRegexp(DecodingException,
-                                         "^Invalid dictionary key"):
+            with self.assertRaisesRegexp(DecodingException, "^Invalid dictionary key"):
                 bdecode(b"di123e4:spame")
 
         def test_detect_unterminated_list(self):
-            with self.assertRaisesRegexp(DecodingException,
-                                         "^Unexpected end of data"):
+            with self.assertRaisesRegexp(DecodingException, "^Unexpected end of data"):
                 bdecode(b"li123e")
 
         def test_detect_empty_integer(self):
-            with self.assertRaisesRegexp(DecodingException,
-                                         "^Empty integer"):
+            with self.assertRaisesRegexp(DecodingException, "^Empty integer"):
                 bdecode(b"l4:spamiee")
 
         def test_detect_leading_zeroes(self):
             # Detect leading zero
-            with self.assertRaisesRegexp(DecodingException,
-                                         "^Leading zeroes"):
+            with self.assertRaisesRegexp(DecodingException, "^Leading zeroes"):
                 bdecode(b"i01e", strict=True)
 
             # Detect leading zero of negative number
-            with self.assertRaisesRegexp(DecodingException,
-                                         "^Leading zeroes"):
+            with self.assertRaisesRegexp(DecodingException, "^Leading zeroes"):
                 bdecode(b"i-01e", strict=True)
 
             # Detect negative zero
-            with self.assertRaisesRegexp(DecodingException,
-                                         "negative zero"):
+            with self.assertRaisesRegexp(DecodingException, "negative zero"):
                 bdecode(b"i-0e", strict=True)
 
             # However, the zero itself must be accepted...
