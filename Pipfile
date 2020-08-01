@@ -4,9 +4,9 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-sphinx = "*"
-mypy = "*"
-yapf = "*"
+sphinx = "~=3.1"
+mypy = "~=0.782"
+yapf = "~=0.30"
 
 [packages]
-"bencode.py" = "*"
+"bencode.py" = "~=4.0"
