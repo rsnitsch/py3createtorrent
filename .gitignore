@@ -1,2 +1,3 @@
 docs/build/
 src/__pycache__/
+Pipfile.lock
