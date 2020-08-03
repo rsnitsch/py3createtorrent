@@ -103,18 +103,23 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
 
     printv("Hashing file... ", end="")
 
+    piece_data = bytearray(piece_length)
     with open(file, "rb") as fh:
         i = 0
         while True:
-            piece_data = fh.read(piece_length)
+            count = fh.readinto(piece_data)
 
-            if not piece_data:
+            if count == piece_length:
+                if include_md5:
+                    md5.update(piece_data)
+                pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data)
+            elif count != 0:
+                if include_md5:
+                    md5.update(piece_data[:count])
+                pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data[:count])
+            else:
                 break
 
-            if include_md5:
-                md5.update(piece_data)
-
-            pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data)
             i += 1
 
     printv("done")
