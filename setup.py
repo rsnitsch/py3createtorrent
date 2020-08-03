@@ -23,7 +23,7 @@ long_description = (here / 'README.md').read_text(encoding='utf-8')
 setup(
     name='py3createtorrent',
     # https://www.python.org/dev/peps/pep-0440/
-    version=get_version('src/py3createtorrent'),
+    version=get_version('src/py3createtorrent.py'),
     description='Create torrents via command line!',
     long_description=long_description,
     long_description_content_type='text/markdown',

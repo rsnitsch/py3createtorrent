@@ -434,19 +434,19 @@ def calculate_piece_length(size: int) -> int:
     return int(piece_length)
 
 
-def main(argv) -> int:
+def main() -> None:
     # Validate the configuration.
     for abbr, replacement in TRACKER_ABBR.items():
         if not isinstance(abbr, str):
             print("Configuration error: invalid tracker abbrevation: '%s' "
                   "(must be a string instead)" % abbr,
                   file=sys.stderr)
-            return 1
+            sys.exit(1)
         if not isinstance(replacement, (str, list)):
             print("Configuration error: invalid tracker abbreviation: '%s' "
                   "(must be a string or list of strings instead)" % str(replacement),
                   file=sys.stderr)
-            return 1
+            sys.exit(1)
 
     # Create and configure ArgumentParser.
     parser = argparse.ArgumentParser(
@@ -676,7 +676,7 @@ def main(argv) -> int:
     if torrent_size == 0:
         print("Error: Can't create torrent for 0 byte data.", file=sys.stderr)
         print("Check your files and exclusions!", file=sys.stderr)
-        return 1
+        sys.exit(1)
 
     # Calculate or parse the piece size.
     if args.piece_length == 0:
@@ -813,7 +813,7 @@ def main(argv) -> int:
         print("IOError: " + str(exc), file=sys.stderr)
         print("Could not write the torrent file. Check torrent name and your privileges.", file=sys.stderr)
         print("Absolute output path: '%s'" % os.path.abspath(output_path), file=sys.stderr)
-        return 1
+        sys.exit(1)
     except KeyboardInterrupt:
         # Properly handle KeyboardInterrupts.
         # todo: open()'s context manager may already do this on his own?
@@ -826,7 +826,7 @@ def main(argv) -> int:
 
     # If the quiet option has been set, we're already finished here, because we don't print a summary in this case.
     if args.quiet:
-        return 0
+        sys.exit(0)
 
     # Print summary!
     print("Successfully created torrent:")
@@ -874,11 +874,9 @@ date']).isoformat(' ')
            else "(none)", "yes" if args.private else "no", creation_date, metainfo['nodes'] if 'nodes' in metainfo else
            "(none)", metainfo['announce'] if 'announce' in metainfo else "(none)", backup_trackers))
 
-    return 0
-
 
 if __name__ == '__main__':
     try:
-        sys.exit(main(sys.argv))
+        main()
     except KeyboardInterrupt:
         print("\nInterrupted by user.", file=sys.stderr)
