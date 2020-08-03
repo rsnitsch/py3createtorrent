@@ -1,3 +1,6 @@
 docs/build/
 src/__pycache__/
 Pipfile.lock
+dist
+src/py3createtorrent.egg-info
+build
