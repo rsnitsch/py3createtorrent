@@ -92,10 +92,11 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     assert os.path.isfile(file), "not a file"
 
     # Total byte count.
-    length = 0
+    length = os.path.getsize(file)
 
     # Concatenated 20byte sha1-hashes of all the file's pieces.
-    pieces = bytearray()
+    piece_count = int(math.ceil(length / piece_length))
+    pieces = bytearray(piece_count * 20)
 
     if include_md5:
         md5 = hashlib.md5()
@@ -103,6 +104,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     printv("Hashing file... ", end="")
 
     with open(file, "rb") as fh:
+        i = 0
         while True:
             piece_data = fh.read(piece_length)
 
@@ -113,9 +115,8 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
             if include_md5:
                 md5.update(piece_data)
 
-            length += _len
-
-            pieces += sha1_20(piece_data)
+            pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data)
+            i += 1
 
     printv("done")
 
