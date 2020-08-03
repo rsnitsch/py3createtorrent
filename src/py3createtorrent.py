@@ -108,8 +108,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
         while True:
             piece_data = fh.read(piece_length)
 
-            _len = len(piece_data)
-            if _len == 0:
+            if not piece_data:
                 break
 
             if include_md5:
