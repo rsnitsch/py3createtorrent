@@ -54,7 +54,7 @@ ADVERTISE = True
 
 # Do not touch anything below this line unless you know what you're doing!
 
-VERSION = '0.9.7'
+__version__ = '1.0.0.dev1'
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
@@ -751,7 +751,7 @@ def main(argv) -> int:
                      "automatically or -2 to disable storing a creation date altogether).")
 
     # Add the "created by" field.
-    metainfo['created by'] = 'py3createtorrent v%s' % VERSION
+    metainfo['created by'] = 'py3createtorrent v%s' % __version__
 
     # Add user's comment or advertise py3createtorrent (unless this behaviour has been disabled by the user).
     # The user may also decide not to include the comment field at all by specifying an empty comment.
