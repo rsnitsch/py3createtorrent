@@ -21,8 +21,6 @@ Some of the features:
 * you can specify **custom piece sizes**
 * you can specify custom creation dates
 
-::toc:
-
 Basic usage
 -----------
 
