@@ -73,73 +73,6 @@ Then you can execute py3createtorrent.py with pipenv as follows::
 
   pipenv run src/py3createtorrent.py
 
-.. _configuration:
-
-Configuration
--------------
-
-There is a small configuration section in the script (at the top):
-
-.. literalinclude:: ../../src/py3createtorrent.py
-   :start-after: # #############
-   :end-before: # ##############
-   :prepend: # #############
-   :append: # ##############
-
-.. _tracker_abbreviations:
-
-Tracker abbreviations
-^^^^^^^^^^^^^^^^^^^^^
-
-Tracker abbrevations allow you to specify one or more tracker URLs with a single
-word, like 'opentrackr' in the default configuration. They add a lot of convenience,
-e.g. look at this neat & clear command::
-
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t opentrackr coppersurfer
-   Successfully created torrent:
-     Name:             example
-    (...)
-     Primary tracker:  udp://tracker.opentrackr.org:1337/announce
-     Backup trackers:
-       udp://tracker.coppersurfer.tk:6969/announce
-
-In this case, py3createtorrent recognizes the tracker abbreviations 'opentrackr' and
-'coppersurfer' and automatically inserts the according tracker announce URLs.
-
-.. note::
-
-   Single abbreviations may be replaced by multiple tracker announce URLs. This
-   way you can also create sort of "tracker groups" for different kinds of
-   torrents.
-
-   Example configuration::
-
-      TRACKER_ABBR = {'mytrackergroup': ['udp://tracker.opentrackr.org:1337/announce',
-                                         'udp://tracker.coppersurfer.tk:6969/announce'],
-                      'opentrackr': 'udp://tracker.opentrackr.org:1337/announce',
-                      'coppersurfer': 'udp://tracker.coppersurfer.tk:6969/announce'}
-
-   Just specify lists of announce URLs instead of a single announce URL to define
-   such groups.
-
-Advertise setting
-^^^^^^^^^^^^^^^^^
-
-The ``ADVERTISE`` setting defines whether py3createtorrent is allowed to advertise
-itself through the comment field, if the user hasn't specified a comment.
-
-If you want to disable advertising for a single torrent only, you can use the
-``--comment`` option to specify an empty comment::
-
-   $ py3createtorrent.py --comment "" ...
-
-   or
-
-   $ py3createtorrent.py -c "" ...
-
-py3createtorrent will not advertise itself in this case, because you explicitly
-specified the empty comment.
-
 Usage
 -----
 
@@ -468,3 +401,70 @@ Creating torrents of single files
 
 It's almost the same as for creating directories, except, of course, you can't
 use the exclude-option anymore.
+
+.. _configuration:
+
+Configuration
+-------------
+
+There is a small configuration section in the script (at the top):
+
+.. literalinclude:: ../../src/py3createtorrent.py
+   :start-after: # #############
+   :end-before: # ##############
+   :prepend: # #############
+   :append: # ##############
+
+.. _tracker_abbreviations:
+
+Tracker abbreviations
+^^^^^^^^^^^^^^^^^^^^^
+
+Tracker abbrevations allow you to specify one or more tracker URLs with a single
+word, like 'opentrackr' in the default configuration. They add a lot of convenience,
+e.g. look at this neat & clear command::
+
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t opentrackr coppersurfer
+   Successfully created torrent:
+     Name:             example
+    (...)
+     Primary tracker:  udp://tracker.opentrackr.org:1337/announce
+     Backup trackers:
+       udp://tracker.coppersurfer.tk:6969/announce
+
+In this case, py3createtorrent recognizes the tracker abbreviations 'opentrackr' and
+'coppersurfer' and automatically inserts the according tracker announce URLs.
+
+.. note::
+
+   Single abbreviations may be replaced by multiple tracker announce URLs. This
+   way you can also create sort of "tracker groups" for different kinds of
+   torrents.
+
+   Example configuration::
+
+      TRACKER_ABBR = {'mytrackergroup': ['udp://tracker.opentrackr.org:1337/announce',
+                                         'udp://tracker.coppersurfer.tk:6969/announce'],
+                      'opentrackr': 'udp://tracker.opentrackr.org:1337/announce',
+                      'coppersurfer': 'udp://tracker.coppersurfer.tk:6969/announce'}
+
+   Just specify lists of announce URLs instead of a single announce URL to define
+   such groups.
+
+Advertise setting
+^^^^^^^^^^^^^^^^^
+
+The ``ADVERTISE`` setting defines whether py3createtorrent is allowed to advertise
+itself through the comment field, if the user hasn't specified a comment.
+
+If you want to disable advertising for a single torrent only, you can use the
+``--comment`` option to specify an empty comment::
+
+   $ py3createtorrent.py --comment "" ...
+
+   or
+
+   $ py3createtorrent.py -c "" ...
+
+py3createtorrent will not advertise itself in this case, because you explicitly
+specified the empty comment.
