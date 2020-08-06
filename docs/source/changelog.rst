@@ -5,11 +5,11 @@ Changes since 0.9.7
 -------------------
 
 * changed: **requires Python 3.5+ now**
-* changed: specifying trackers is now optional with the new ``-t`` option, thus **trackerless torrents are now
+* changed: specifying trackers is now optional with the new ``-t`` switch, thus **trackerless torrents are now
   possible**
-* added: DHT bootstrap nodes can now be specified with the new ``--nodes`` option (doing so is recommended for
+* added: DHT bootstrap nodes can now be specified with the new ``--node`` switch (doing so is recommended for
   trackerless torrents)
-* added: **webseed support** (GetRight style, i.e. `<http://bittorrent.org/beps/bep_0019.html>`_)
+* added: **webseed support** with the new ``--webseed`` switch (GetRight style, i.e. `<http://bittorrent.org/beps/bep_0019.html>`_)
 * changed: increased max piece size to 16 MiB
 * changed: show warning if piece size is not a multiple of 16 KiB
 * changed: updated the default trackers (openbt is now opentrackr, dropped publicbt, added cyberia and coppersurfer)

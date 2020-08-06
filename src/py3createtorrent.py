@@ -555,12 +555,25 @@ def main() -> None:
                         default=False,
                         help="include MD5 hashes in torrent file")
 
-    parser.add_argument("-t", "--trackers", nargs="*", default=[], help="trackers to use for the torrent")
-    parser.add_argument("--nodes",
-                        nargs="*",
+    parser.add_argument("-t",
+                        "--tracker",
+                        metavar="TRACKER_URL",
+                        action="append",
+                        dest="trackers",
                         default=[],
-                        help="DHT bootstrap nodes to use for the torrent. format: host,port")
-    parser.add_argument("--webseeds", nargs="*", default=[], help="webseed URLs for the torrent")
+                        help="tracker to use for the torrent")
+    parser.add_argument("--node",
+                        metavar="HOST,PORT",
+                        action="append",
+                        dest="nodes",
+                        default=[],
+                        help="DHT bootstrap node to use for the torrent")
+    parser.add_argument("--webseed",
+                        metavar="WEBSEED_URL",
+                        action="append",
+                        dest="webseeds",
+                        default=[],
+                        help="webseed URL for the torrent")
 
     parser.add_argument("path", help="file or folder for which to create a torrent")
 

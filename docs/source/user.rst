@@ -80,49 +80,49 @@ Syntax:
 
 .. code-block:: none
 
-  usage: py3createtorrent.py [-h] [-p PIECE_LENGTH] [-P] [-c COMMENT] [-s SOURCE] [-f] [-v] [-q] [-o PATH] [-e PATH]
-                             [--exclude-pattern REGEXP] [--exclude-pattern-ci REGEXP] [-d TIMESTAMP] [-n NAME] [--md5]
-                             [-t [TRACKER [TRACKER ...]]] [--node [NODE [NODE ...]]]
-                             path
+    usage: py3createtorrent.py [-h] [-p PIECE_LENGTH] [-P] [-c COMMENT] [-s SOURCE] [-f] [-v] [-q] [-o PATH] [-e PATH] [--exclude-pattern REGEXP]
+                               [--exclude-pattern-ci REGEXP] [-d TIMESTAMP] [-n NAME] [--md5] [-t TRACKER_URL] [--node HOST,PORT] [--webseed WEBSEED_URL]
+                               path
 
-  py3createtorrent is a comprehensive command line utility for creating torrents.
+    py3createtorrent is a comprehensive command line utility for creating torrents.
 
-  positional arguments:
-    path                  file or folder for which to create a torrent
+    positional arguments:
+      path                  file or folder for which to create a torrent
 
-  optional arguments:
-    -h, --help            show this help message and exit
-    -p PIECE_LENGTH, --piece-length PIECE_LENGTH
-                          piece size in KiB. 0 = automatic selection (default).
-    -P, --private         create private torrent
-    -c COMMENT, --comment COMMENT
-                          include comment
-    -s SOURCE, --source SOURCE
-                          include source
-    -f, --force           dont ask anything, just do it
-    -v, --verbose         verbose mode
-    -q, --quiet           be quiet, e.g. don't print summary
-    -o PATH, --output PATH
-                          custom output location (directory or complete path). default = current directory.
-    -e PATH, --exclude PATH
-                          exclude path (can be repeated)
-    --exclude-pattern REGEXP
-                          exclude paths matching the regular expression (can be repeated)
-    --exclude-pattern-ci REGEXP
-                          exclude paths matching the case-insensitive regular expression (can be repeated)
-    -d TIMESTAMP, --date TIMESTAMP
-                          set creation date (unix timestamp). -1 = now (default). -2 = disable.
-    -n NAME, --name NAME  use this file (or directory) name instead of the real one
-    --md5                 include MD5 hashes in torrent file
-    -t [TRACKER [TRACKER ...]], --trackers [TRACKER [TRACKER ...]]
-                          trackers to use for the torrent
-    --nodes [NODE [NODE ...]]
-                          DHT bootstrap nodes to use for the torrent. format: host,port
+    optional arguments:
+      -h, --help            show this help message and exit
+      -p PIECE_LENGTH, --piece-length PIECE_LENGTH
+                            piece size in KiB. 0 = automatic selection (default).
+      -P, --private         create private torrent
+      -c COMMENT, --comment COMMENT
+                            include comment
+      -s SOURCE, --source SOURCE
+                            include source
+      -f, --force           dont ask anything, just do it
+      -v, --verbose         verbose mode
+      -q, --quiet           be quiet, e.g. don't print summary
+      -o PATH, --output PATH
+                            custom output location (directory or complete path). default = current directory.
+      -e PATH, --exclude PATH
+                            exclude path (can be repeated)
+      --exclude-pattern REGEXP
+                            exclude paths matching the regular expression (can be repeated)
+      --exclude-pattern-ci REGEXP
+                            exclude paths matching the case-insensitive regular expression (can be repeated)
+      -d TIMESTAMP, --date TIMESTAMP
+                            set creation date (unix timestamp). -1 = now (default). -2 = disable.
+      -n NAME, --name NAME  use this file (or directory) name instead of the real one
+      --md5                 include MD5 hashes in torrent file
+      -t TRACKER_URL, --tracker TRACKER_URL
+                            tracker to use for the torrent
+      --node HOST,PORT      DHT bootstrap node to use for the torrent
+      --webseed WEBSEED_URL
+                            webseed URL for the torrent
 
-Specifying trackers (``-t``, ``--trackers``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Specifying trackers (``-t``, ``--tracker``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-One or multiple tracker URLs can be specified after the ``-t`` or ``--trackers`` switch. Single tracker example::
+One or multiple tracker URLs can be specified using the ``-t`` or ``--tracker`` switch. Single tracker example::
 
     py3createtorrent.py -t udp://tracker.opentrackr.org:1337/announce my_data_folder/
 
@@ -130,24 +130,27 @@ This is equivalent to the short form using the :ref:`tracker abbreviation <track
 
     py3createtorrent.py -t opentrackr my_data_folder/
 
-Multiple tracker example::
+For multiple trackers, just use ``-t`` repeatedly. Multiple tracker example::
 
-    py3createtorrent.py -t udp://tracker.opentrackr.org:1337/announce udp://tracker.coppersurfer.tk:6969/announce udp://tracker.cyberia.is:6969/announce my_data_folder/
+    py3createtorrent.py -t udp://tracker.opentrackr.org:1337/announce -t udp://tracker.coppersurfer.tk:6969/announce -t udp://tracker.cyberia.is:6969/announce my_data_folder/
 
 This is equivalent to the short form using the tracker abbreviations::
 
-    py3createtorrent.py -t opentrackr coppersurfer cyberia my_data_folder/
+    py3createtorrent.py -t opentrackr -t coppersurfer -t cyberia my_data_folder/
 
 You can create a trackerless torrent by not specifying any tracker URLs at all (i.e. don't
 use the ``-t`` switch at all).
 
-Specifying DHT bootstrap nodes (``--nodes``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Specifying DHT bootstrap nodes (``--node``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-One or multiple DHT bootstrap nodes can be specified after the ``--nodes`` switch. Each bootstrap node must be
-specified in the form ``host,port``. For example::
+One or multiple DHT bootstrap nodes can be specified using the ``--node`` switch. Each bootstrap node must be
+specified in the form ``host,port``. Just like ``-t``, the ``--node`` switch can be used repeatedly in order
+to specify multiple DHT bootstrap nodes.
 
-    py3createtorrent.py --nodes router.bittorrent.com,8991 second.node.com,1337 my_data_folder/
+Example::
+
+    py3createtorrent.py --node router.bittorrent.com,8991 --node second.node.com,1337 my_data_folder/
 
 It is recommended to specify some DHT bootstrap nodes for trackerless torrents.
 
@@ -369,7 +372,7 @@ been excluded.
 .. tip::
    Of course you can exclude multiple subfolders, e.g.::
 
-      py3createtorrent.py -e exclusion1 -e exclusion2 yourfolder tracker-url
+      py3createtorrent.py -e exclusion1 -e exclusion2 yourfolder -t tracker-url
 
 In µTorrent it will look like this:
 
@@ -424,7 +427,7 @@ Tracker abbrevations allow you to specify one or more tracker URLs with a single
 word, like 'opentrackr' in the default configuration. They add a lot of convenience,
 e.g. look at this neat & clear command::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t opentrackr coppersurfer
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t opentrackr -t coppersurfer
    Successfully created torrent:
      Name:             example
     (...)
