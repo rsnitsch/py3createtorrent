@@ -5,6 +5,9 @@
 
 py3createtorrent is a comprehensive shell/commandline utility for creating torrents (Linux & Windows).
 
+Features
+--------
+
 Some of the features:
 
 * you can create **huge torrents** for any amount of data
