@@ -63,7 +63,7 @@ And then install the dependencies::
 
   pip install bencode.py
 
-Then you can execute py3createtorrent.py (it is in the `src` folder).
+Then you can execute py3createtorrent.py (it is in the ``src`` folder).
 
 Alternatively, use pipenv::
 
