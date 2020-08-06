@@ -17,8 +17,29 @@ Some of the features:
 * you can specify **custom piece sizes**
 * you can specify custom creation dates
 
-Documentation
--------------
+::toc:
 
-Installation, configuration and usage are explained here:
+Basic usage
+-----------
+
+Creating a torrent is as simple as:
+
+    py3createtorrent -t udp://tracker.opentrackr.org:1337/announce file_or_folder
+
+Multiple trackers can be specified as follows:
+
+    py3createtorrent -t udp://tracker.opentrackr.org:1337/announce udp://tracker.coppersurfer.tk:6969/announce file_or_folder
+
+Install
+-------
+
+You can install py3createtorrent by executing:
+
+    pip3 install py3createtorrent
+
+Of course, you need to have Python 3 installed on your system. py3createtorrent requires Python 3.5 or later.
+
+Full documentation
+------------------
+
 https://py3createtorrent.readthedocs.io/en/latest/user.html
