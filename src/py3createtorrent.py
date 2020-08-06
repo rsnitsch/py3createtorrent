@@ -560,6 +560,7 @@ def main() -> None:
                         nargs="*",
                         default=[],
                         help="DHT bootstrap nodes to use for the torrent. format: host,port")
+    parser.add_argument("--webseeds", nargs="*", default=[], help="webseed URLs for the torrent")
 
     parser.add_argument("path", help="file or folder for which to create a torrent")
 
@@ -743,6 +744,10 @@ def main() -> None:
     if parsed_nodes:
         metainfo['nodes'] = parsed_nodes
 
+    # Set webseeds (url-list).
+    if args.webseeds:
+        metainfo['url-list'] = args.webseeds
+
     # Set "creation date".
     # The user may specify a custom creation date. He may also decide not to include the creation date field at all.
     if args.date == -1:
@@ -872,11 +877,13 @@ date']).isoformat(' ')
           "  Private:             %s\n"
           "  Creation date:       %s\n"
           "  DHT bootstrap nodes: %s\n"
+          "  Webseeds:            %s\n"
           "  Primary tracker:     %s\n"
           "  Backup trackers:\n"
           "%s" %
-          (metainfo['info']['name'], size, piece_count, piece_length / KIB, metainfo['comment'] if 'comment' in metainfo
-           else "(none)", "yes" if args.private else "no", creation_date, metainfo['nodes'] if 'nodes' in metainfo else
+          (metainfo['info']['name'], size, piece_count, piece_length / KIB,
+           metainfo['comment'] if 'comment' in metainfo else "(none)", "yes" if args.private else "no", creation_date,
+           metainfo['nodes'] if 'nodes' in metainfo else "(none)", metainfo['url-list'] if 'url-list' in metainfo else
            "(none)", metainfo['announce'] if 'announce' in metainfo else "(none)", backup_trackers))
 
 
