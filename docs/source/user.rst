@@ -41,16 +41,36 @@ py3createtorrent requires at least Python 3.5 and the `bencode.py <https://pypi.
 Installation
 ------------
 
-Download the desired version from here:
+Recommended: Installation using pip
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+pip is the easiest and recommended way of installing py3createtorrent.
+
+Just execute::
+
+  pip3 install py3createtorrent
+
+After that, you can use py3createtorrent on your commandline.
+
+Alternative: Manual installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Alternatively, you can download py3createtorrent manually. Download the desired version from here:
 https://github.com/rsnitsch/py3createtorrent/releases
 
 And then install the dependencies::
 
   pip install bencode.py
 
+Then you can execute py3createtorrent.py (it is in the `src` folder).
+
 Alternatively, use pipenv::
 
   pipenv install
+
+Then you can execute py3createtorrent.py with pipenv as follows::
+
+  pipenv run src/py3createtorrent.py
 
 .. _configuration:
 
