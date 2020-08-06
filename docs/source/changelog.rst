@@ -15,6 +15,7 @@ Version 1.0.0 (not yet released)
 * changed: updated the default trackers (openbt is now opentrackr, dropped publicbt, added cyberia and coppersurfer)
 * added: Pipfile and Pipfile.lock for pipenv support
 * added: README.md
+* changed: improved performance of single file torrent creation
 * refactored: switched to bencode.py module for encoding the torrent data
 * refactored: switched from optparse to argparse
 * refactored: reformatted code with yapf, using a new column limit of 120
