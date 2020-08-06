@@ -9,6 +9,7 @@ Changes since 0.9.7
   possible**
 * added: DHT bootstrap nodes can now be specified with the new ``--nodes`` option (doing so is recommended for
   trackerless torrents)
+* added: **webseed support** (GetRight style, i.e. `<http://bittorrent.org/beps/bep_0019.html>`_)
 * changed: increased max piece size to 16 MiB
 * changed: show warning if piece size is not a multiple of 16 KiB
 * changed: updated the default trackers (openbt is now opentrackr, dropped publicbt, added cyberia and coppersurfer)

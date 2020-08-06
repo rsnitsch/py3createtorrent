@@ -12,6 +12,7 @@ Some of the features:
 * you can create **private torrents** (disabled DHT, ...)
 * you can create torrents with **multiple trackers**
 * you can create **trackerless torrents**
+* you can add **webseeds** to torrents
 * you can **exclude specific files/folders**
 * you can exclude files/folders based on **regular expressions**
 * you can specify **custom piece sizes**
