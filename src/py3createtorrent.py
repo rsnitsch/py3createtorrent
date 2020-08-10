@@ -14,6 +14,8 @@ import os
 import re
 import sys
 import time
+import urllib.error
+import urllib.request
 from typing import Any, Dict, List, Optional, Pattern, Set, Union
 
 try:
@@ -48,6 +50,8 @@ TRACKER_ABBR = {
 
 # Whether or not py3createtorrent is allowed to advertise itself through the torrents' comment fields.
 ADVERTISE = True
+
+BEST_TRACKERS_URL = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
 
 # /CONFIGURATION
 # ##############
@@ -442,6 +446,30 @@ def calculate_piece_length(size: int) -> int:
     return int(piece_length)
 
 
+def get_best_trackers(count: int, url: str):
+    if count < 0:
+        raise ValueError("count must be positive")
+
+    if count == 0:
+        return []
+
+    with urllib.request.urlopen(BEST_TRACKERS_URL) as f:
+        text = f.read().decode('utf-8')
+
+    best = []
+    i = 0
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        best.append(line)
+        i += 1
+        if i == count:
+            break
+
+    return best
+
+
 def main() -> None:
     # Validate the configuration.
     for abbr, replacement in TRACKER_ABBR.items():
@@ -631,15 +659,36 @@ def main() -> None:
 
     # Validate tracker URLs.
     invalid_trackers = False
+    best_shortcut_present = False
     regexp = re.compile(r"^(http|https|udp)://", re.I)
+    regexp_best = re.compile(r"best([0-9]+)", re.I)
     for t in trackers:
-        if not regexp.search(t):
+        m = regexp_best.match(t)
+        if m:
+            best_shortcut_present = True
+        if not regexp.search(t) and not m:
             print("Warning: Not a valid tracker URL: %s" % t, file=sys.stderr)
             invalid_trackers = True
 
     if invalid_trackers and not args.force:
         if "yes" != input("Some tracker URLs are invalid. Continue? yes/no: "):
             parser.error("Aborted.")
+
+    # Handle best[0-9] shortcut.
+    if best_shortcut_present:
+        new_trackers = []
+        for t in trackers:
+            m = regexp_best.match(t)
+            if m:
+                try:
+                    new_trackers.extend(get_best_trackers(int(m.group(1)), BEST_TRACKERS_URL))
+                except urllib.error.URLError as e:
+                    print("Error: Could not download best trackers from '%s'. Reason: %s" % (BEST_TRACKERS_URL, e),
+                          file=sys.stderr)
+                    sys.exit(1)
+            else:
+                new_trackers.append(t)
+        trackers = new_trackers
 
     # Disallow DHT bootstrap nodes for private torrents.
     if args.nodes and args.private:

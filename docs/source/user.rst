@@ -141,6 +141,20 @@ This is equivalent to the short form using the tracker abbreviations::
 
     py3createtorrent.py -t opentrackr -t coppersurfer -t cyberia my_data_folder/
 
+.. automatically_add_best_trackers:
+
+Automatically add the best trackers
+"""""""""""""""""""""""""""""""""""
+
+You can use ``bestN`` to add the best N trackers from https://github.com/ngosang/trackerslist. This requires internet access, obviously.
+
+For example::
+
+    py3createtorrent -t best5 my_data_folder/
+
+Trackerless torrents
+""""""""""""""""""""
+
 You can create a trackerless torrent by not specifying any tracker URLs at all (i.e. don't
 use the ``-t`` switch at all).
 
