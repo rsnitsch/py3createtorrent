@@ -58,7 +58,7 @@ BEST_TRACKERS_URL = "https://raw.githubusercontent.com/ngosang/trackerslist/mast
 
 # Do not touch anything below this line unless you know what you're doing!
 
-__version__ = '1.0.0.dev3'
+__version__ = '1.0.0.dev4'
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
