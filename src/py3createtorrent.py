@@ -54,7 +54,7 @@ ADVERTISE = True
 
 # Do not touch anything below this line unless you know what you're doing!
 
-__version__ = '1.0.0.dev2'
+__version__ = '1.0.0.dev3'
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
