@@ -8,7 +8,7 @@ Version 1.0.0 (not yet released)
 * changed: specifying trackers is now optional with the new ``-t`` switch, thus **trackerless torrents are now
   possible**
 * added: it is now possible to add the best N trackers from `ngosang/trackerslist <https://github.com/ngosang/trackerslist>`_
-  by using the new `bestN shortcut <user.html#automatically-add-the-best-trackers>`__
+  by using the new `bestN shortcut <user.html#bestn-automatically-add-the-best-trackers>`__
 * added: DHT bootstrap nodes can now be specified with the new ``--node`` switch (doing so is recommended for
   trackerless torrents)
 * added: **webseed support** with the new ``--webseed`` switch (GetRight style, i.e. `<http://bittorrent.org/beps/bep_0019.html>`_)

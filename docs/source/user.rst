@@ -143,8 +143,8 @@ This is equivalent to the short form using the tracker abbreviations::
 
 .. automatically_add_best_trackers:
 
-Automatically add the best trackers
-"""""""""""""""""""""""""""""""""""
+bestN: Automatically add the best trackers
+""""""""""""""""""""""""""""""""""""""""""
 
 You can use ``bestN`` to add the best N trackers from https://github.com/ngosang/trackerslist. This requires internet access, obviously.
 
