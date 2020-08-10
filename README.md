@@ -28,7 +28,12 @@ Creating a torrent is as simple as:
 
     py3createtorrent -t udp://tracker.opentrackr.org:1337/announce file_or_folder
 
-Multiple trackers can be specified by using `-t` multiple times, for example:
+The shortcut ``bestN`` can be used for conveniently adding the best N trackers
+from [ngosang/trackerslist](https://github.com/ngosang/trackerslist). Example:
+
+    py3createtorrent -t best3 file_or_folder
+
+Multiple trackers can also be specified manually by using `-t` multiple times, for example:
 
     py3createtorrent -t udp://tracker.opentrackr.org:1337/announce -t udp://tracker.coppersurfer.tk:6969/announce file_or_folder
 
