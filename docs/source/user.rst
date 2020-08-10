@@ -127,19 +127,19 @@ Specifying trackers (``-t``, ``--tracker``)
 
 One or multiple tracker URLs can be specified using the ``-t`` or ``--tracker`` switch. Single tracker example::
 
-    py3createtorrent.py -t udp://tracker.opentrackr.org:1337/announce my_data_folder/
+    py3createtorrent -t udp://tracker.opentrackr.org:1337/announce my_data_folder/
 
 This is equivalent to the short form using the :ref:`tracker abbreviation <tracker_abbreviations>` for opentrackr.org::
 
-    py3createtorrent.py -t opentrackr my_data_folder/
+    py3createtorrent -t opentrackr my_data_folder/
 
 For multiple trackers, just use ``-t`` repeatedly. Multiple tracker example::
 
-    py3createtorrent.py -t udp://tracker.opentrackr.org:1337/announce -t udp://tracker.coppersurfer.tk:6969/announce -t udp://tracker.cyberia.is:6969/announce my_data_folder/
+    py3createtorrent -t udp://tracker.opentrackr.org:1337/announce -t udp://tracker.coppersurfer.tk:6969/announce -t udp://tracker.cyberia.is:6969/announce my_data_folder/
 
 This is equivalent to the short form using the tracker abbreviations::
 
-    py3createtorrent.py -t opentrackr -t coppersurfer -t cyberia my_data_folder/
+    py3createtorrent -t opentrackr -t coppersurfer -t cyberia my_data_folder/
 
 .. automatically_add_best_trackers:
 
@@ -167,7 +167,7 @@ to specify multiple DHT bootstrap nodes.
 
 Example::
 
-    py3createtorrent.py --node router.bittorrent.com,8991 --node second.node.com,1337 my_data_folder/
+    py3createtorrent --node router.bittorrent.com,8991 --node second.node.com,1337 my_data_folder/
 
 It is recommended to specify some DHT bootstrap nodes for trackerless torrents.
 
@@ -354,11 +354,11 @@ Example 1 - from directory, no options, default behaviour
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t udp://tracker.opentrackr.org:1337/announce
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent example -t udp://tracker.opentrackr.org:1337/announce
 
 Alternative, equivalent command using a tracker abbreviation for convenience::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t opentrackr
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent example -t opentrackr
 
 **Effect**:
 Creates example.torrent inside the current directory.
@@ -380,7 +380,7 @@ Example 2 - from directory, excluding subfolders
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py -e example\subfolder example -t udp://tracker.opentrackr.org:1337/announce
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent -e example\subfolder example -t udp://tracker.opentrackr.org:1337/announce
 
 **Effect**:
 Creates example.torrent inside the current directory. example\subfolder has
@@ -389,7 +389,7 @@ been excluded.
 .. tip::
    Of course you can exclude multiple subfolders, e.g.::
 
-      py3createtorrent.py -e exclusion1 -e exclusion2 yourfolder -t tracker-url
+      py3createtorrent -e exclusion1 -e exclusion2 yourfolder -t tracker-url
 
 In µTorrent it will look like this:
 
@@ -400,13 +400,13 @@ Example 3 - from directory, excluding files
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py -e example\anotherimage.jpg -e example\subfolder\10_more_minutes_please.JPG example -t udp://tracker.opentrackr.org:1337/announce
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent -e example\anotherimage.jpg -e example\subfolder\10_more_minutes_please.JPG example -t udp://tracker.opentrackr.org:1337/announce
 
 Alternative, equivalent command using **regular expressions** instead of
 specifying each jpg seperately (also using a tracker abbreviation to make it
 even shorter)::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py --exclude-pattern "(jpg|JPG)$" example -t opentrackr
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent --exclude-pattern "(jpg|JPG)$" example -t opentrackr
 
 **Effect**:
 Creates example.torrent inside the current directory. example\anotherimage.jpg
@@ -444,7 +444,7 @@ Tracker abbrevations allow you to specify one or more tracker URLs with a single
 word, like 'opentrackr' in the default configuration. They add a lot of convenience,
 e.g. look at this neat & clear command::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent.py example -t opentrackr -t coppersurfer
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent example -t opentrackr -t coppersurfer
    Successfully created torrent:
      Name:             example
     (...)
@@ -480,11 +480,11 @@ itself through the comment field, if the user hasn't specified a comment.
 If you want to disable advertising for a single torrent only, you can use the
 ``--comment`` option to specify an empty comment::
 
-   $ py3createtorrent.py --comment "" ...
+   $ py3createtorrent --comment "" ...
 
    or
 
-   $ py3createtorrent.py -c "" ...
+   $ py3createtorrent -c "" ...
 
 py3createtorrent will not advertise itself in this case, because you explicitly
 specified the empty comment.
