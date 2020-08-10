@@ -107,7 +107,10 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     with open(file, "rb") as fh:
         i = 0
         while True:
-            count = fh.readinto(piece_data)
+            # readinto is not recognized by mypy
+            # Related: https://github.com/python/typing/issues/659
+            #          https://github.com/python/typeshed/issues/2166
+            count = fh.readinto(piece_data)  # type: ignore
 
             if count == piece_length:
                 if include_md5:
@@ -336,7 +339,7 @@ def split_path(path: str):
     if not isinstance(path, str):
         raise TypeError("path must be instance of: str")
 
-    parts: List[str] = []
+    parts = []  # type: List[str]
 
     path = os.path.normpath(path)
 
@@ -613,8 +616,8 @@ def main() -> None:
     #   - length and md5sum (if single file)
     #   - name (may be overwritten in the next section by the --name option)
 
-    input_path: str = args.path
-    trackers: List[str] = args.trackers
+    input_path = args.path  # type: str
+    trackers = args.trackers  # type: List[str]
 
     # Validate the given path.
     if not os.path.isfile(input_path) and not os.path.isdir(input_path):
@@ -745,7 +748,7 @@ def main() -> None:
         info['source'] = args.source
 
     # Construct outer metainfo dict, which contains the torrent's whole information.
-    metainfo: Dict[str, Any] = {'info': info}
+    metainfo = {'info': info}  # type: Dict[str, Any]
     if trackers:
         metainfo['announce'] = trackers[0]
 
