@@ -170,8 +170,9 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
     """
     assert os.path.isdir(directory), "not a directory"
 
-    # Concatenated 20byte sha1-hashes of all the torrent's pieces.
-    pieces = bytearray()
+    # Preallocate space for 2000 piece hashes. This way, we avoid the need for
+    # synchronizing the hashing threads that write into the pieces bytearray.
+    pieces = bytearray(2000 * 20)
 
     #
     info_files = []
@@ -181,47 +182,77 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
     # continuous stream, as required by info_pieces' BitTorrent specification.
     data = bytearray()
 
-    for file in files:
-        path = os.path.join(directory, file)
-        length = os.path.getsize(path)
+    def process_piece(i, piece_data):
+        count = len(piece_data)
+        if count == piece_length:
+            pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data)
+        elif count != 0:
+            pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data[:count])
 
-        # File's md5sum.
-        if include_md5:
-            md5 = hashlib.md5()
+    MAX_FUTURES = max(2, multiprocessing.cpu_count() - 1)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = set()
+        i = 0
+        for file in files:
+            path = os.path.join(directory, file)
+            length = os.path.getsize(path)
 
-        printv("Processing file '%s'... " % os.path.relpath(path, directory), end="")
+            # File's md5sum.
+            if include_md5:
+                md5 = hashlib.md5()
 
-        with open(path, "rb") as fh:
-            while True:
-                filedata = fh.read(piece_length)
+            printv("Processing file '%s'... " % os.path.relpath(path, directory), end="")
 
-                if not filedata:
-                    break
+            with open(path, "rb") as fh:
+                while True:
+                    filedata = fh.read(piece_length)
 
-                data += filedata
-                if len(data) >= piece_length:
-                    pieces += sha1_20(data[:piece_length])
-                    data = data[piece_length:]
+                    if not filedata:
+                        break
 
-                if include_md5:
-                    md5.update(filedata)
+                    if i >= len(pieces) // 20:
+                        # Need to extend pieces bytearray.
+                        # Wait until all other threads/tasks are finished.
+                        # Now we have exclusive access to the pieces bytearray.
+                        concurrent.futures.wait(futures, return_when=concurrent.futures.ALL_COMPLETED)
 
-        printv("done")
+                        # Add space for 1000 additional piece hashes.
+                        pieces += bytes(1000 * 20)
 
-        # Build the current file's dictionary.
-        fdict = {'length': length, 'path': split_path(file)}
+                    data += filedata
+                    if len(data) >= piece_length:
+                        executor.submit(process_piece, i, data[:piece_length])
+                        data = data[piece_length:]
+                        i += 1
 
-        if include_md5:
-            fdict['md5sum'] = md5.hexdigest()
+                    if include_md5:
+                        md5.update(filedata)
 
-        info_files.append(fdict)
+                    if len(futures) >= MAX_FUTURES:
+                        _, notdone = concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_COMPLETED)
+                        futures = notdone
+
+            printv("done")
+
+            # Build the current file's dictionary.
+            fdict = {'length': length, 'path': split_path(file)}
+
+            if include_md5:
+                fdict['md5sum'] = md5.hexdigest()
+
+            info_files.append(fdict)
+
+        concurrent.futures.wait(futures)
 
     # Don't forget to hash the last piece. (Probably the piece that has not reached the regular piece size.)
     if data:
-        pieces += sha1_20(data)
+        pieces[i * 20:(i + 1) * 20] = sha1_20(data)
+
+    # Cut off unused pieces space.
+    pieces = bytes(pieces[:(i + 1) * 20])
 
     # Build the final dictionary.
-    info = {'pieces': bytes(pieces), 'name': os.path.basename(directory.strip("/\\")), 'files': info_files}
+    info = {'pieces': pieces, 'name': os.path.basename(directory.strip("/\\")), 'files': info_files}
 
     return info
 
