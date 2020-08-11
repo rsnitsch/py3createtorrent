@@ -7,9 +7,11 @@ Licensed according to GPL v3.
 """
 
 import argparse
+import concurrent.futures
 import datetime
 import hashlib
 import math
+import multiprocessing
 import os
 import re
 import sys
@@ -107,27 +109,31 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
 
     printv("Hashing file... ", end="")
 
-    piece_data = bytearray(piece_length)
-    with open(file, "rb") as fh:
-        i = 0
-        while True:
-            # readinto is not recognized by mypy
-            # Related: https://github.com/python/typing/issues/659
-            #          https://github.com/python/typeshed/issues/2166
-            count = fh.readinto(piece_data)  # type: ignore
+    def process_piece(i, piece_data):
+        count = len(piece_data)
+        if count == piece_length:
+            pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data)
+        elif count != 0:
+            pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data[:count])
 
-            if count == piece_length:
+    MAX_FUTURES = multiprocessing.cpu_count() - 1
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        with open(file, "rb") as fh:
+            futures = set()
+            for i, piece_data in enumerate(iter(lambda: fh.read(piece_length), '')):
+                if not piece_data:
+                    break
+
+                futures.add(executor.submit(process_piece, i, piece_data))
+
                 if include_md5:
                     md5.update(piece_data)
-                pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data)
-            elif count != 0:
-                if include_md5:
-                    md5.update(piece_data[:count])
-                pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data[:count])
-            else:
-                break
 
-            i += 1
+                if len(futures) >= MAX_FUTURES:
+                    _, notdone = concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_COMPLETED)
+                    futures = notdone
+
+            concurrent.futures.wait(futures)
 
     printv("done")
 
