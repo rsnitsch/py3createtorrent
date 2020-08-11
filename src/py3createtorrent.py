@@ -171,7 +171,7 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
     assert os.path.isdir(directory), "not a directory"
 
     # Concatenated 20byte sha1-hashes of all the torrent's pieces.
-    info_pieces = bytearray()
+    pieces = bytearray()
 
     #
     info_files = []
@@ -183,9 +183,7 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
 
     for file in files:
         path = os.path.join(directory, file)
-
-        # File's byte count.
-        length = 0
+        length = os.path.getsize(path)
 
         # File's md5sum.
         if include_md5:
@@ -197,15 +195,12 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
             while True:
                 filedata = fh.read(piece_length)
 
-                if len(filedata) == 0:
+                if not filedata:
                     break
 
-                length += len(filedata)
-
                 data += filedata
-
                 if len(data) >= piece_length:
-                    info_pieces += sha1_20(data[:piece_length])
+                    pieces += sha1_20(data[:piece_length])
                     data = data[piece_length:]
 
                 if include_md5:
@@ -222,11 +217,11 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
         info_files.append(fdict)
 
     # Don't forget to hash the last piece. (Probably the piece that has not reached the regular piece size.)
-    if len(data) > 0:
-        info_pieces += sha1_20(data)
+    if data:
+        pieces += sha1_20(data)
 
     # Build the final dictionary.
-    info = {'pieces': bytes(info_pieces), 'name': os.path.basename(directory.strip("/\\")), 'files': info_files}
+    info = {'pieces': bytes(pieces), 'name': os.path.basename(directory.strip("/\\")), 'files': info_files}
 
     return info
 
