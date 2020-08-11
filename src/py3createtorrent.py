@@ -116,7 +116,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
         elif count != 0:
             pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data[:count])
 
-    MAX_FUTURES = multiprocessing.cpu_count() - 1
+    MAX_FUTURES = max(2, multiprocessing.cpu_count() - 1)
     with concurrent.futures.ThreadPoolExecutor() as executor:
         with open(file, "rb") as fh:
             futures = set()
