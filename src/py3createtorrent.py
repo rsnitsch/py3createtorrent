@@ -259,7 +259,7 @@ def get_files_in_directory(directory: str,
             raise TypeError("relative_to must be instance of: str")
 
         if not os.path.isdir(relative_to):
-            raise ValueError("relative_to: '%s' is not a valid directory" % (relative_to))
+            raise ValueError("relative_to: '%s' is not a valid directory" % relative_to)
 
     if excluded_regexps is None:
         excluded_regexps = set()
