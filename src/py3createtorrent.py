@@ -474,7 +474,7 @@ def main() -> None:
     # Validate the configuration.
     for abbr, replacement in TRACKER_ABBR.items():
         if not isinstance(abbr, str):
-            print("Configuration error: invalid tracker abbrevation: '%s' "
+            print("Configuration error: invalid tracker abbreviation: '%s' "
                   "(must be a string instead)" % abbr,
                   file=sys.stderr)
             sys.exit(1)
@@ -518,7 +518,7 @@ def main() -> None:
                         action="store_true",
                         dest="force",
                         default=False,
-                        help="dont ask anything, just do it")
+                        help="do not ask anything, just do it")
 
     parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", default=False, help="verbose mode")
 
@@ -851,7 +851,7 @@ def main() -> None:
     # ###################################################
     # BENCODE METAINFO DICTIONARY AND WRITE TORRENT FILE:
     # - take into consideration the --output option
-    # - properly handle KeyboardInterrups while writing the file
+    # - properly handle KeyboardInterrupts while writing the file
 
     # Respect the custom output location.
     if not args.output:
