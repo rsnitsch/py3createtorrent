@@ -109,7 +109,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
 
     printv("Hashing file... ", end="")
 
-    def process_piece(i, piece_data):
+    def calculate_sha1_hash_for_piece(i, piece_data):
         count = len(piece_data)
         if count == piece_length:
             pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data)
@@ -124,7 +124,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
                 if not piece_data:
                     break
 
-                futures.add(executor.submit(process_piece, i, piece_data))
+                futures.add(executor.submit(calculate_sha1_hash_for_piece, i, piece_data))
 
                 if include_md5:
                     md5.update(piece_data)
@@ -182,7 +182,7 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
     # continuous stream, as required by info_pieces' BitTorrent specification.
     data = bytearray()
 
-    def process_piece(i, piece_data):
+    def calculate_sha1_hash_for_piece(i, piece_data):
         count = len(piece_data)
         if count == piece_length:
             pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data)
@@ -213,15 +213,15 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
                     if i >= len(pieces) // 20:
                         # Need to extend pieces bytearray.
                         # Wait until all other threads/tasks are finished.
-                        # Now we have exclusive access to the pieces bytearray.
                         concurrent.futures.wait(futures, return_when=concurrent.futures.ALL_COMPLETED)
 
+                        # Now we have exclusive access to the pieces bytearray.
                         # Add space for 1000 additional piece hashes.
                         pieces += bytes(1000 * 20)
 
                     data += filedata
                     if len(data) >= piece_length:
-                        executor.submit(process_piece, i, data[:piece_length])
+                        executor.submit(calculate_sha1_hash_for_piece, i, data[:piece_length])
                         data = data[piece_length:]
                         i += 1
 
