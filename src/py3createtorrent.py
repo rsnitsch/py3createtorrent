@@ -798,7 +798,7 @@ def main() -> None:
     if args.source:
         args.source = args.source.strip()
 
-        regexp = re.compile("^[A-Z0-9_\-\., ]+$", re.I)
+        regexp = re.compile(r"^[A-Z0-9_\-., ]+$", re.I)
 
         if not regexp.match(args.source):
             parser.error("Invalid source: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-} plus spaces." % args.source)
@@ -850,7 +850,7 @@ def main() -> None:
     if args.name:
         args.name = args.name.strip()
 
-        regexp = re.compile("^[A-Z0-9_\-\., ]+$", re.I)
+        regexp = re.compile(r"^[A-Z0-9_\-., ]+$", re.I)
 
         if not regexp.match(args.name):
             parser.error("Invalid name: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-} plus spaces." % args.name)
