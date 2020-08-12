@@ -18,7 +18,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from typing import Any, Dict, List, Optional, Pattern, Set, Union
+from typing import Any, Dict, List, Optional, Pattern, Set
 
 try:
     from bencodepy import encode as bencode
@@ -258,9 +258,9 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
 
 
 def get_files_in_directory(directory: str,
-                           excluded_paths: Set[str] = set(),
+                           excluded_paths: Optional[Set[str]] = None,
                            relative_to: Optional[str] = None,
-                           excluded_regexps: Set[Pattern[str]] = set()) -> List[str]:
+                           excluded_regexps: Optional[Set[Pattern[str]]] = None) -> List[str]:
     """
     Return a list containing the paths to all files in the given directory.
 
@@ -281,7 +281,9 @@ def get_files_in_directory(directory: str,
     if not isinstance(directory, str):
         raise TypeError("directory must be instance of: str")
 
-    if not isinstance(excluded_paths, set):
+    if excluded_paths is None:
+        excluded_paths = set()
+    elif not isinstance(excluded_paths, set):
         raise TypeError("excluded_paths must be instance of: set")
 
     if relative_to is not None:
@@ -289,18 +291,27 @@ def get_files_in_directory(directory: str,
             raise TypeError("relative_to must be instance of: str")
 
         if not os.path.isdir(relative_to):
-            raise ValueError("relative_to: '%s' is not a valid directory" % (relative_to))
+            raise ValueError("relative_to: '%s' is not a valid directory" % relative_to)
 
-    if not isinstance(excluded_regexps, set):
+    if excluded_regexps is None:
+        excluded_regexps = set()
+    elif not isinstance(excluded_regexps, set):
         raise TypeError("excluded_regexps must be instance of: set")
 
     # Helper function:
     def _get_files_in_directory(directory: str,
                                 files: List[str],
-                                excluded_paths: Set[str] = set(),
+                                excluded_paths: Optional[Set[str]] = None,
                                 relative_to: Optional[str] = None,
-                                excluded_regexps: Set[Pattern[str]] = set(),
-                                processed_paths: Set[str] = set()):
+                                excluded_regexps: Optional[Set[Pattern[str]]] = None,
+                                processed_paths: Optional[Set[str]] = None):
+        if excluded_paths is None:
+            excluded_paths = set()
+        if excluded_regexps is None:
+            excluded_regexps = set()
+        if processed_paths is None:
+            processed_paths = set()
+
         # Improve consistency across platforms.
         # Note:
         listdir = os.listdir(directory)
@@ -485,7 +496,7 @@ def get_best_trackers(count: int, url: str):
     if count == 0:
         return []
 
-    with urllib.request.urlopen(BEST_TRACKERS_URL) as f:
+    with urllib.request.urlopen(url) as f:
         text = f.read().decode('utf-8')
 
     best = []
@@ -506,7 +517,7 @@ def main() -> None:
     # Validate the configuration.
     for abbr, replacement in TRACKER_ABBR.items():
         if not isinstance(abbr, str):
-            print("Configuration error: invalid tracker abbrevation: '%s' "
+            print("Configuration error: invalid tracker abbreviation: '%s' "
                   "(must be a string instead)" % abbr,
                   file=sys.stderr)
             sys.exit(1)
@@ -550,7 +561,7 @@ def main() -> None:
                         action="store_true",
                         dest="force",
                         default=False,
-                        help="dont ask anything, just do it")
+                        help="do not ask anything, just do it")
 
     parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", default=False, help="verbose mode")
 
@@ -749,16 +760,14 @@ def main() -> None:
             parser.error("Aborted.")
 
     # Parse and validate excluded paths.
-    excluded_paths = set([os.path.normcase(os.path.abspath(path)) \
-                                for path in args.exclude])
+    excluded_paths = set([os.path.normcase(os.path.abspath(path)) for path in args.exclude])
 
     # Parse exclude patterns.
     excluded_regexps = set(re.compile(regexp) for regexp in args.exclude_pattern)
     excluded_regexps |= set(re.compile(regexp, re.IGNORECASE) for regexp in args.exclude_pattern_ci)
 
     # Warn the user if he attempts to exclude any paths when creating a torrent for a single file (makes no sense).
-    if os.path.isfile(input_path) and (len(excluded_paths) > 0 or \
-       len(excluded_regexps) > 0):
+    if os.path.isfile(input_path) and (len(excluded_paths) > 0 or len(excluded_regexps) > 0):
         print("Warning: Excluding paths is not possible when creating a torrent for a single file.", file=sys.stderr)
 
     # Warn the user if he attempts to exclude a specific path, that does not even exist.
@@ -821,7 +830,7 @@ def main() -> None:
     if args.source:
         args.source = args.source.strip()
 
-        regexp = re.compile("^[A-Z0-9_\-\., ]+$", re.I)
+        regexp = re.compile(r"^[A-Z0-9_\-., ]+$", re.I)
 
         if not regexp.match(args.source):
             parser.error("Invalid source: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-} plus spaces." % args.source)
@@ -873,7 +882,7 @@ def main() -> None:
     if args.name:
         args.name = args.name.strip()
 
-        regexp = re.compile("^[A-Z0-9_\-\., ]+$", re.I)
+        regexp = re.compile(r"^[A-Z0-9_\-., ]+$", re.I)
 
         if not regexp.match(args.name):
             parser.error("Invalid name: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-} plus spaces." % args.name)
@@ -883,7 +892,7 @@ def main() -> None:
     # ###################################################
     # BENCODE METAINFO DICTIONARY AND WRITE TORRENT FILE:
     # - take into consideration the --output option
-    # - properly handle KeyboardInterrups while writing the file
+    # - properly handle KeyboardInterrupts while writing the file
 
     # Respect the custom output location.
     if not args.output:
