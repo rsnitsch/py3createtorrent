@@ -728,16 +728,14 @@ def main() -> None:
             parser.error("Aborted.")
 
     # Parse and validate excluded paths.
-    excluded_paths = set([os.path.normcase(os.path.abspath(path)) \
-                                for path in args.exclude])
+    excluded_paths = set([os.path.normcase(os.path.abspath(path)) for path in args.exclude])
 
     # Parse exclude patterns.
     excluded_regexps = set(re.compile(regexp) for regexp in args.exclude_pattern)
     excluded_regexps |= set(re.compile(regexp, re.IGNORECASE) for regexp in args.exclude_pattern_ci)
 
     # Warn the user if he attempts to exclude any paths when creating a torrent for a single file (makes no sense).
-    if os.path.isfile(input_path) and (len(excluded_paths) > 0 or \
-       len(excluded_regexps) > 0):
+    if os.path.isfile(input_path) and (len(excluded_paths) > 0 or len(excluded_regexps) > 0):
         print("Warning: Excluding paths is not possible when creating a torrent for a single file.", file=sys.stderr)
 
     # Warn the user if he attempts to exclude a specific path, that does not even exist.
