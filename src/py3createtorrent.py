@@ -117,7 +117,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
             pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data[:count])
 
     MAX_FUTURES = max(2, multiprocessing.cpu_count() - 1)
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
         with open(file, "rb") as fh:
             futures = set()
             for i, piece_data in enumerate(iter(lambda: fh.read(piece_length), '')):
@@ -190,7 +190,7 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
             pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data[:count])
 
     MAX_FUTURES = max(2, multiprocessing.cpu_count() - 1)
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
         futures = set()
         i = 0
         for file in files:
