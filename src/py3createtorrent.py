@@ -453,7 +453,7 @@ def get_best_trackers(count: int, url: str):
     if count == 0:
         return []
 
-    with urllib.request.urlopen(BEST_TRACKERS_URL) as f:
+    with urllib.request.urlopen(url) as f:
         text = f.read().decode('utf-8')
 
     best = []
