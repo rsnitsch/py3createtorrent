@@ -226,9 +226,9 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
 
 
 def get_files_in_directory(directory: str,
-                           excluded_paths: Set[str] = set(),
+                           excluded_paths: Optional[Set[str]] = None,
                            relative_to: Optional[str] = None,
-                           excluded_regexps: Set[Pattern[str]] = set()) -> List[str]:
+                           excluded_regexps: Optional[Set[Pattern[str]]] = None) -> List[str]:
     """
     Return a list containing the paths to all files in the given directory.
 
@@ -249,7 +249,9 @@ def get_files_in_directory(directory: str,
     if not isinstance(directory, str):
         raise TypeError("directory must be instance of: str")
 
-    if not isinstance(excluded_paths, set):
+    if excluded_paths is None:
+        excluded_paths = set()
+    elif not isinstance(excluded_paths, set):
         raise TypeError("excluded_paths must be instance of: set")
 
     if relative_to is not None:
@@ -259,16 +261,25 @@ def get_files_in_directory(directory: str,
         if not os.path.isdir(relative_to):
             raise ValueError("relative_to: '%s' is not a valid directory" % (relative_to))
 
-    if not isinstance(excluded_regexps, set):
+    if excluded_regexps is None:
+        excluded_regexps = set()
+    elif not isinstance(excluded_regexps, set):
         raise TypeError("excluded_regexps must be instance of: set")
 
     # Helper function:
     def _get_files_in_directory(directory: str,
                                 files: List[str],
-                                excluded_paths: Set[str] = set(),
+                                excluded_paths: Optional[Set[str]] = None,
                                 relative_to: Optional[str] = None,
-                                excluded_regexps: Set[Pattern[str]] = set(),
-                                processed_paths: Set[str] = set()):
+                                excluded_regexps: Optional[Set[Pattern[str]]] = None,
+                                processed_paths: Optional[Set[str]] = None):
+        if excluded_paths is None:
+            excluded_paths = set()
+        if excluded_regexps is None:
+            excluded_regexps = set()
+        if processed_paths is None:
+            processed_paths = set()
+
         # Improve consistency across platforms.
         # Note:
         listdir = os.listdir(directory)
