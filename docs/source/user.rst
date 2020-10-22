@@ -427,7 +427,23 @@ use the exclude-option anymore.
 Configuration
 -------------
 
-There is a small configuration section in the script (at the top):
+There is a small configuration section in the ``py3createtorrent.py`` script file.
+You need to locate the ``py3createtorrent.py`` script file and open that file in a
+text editor. If you installed py3createtorrent via pip, you can determine
+the location by executing::
+
+   pip show py3createtorrent
+
+It will print something like::
+
+   ...
+   Location: /Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages
+   ...
+
+This is the directory where pip has installed the ``py3createtorrent.py`` script into.
+
+Once you have located and opened ``py3createtorrent.py`` in a text editor, you must navigate to
+the configuration section (very much at the top of the file):
 
 .. literalinclude:: ../../src/py3createtorrent.py
    :start-after: # #############
@@ -436,6 +452,15 @@ There is a small configuration section in the script (at the top):
    :append: # ##############
 
 .. _tracker_abbreviations:
+
+For details on these configuration parameters, please refer to the following sub-sections.
+
+.. note::
+
+  Since the configuration currently is inside the main script itself, any changes you
+  make to this file will be lost once you update py3createtorrent via pip.
+  Therefore, for the final release of version 1.0 it is planned to read the config from a
+  dedicated file that can be placed in the user's directory.
 
 Tracker abbreviations
 ^^^^^^^^^^^^^^^^^^^^^
