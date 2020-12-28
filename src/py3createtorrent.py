@@ -427,7 +427,8 @@ def calculate_piece_length(size: int) -> int:
 
     Proceeding:
     1. Start with 256 KIB.
-    2. While piece count > 2000: double piece length.
+    2. If size < 512 MIB use 256 KIB or size < 1024 MIB use 512 KIB
+    2. While piece count > 8192: double piece length.
     3. While piece count < 8:    use half the piece length.
 
     However, enforce these bounds:
@@ -443,15 +444,23 @@ def calculate_piece_length(size: int) -> int:
     if size < 16 * KIB:
         return 16 * KIB
 
-    piece_length = 256 * KIB
+    # If size < 512 MIB piece_length = 256 KIB || size < 1024  MIB piece_length = 512 KIB
+    if size < 1024 * MIB:
+        piece_length = 256 * KIB
+        while size / piece_length > 2048:
+            piece_length *= 2
+        return int(piece_length)
+        
+    piece_length = 1024 * KIB
 
-    while size / piece_length > 2000:
+    while size / piece_length > 8192:
         piece_length *= 2
 
     while size / piece_length < 8:
         piece_length //= 2
 
-    # Ensure that: 16 KIB <= piece_length <= 1 * MIB
+    # Ensure that: 16 KIB <= piece_length <= 16 MIB
+    # It's mean that if at 16 MIB and piece count is more than 8192 then goes 16 MIB automatically
     piece_length = max(min(piece_length, 16 * MIB), 16 * KIB)
 
     return int(piece_length)
