@@ -1,8 +1,10 @@
 Changelog
 =========
 
-Version 1.0.0 (not yet released)
---------------------------------
+Version 1.0.0b1 (beta version)
+------------------------------
+
+*Release date: 2021/01/04*
 
 * changed: **requires Python 3.5+ now**
 * changed: specifying trackers is now optional with the new ``-t`` switch, thus **trackerless torrents are now
