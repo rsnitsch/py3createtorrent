@@ -2,15 +2,17 @@
 """
 Create torrents via command line!
 
-Copyright (C) 2010-2020 Robert Nitsch
+Copyright (C) 2010-2021 Robert Nitsch
 Licensed according to GPL v3.
 """
 
 import argparse
 import datetime
 import hashlib
+import json
 import math
 import os
+import pprint
 import re
 import sys
 import time
@@ -38,24 +40,6 @@ https://py3createtorrent.readthedocs.io/en/latest/""")
 
 __all__ = ['calculate_piece_length', 'get_files_in_directory', 'sha1_20', 'split_path']
 
-# #############
-# CONFIGURATION
-
-# Configure your tracker abbreviations here.
-TRACKER_ABBR = {
-    'opentrackr': 'udp://tracker.opentrackr.org:1337/announce',
-    'coppersurfer': 'udp://tracker.coppersurfer.tk:6969/announce',
-    'cyberia': 'udp://tracker.cyberia.is:6969/announce'
-}
-
-# Whether or not py3createtorrent is allowed to advertise itself through the torrents' comment fields.
-ADVERTISE = True
-
-BEST_TRACKERS_URL = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
-
-# /CONFIGURATION
-# ##############
-
 # Do not touch anything below this line unless you know what you're doing!
 
 __version__ = '1.0.0.dev4'
@@ -67,6 +51,65 @@ KIB = 2**10
 MIB = KIB * KIB
 
 VERBOSE = False
+
+
+class Config(object):
+    class InvalidConfigError(Exception):
+        pass
+
+    def __init__(self) -> None:
+        self.path = None  # type: Optional[str]
+        self.tracker_abbreviations = {
+            'opentrackr': 'udp://tracker.opentrackr.org:1337/announce',
+            'coppersurfer': 'udp://tracker.coppersurfer.tk:6969/announce',
+            'cyberia': 'udp://tracker.cyberia.is:6969/announce'
+        }
+        self.advertise = True  # type: Optional[bool]
+        self.best_trackers_url = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"  # type: str
+
+    def get_path_to_config_file(self) -> str:
+        if self.path is None:
+            return os.path.join(os.path.expanduser('~'), '.py3createtorrent.cfg')
+        else:
+            return self.path
+
+    def load_config(self) -> None:
+        """
+        @throws json.JSONDecodeError if config file cannot be parsed as JSON
+        """
+        path = self.get_path_to_config_file()
+        printv("Path to config file: ", path)
+
+        if not os.path.isfile(path):
+            printv('Config file does not exist')
+            return
+
+        with open(path, 'r') as fh:
+            data = json.load(fh)
+
+        self.tracker_abbreviations = data.get('tracker_abbreviations', self.tracker_abbreviations)
+        self.advertise = data.get('advertise', self.advertise)
+        self.best_trackers_url = data.get('best_trackers_url', self.best_trackers_url)
+
+        # Validate the configuration.
+        for abbr, replacement in self.tracker_abbreviations.items():
+            if not isinstance(abbr, str):
+                raise Config.InvalidConfigError("Configuration error: invalid tracker abbreviation: '%s' "
+                                                "(must be a string instead)" % abbr)
+            if not isinstance(replacement, (str, list)):
+                raise Config.InvalidConfigError("Configuration error: invalid tracker abbreviation: '%s' "
+                                                "(must be a string or list of strings instead)" % str(replacement))
+
+        if not isinstance(self.best_trackers_url, str):
+            raise Config.InvalidConfigError("Configuration error: invalid best trackers url: %s "
+                                            "(must be a string)" % self.best_trackers_url)
+        if not self.best_trackers_url.startswith("http"):
+            raise Config.InvalidConfigError("Configuration error: invalid best trackers url: %s "
+                                            "(must be a http/https URL)" % self.best_trackers_url)
+
+        if not isinstance(self.advertise, bool):
+            raise Config.InvalidConfigError("Configuration error: invalid value for advertise: %s "
+                                            "(must be true/false)" % self.best_trackers_url)
 
 
 def printv(*args: Any, **kwargs: Any) -> None:
@@ -482,19 +525,6 @@ def get_best_trackers(count: int, url: str):
 
 
 def main() -> None:
-    # Validate the configuration.
-    for abbr, replacement in TRACKER_ABBR.items():
-        if not isinstance(abbr, str):
-            print("Configuration error: invalid tracker abbreviation: '%s' "
-                  "(must be a string instead)" % abbr,
-                  file=sys.stderr)
-            sys.exit(1)
-        if not isinstance(replacement, (str, list)):
-            print("Configuration error: invalid tracker abbreviation: '%s' "
-                  "(must be a string or list of strings instead)" % str(replacement),
-                  file=sys.stderr)
-            sys.exit(1)
-
     # Create and configure ArgumentParser.
     parser = argparse.ArgumentParser(
         description="py3createtorrent is a comprehensive command line utility for creating torrents.")
@@ -597,6 +627,11 @@ def main() -> None:
                         default=False,
                         help="include MD5 hashes in torrent file")
 
+    parser.add_argument("--config",
+                        type=str,
+                        action="store",
+                        help="use another config file instead of the default one from the home directory")
+
     parser.add_argument("-t",
                         "--tracker",
                         metavar="TRACKER_URL",
@@ -621,6 +656,29 @@ def main() -> None:
 
     args = parser.parse_args()
 
+    global VERBOSE
+    VERBOSE = args.verbose
+
+    config = Config()
+    if args.config:
+        if not os.path.isfile(args.config):
+            parser.error("The config file at '%s' does not exist" % args.config)
+        config.path = args.config
+
+    try:
+        config.load_config()
+    except json.JSONDecodeError as exc:
+        print("Could not parse config file at '%s'" % config.get_path_to_config_file(), file=sys.stderr)
+        print(exc, file=sys.stderr)
+        sys.exit(1)
+    except Config.InvalidConfigError as exc:
+        print(exc, file=sys.stderr)
+        sys.exit(1)
+
+    printv('Config / Tracker abbreviations:\n' + pprint.pformat(config.tracker_abbreviations))
+    printv('Config / Advertise:         ' + str(config.advertise))
+    printv('Config / Best trackers URL: ' + config.best_trackers_url)
+
     # Ask the user if he really wants to use uncommon piece lengths.
     # (Unless the force option has been set.)
     if not args.force and 0 < args.piece_length < 16:
@@ -644,9 +702,6 @@ def main() -> None:
     if args.verbose and args.quiet:
         parser.error("Being verbose and quiet exclude each other.")
 
-    global VERBOSE
-    VERBOSE = args.verbose
-
     # ##########################################
     # CALCULATE/SET THE FOLLOWING METAINFO DATA:
     # - info
@@ -663,7 +718,7 @@ def main() -> None:
         parser.error("'%s' neither is a file nor a directory." % input_path)
 
     # Evaluate / apply the tracker abbreviations.
-    trackers = replace_in_list(trackers, TRACKER_ABBR)
+    trackers = replace_in_list(trackers, config.tracker_abbreviations)
 
     # Remove duplicate trackers.
     trackers = remove_duplicates(trackers)
@@ -692,9 +747,10 @@ def main() -> None:
             m = regexp_best.match(t)
             if m:
                 try:
-                    new_trackers.extend(get_best_trackers(int(m.group(1)), BEST_TRACKERS_URL))
+                    new_trackers.extend(get_best_trackers(int(m.group(1)), config.best_trackers_url))
                 except urllib.error.URLError as e:
-                    print("Error: Could not download best trackers from '%s'. Reason: %s" % (BEST_TRACKERS_URL, e),
+                    print("Error: Could not download best trackers from '%s'. Reason: %s" %
+                          (config.best_trackers_url, e),
                           file=sys.stderr)
                     sys.exit(1)
             else:
@@ -786,7 +842,7 @@ def main() -> None:
     # - nodes (if at least one DHT bootstrap node was specified)
     # - creation date (may be disabled as well)
     # - created by
-    # - comment (may be disabled as well (if ADVERTISE = False))
+    # - comment (may be disabled as well)
 
     # Finish sub-dict "info".
     info['piece length'] = piece_length
@@ -842,7 +898,7 @@ def main() -> None:
     if isinstance(args.comment, str):
         if len(args.comment) > 0:
             metainfo['comment'] = args.comment
-    elif ADVERTISE:
+    elif config.advertise:
         metainfo['comment'] = "created with " + metainfo['created by']
 
     # Add the name field.

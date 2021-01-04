@@ -7,8 +7,10 @@ Version 1.0.0 (not yet released)
 * changed: **requires Python 3.5+ now**
 * changed: specifying trackers is now optional with the new ``-t`` switch, thus **trackerless torrents are now
   possible**
-* added: it is now possible to add the best N trackers from `ngosang/trackerslist <https://github.com/ngosang/trackerslist>`_
+* added: **bestN shortcut**! It is now possible to add the best N trackers from `ngosang/trackerslist <https://github.com/ngosang/trackerslist>`_
   by using the new `bestN shortcut <user.html#bestn-automatically-add-the-best-trackers>`__
+* changed: use **external JSON files for configuration**, by default try to load ``.py3createtorrent.cfg``
+  from user's home directory
 * added: DHT bootstrap nodes can now be specified with the new ``--node`` switch (doing so is recommended for
   trackerless torrents)
 * added: **webseed support** with the new ``--webseed`` switch (GetRight style, i.e. `<http://bittorrent.org/beps/bep_0019.html>`_)
