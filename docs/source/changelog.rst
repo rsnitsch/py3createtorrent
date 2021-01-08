@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 1.0.0b2 (beta version)
+------------------------------
+
+*Release date: 2021/01/08*
+
+* fixed: parentheses are now allowed in names specified by using the ``--name`` switch
+
 Version 1.0.0b1 (beta version)
 ------------------------------
 
