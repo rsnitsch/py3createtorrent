@@ -906,10 +906,10 @@ def main() -> None:
     if args.name:
         args.name = args.name.strip()
 
-        regexp = re.compile(r"^[A-Z0-9_\-., ]+$", re.I)
+        regexp = re.compile(r"^[A-Z0-9_\-., ()]+$", re.I)
 
         if not regexp.match(args.name):
-            parser.error("Invalid name: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-} plus spaces." % args.name)
+            parser.error("Invalid name: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-()} plus spaces." % args.name)
 
         metainfo['info']['name'] = args.name
 
