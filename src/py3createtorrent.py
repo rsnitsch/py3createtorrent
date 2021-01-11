@@ -140,6 +140,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
 
     # Total byte count.
     length = os.path.getsize(file)
+    assert length > 0, "empty file"
 
     # Concatenated 20byte sha1-hashes of all the file's pieces.
     piece_count = int(math.ceil(length / piece_length))
@@ -173,8 +174,6 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
             i += 1
 
     printv("done")
-
-    assert length > 0, "empty file"
 
     info = {
         'pieces': bytes(pieces),
