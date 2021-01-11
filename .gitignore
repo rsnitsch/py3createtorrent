@@ -4,3 +4,4 @@ Pipfile.lock
 dist
 src/py3createtorrent.egg-info
 build
+testdata/
