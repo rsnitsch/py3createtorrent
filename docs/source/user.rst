@@ -83,8 +83,8 @@ Syntax:
 
 .. code-block:: none
 
-    usage: py3createtorrent.py [-h] [-p PIECE_LENGTH] [-P] [-c COMMENT] [-s SOURCE] [-f] [-v] [-q] [-o PATH] [-e PATH] [--exclude-pattern REGEXP]
-                               [--exclude-pattern-ci REGEXP] [-d TIMESTAMP] [-n NAME] [--md5] [-t TRACKER_URL] [--node HOST,PORT] [--webseed WEBSEED_URL]
+    usage: py3createtorrent.py [-h] [-p PIECE_LENGTH] [-P] [-c COMMENT] [-s SOURCE] [-f] [-v] [-q] [-o PATH] [-e PATH] [--exclude-pattern REGEXP] [--exclude-pattern-ci REGEXP] [-d TIMESTAMP] [-n NAME] [--md5] [--config CONFIG]
+                               [-t TRACKER_URL] [--node HOST,PORT] [--webseed WEBSEED_URL]
                                path
 
     py3createtorrent is a comprehensive command line utility for creating torrents.
@@ -101,7 +101,7 @@ Syntax:
                             include comment
       -s SOURCE, --source SOURCE
                             include source
-      -f, --force           dont ask anything, just do it
+      -f, --force           do not ask anything, just do it
       -v, --verbose         verbose mode
       -q, --quiet           be quiet, e.g. don't print summary
       -o PATH, --output PATH
@@ -116,6 +116,7 @@ Syntax:
                             set creation date (unix timestamp). -1 = now (default). -2 = disable.
       -n NAME, --name NAME  use this file (or directory) name instead of the real one
       --md5                 include MD5 hashes in torrent file
+      --config CONFIG       use another config file instead of the default one from the home directory
       -t TRACKER_URL, --tracker TRACKER_URL
                             tracker to use for the torrent
       --node HOST,PORT      DHT bootstrap node to use for the torrent
@@ -142,6 +143,8 @@ This is equivalent to the short form using the tracker abbreviations::
     py3createtorrent -t opentrackr -t coppersurfer -t cyberia my_data_folder/
 
 .. automatically_add_best_trackers:
+
+.. _bestN_shortcut:
 
 bestN: Automatically add the best trackers
 """"""""""""""""""""""""""""""""""""""""""
@@ -335,6 +338,16 @@ makes the torrent file a little larger, although this is probably negligible).
 
 *New in 0.9.5.*
 
+Path to config (``--config``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, py3createtorrent tries to load the config file ``.py3createtorrent.cfg``
+from the user's home directory. To use another config file, specify the path with
+``--config``. Use ``--verbose`` for troubleshooting this, if it does not work as
+expected.
+
+*New in 1.0.0.*
+
 Examples
 --------
 
@@ -427,13 +440,51 @@ use the exclude-option anymore.
 Configuration
 -------------
 
-There is a small configuration section in the script (at the top):
+If present, the configuration file '.py3createtorrent.cfg' will be loaded from the user's
+home directory. The configuration file uses JSON format. Use ``--config`` to load the config
+from another location. Use ``--verbose`` for troubleshooting this, if it does not work as
+expected.
 
-.. literalinclude:: ../../src/py3createtorrent.py
-   :start-after: # #############
-   :end-before: # ##############
-   :prepend: # #############
-   :append: # ##############
+.. warning::
+
+  Before version 1.0, the configuration had to be changed by manually editing the py3createtorrent.py
+  script file. If you're still using version 0.x, please upgrade or switch to the old documentation
+  of the 0.x branch.
+
+Default
+^^^^^^^
+
+If the configuration file is not present, the following default values will be used:
+
+.. code-block:: json
+
+    {
+      "best_trackers_url": "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt",
+      "tracker_abbreviations": {
+        "opentrackr": "udp://tracker.opentrackr.org:1337/announce",
+        "coppersurfer": "udp://tracker.coppersurfer.tk:6969/announce",
+        "cyberia": "udp://tracker.cyberia.is:6969/announce"
+      },
+      "advertise": true
+    }
+
+For details on the individual configuration parameters, please refer to the following sub-sections.
+
+Best trackers URL
+^^^^^^^^^^^^^^^^^
+
+You can change the URL from which the best tracker URLs are loaded when using the :ref:`bestN shortcut <bestN_shortcut>`.
+The default URL is::
+
+    https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt
+
+To change it, you can use a config file like this:
+
+.. code-block:: json
+
+    {
+      "best_trackers_url": "https://ngosang.github.io/trackerslist/trackers_best_ip.txt"
+    }
 
 .. _tracker_abbreviations:
 
@@ -461,12 +512,20 @@ In this case, py3createtorrent recognizes the tracker abbreviations 'opentrackr'
    way you can also create sort of "tracker groups" for different kinds of
    torrents.
 
-   Example configuration::
+   Example configuration:
+   
+   .. code-block:: json
 
-      TRACKER_ABBR = {'mytrackergroup': ['udp://tracker.opentrackr.org:1337/announce',
-                                         'udp://tracker.coppersurfer.tk:6969/announce'],
-                      'opentrackr': 'udp://tracker.opentrackr.org:1337/announce',
-                      'coppersurfer': 'udp://tracker.coppersurfer.tk:6969/announce'}
+    {
+        "tracker_abbreviations": {
+            "mytrackergroup": [
+                "udp://tracker.opentrackr.org:1337/announce",
+                "udp://tracker.coppersurfer.tk:6969/announce"
+            ],
+            "opentrackr": "udp://tracker.opentrackr.org:1337/announce",
+            "coppersurfer": "udp://tracker.coppersurfer.tk:6969/announce"
+        }
+    }
 
    Just specify lists of announce URLs instead of a single announce URL to define
    such groups.
@@ -474,8 +533,17 @@ In this case, py3createtorrent recognizes the tracker abbreviations 'opentrackr'
 Advertise setting
 ^^^^^^^^^^^^^^^^^
 
-The ``ADVERTISE`` setting defines whether py3createtorrent is allowed to advertise
-itself through the comment field, if the user hasn't specified a comment.
+The ``advertise`` setting defines whether py3createtorrent is allowed to advertise
+itself through the comment field, if the user hasn't specified a comment. Possible
+values are ``true`` (the default) or ``false`` - without any quotes.
+
+To disable advertising, you can use the following in your config file:
+
+.. code-block:: json
+
+    {
+      "advertise": false
+    }
 
 If you want to disable advertising for a single torrent only, you can use the
 ``--comment`` option to specify an empty comment::

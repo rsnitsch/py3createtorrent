@@ -4,7 +4,7 @@ Developer documentation
 Todo
 ----
 
-* use configuration files instead of requiring users to edit the script
+* implement multi-threading
 * add the ability to define how the announce-list should be constructed in detail
   (tracker tiers etc., see `Multitracker Metadata
   Extension <http://bittorrent.org/beps/bep_0012.html>`_)
