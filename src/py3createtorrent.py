@@ -38,7 +38,7 @@ https://py3createtorrent.readthedocs.io/en/latest/""")
     print()
     raise
 
-__all__ = ['calculate_piece_length', 'get_files_in_directory', 'sha1_20', 'split_path']
+__all__ = ['calculate_piece_length', 'get_files_in_directory', 'sha1', 'split_path']
 
 # Do not touch anything below this line unless you know what you're doing!
 
@@ -118,11 +118,11 @@ def printv(*args: Any, **kwargs: Any) -> None:
         print(*args, **kwargs)
 
 
-def sha1_20(data: bytes) -> bytes:
-    """Return the first 20 bytes of the given data's SHA-1 hash."""
+def sha1(data: bytes) -> bytes:
+    """Return the given data's SHA-1 hash (= always 20 bytes)."""
     m = hashlib.sha1()
     m.update(data)
-    return m.digest()[:20]
+    return m.digest()
 
 
 def create_single_file_info(file: str, piece_length: int, include_md5: bool = True) -> Dict:
@@ -162,11 +162,11 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
             if count == piece_length:
                 if include_md5:
                     md5.update(piece_data)
-                pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data)
+                pieces[i * 20:(i + 1) * 20] = sha1(piece_data)
             elif count != 0:
                 if include_md5:
                     md5.update(piece_data[:count])
-                pieces[i * 20:(i + 1) * 20] = sha1_20(piece_data[:count])
+                pieces[i * 20:(i + 1) * 20] = sha1(piece_data[:count])
             else:
                 break
 
@@ -242,7 +242,7 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
                 data += filedata
 
                 if len(data) >= piece_length:
-                    info_pieces += sha1_20(data[:piece_length])
+                    info_pieces += sha1(data[:piece_length])
                     data = data[piece_length:]
 
                 if include_md5:
@@ -260,7 +260,7 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
 
     # Don't forget to hash the last piece. (Probably the piece that has not reached the regular piece size.)
     if len(data) > 0:
-        info_pieces += sha1_20(data)
+        info_pieces += sha1(data)
 
     # Build the final dictionary.
     info = {'pieces': bytes(info_pieces), 'name': os.path.basename(directory.strip("/\\")), 'files': info_files}
