@@ -6,3 +6,4 @@ src/py3createtorrent.egg-info
 build
 testdata/
 .idea/
+*.torrent
