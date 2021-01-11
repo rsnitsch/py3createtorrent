@@ -49,4 +49,4 @@ Of course, you need to have Python 3 installed on your system. py3createtorrent 
 Full documentation
 ------------------
 
-https://py3createtorrent.readthedocs.io/en/develop/user.html
+https://py3createtorrent.readthedocs.io/en/latest/user.html
