@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 1.0.1
+-------------
+
+*Release date: 2022/01/05*
+
+* fixed: Faulty torrent name and 'name' field when using relative path '.', see `#11 <https://github.com/rsnitsch/py3createtorrent/issues/11>`_
+
 Version 1.0.0
 -------------
 
