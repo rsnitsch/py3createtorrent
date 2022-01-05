@@ -2,7 +2,7 @@
 """
 Create torrents via command line!
 
-Copyright (C) 2010-2021 Robert Nitsch
+Copyright (C) 2010-2022 Robert Nitsch
 Licensed according to GPL v3.
 """
 
@@ -42,7 +42,7 @@ __all__ = ['calculate_piece_length', 'get_files_in_directory', 'sha1', 'split_pa
 
 # Do not touch anything below this line unless you know what you're doing!
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
@@ -262,7 +262,7 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
         info_pieces += sha1(data)
 
     # Build the final dictionary.
-    info = {'pieces': bytes(info_pieces), 'name': os.path.basename(directory.strip("/\\")), 'files': info_files}
+    info = {'pieces': bytes(info_pieces), 'name': os.path.basename(os.path.abspath(directory)), 'files': info_files}
 
     return info
 
