@@ -2,7 +2,7 @@
 """
 Create torrents via command line!
 
-Copyright (C) 2010-2021 Robert Nitsch
+Copyright (C) 2010-2022 Robert Nitsch
 Licensed according to GPL v3.
 """
 

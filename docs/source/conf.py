@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'py3createtorrent'
-copyright = u'2013-2021, Robert Nitsch'
+copyright = u'2013-2022, Robert Nitsch'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
