@@ -262,7 +262,7 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
         info_pieces += sha1(data)
 
     # Build the final dictionary.
-    info = {'pieces': bytes(info_pieces), 'name': os.path.basename(directory.strip("/\\")), 'files': info_files}
+    info = {'pieces': bytes(info_pieces), 'name': os.path.basename(os.path.abspath(directory)), 'files': info_files}
 
     return info
 
