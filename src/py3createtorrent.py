@@ -42,7 +42,7 @@ __all__ = ['calculate_piece_length', 'get_files_in_directory', 'sha1', 'split_pa
 
 # Do not touch anything below this line unless you know what you're doing!
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
