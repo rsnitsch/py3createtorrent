@@ -529,6 +529,21 @@ def main() -> None:
         description="py3createtorrent is a comprehensive command line utility for creating torrents.",
         epilog="You are using py3createtorrent v%s" % __version__)
 
+    parser.add_argument("-t",
+                        "--tracker",
+                        metavar="TRACKER_URL",
+                        action="append",
+                        dest="trackers",
+                        default=[],
+                        help="tracker to use for the torrent")
+
+    parser.add_argument("--node",
+                        metavar="HOST,PORT",
+                        action="append",
+                        dest="nodes",
+                        default=[],
+                        help="DHT bootstrap node to use for the torrent")
+
     parser.add_argument("-p",
                         "--piece-length",
                         type=int,
@@ -632,25 +647,13 @@ def main() -> None:
                         action="store",
                         help="use another config file instead of the default one from the home directory")
 
-    parser.add_argument("-t",
-                        "--tracker",
-                        metavar="TRACKER_URL",
-                        action="append",
-                        dest="trackers",
-                        default=[],
-                        help="tracker to use for the torrent")
-    parser.add_argument("--node",
-                        metavar="HOST,PORT",
-                        action="append",
-                        dest="nodes",
-                        default=[],
-                        help="DHT bootstrap node to use for the torrent")
     parser.add_argument("--webseed",
                         metavar="WEBSEED_URL",
                         action="append",
                         dest="webseeds",
                         default=[],
                         help="webseed URL for the torrent")
+
     parser.add_argument("--version",
                         action="version",
                         version="py3createtorrent v" + __version__,

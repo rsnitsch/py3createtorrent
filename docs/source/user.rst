@@ -83,45 +83,45 @@ Syntax:
 
 .. code-block:: none
 
-    usage: py3createtorrent.py [-h] [-p PIECE_LENGTH] [-P] [-c COMMENT] [-s SOURCE] [-f] [-v] [-q] [-o PATH] [-e PATH] [--exclude-pattern REGEXP] [--exclude-pattern-ci REGEXP] [-d TIMESTAMP] [-n NAME] [--md5] [--config CONFIG]
-                               [-t TRACKER_URL] [--node HOST,PORT] [--webseed WEBSEED_URL]
-                               path
-
+    usage: py3createtorrent.py [-h] [-t TRACKER_URL] [--node HOST,PORT] [-p PIECE_LENGTH] [-P] [-c COMMENT] [-s SOURCE] [-f] [-v] [-q] [-o PATH] [-e PATH] [--exclude-pattern REGEXP] [--exclude-pattern-ci REGEXP] [-d TIMESTAMP] [-n NAME]
+    						   [--md5] [--config CONFIG] [--webseed WEBSEED_URL] [--version]
+    						   path
+    
     py3createtorrent is a comprehensive command line utility for creating torrents.
-
+    
     positional arguments:
       path                  file or folder for which to create a torrent
-
+    
     optional arguments:
       -h, --help            show this help message and exit
+      -t TRACKER_URL, --tracker TRACKER_URL
+    						tracker to use for the torrent
+      --node HOST,PORT      DHT bootstrap node to use for the torrent
       -p PIECE_LENGTH, --piece-length PIECE_LENGTH
-                            piece size in KiB. 0 = automatic selection (default).
+    						piece size in KiB. 0 = automatic selection (default).
       -P, --private         create private torrent
       -c COMMENT, --comment COMMENT
-                            include comment
+    						include comment
       -s SOURCE, --source SOURCE
-                            include source
-      -f, --force           do not ask anything, just do it
+    						include source
+      -f, --force           overwrite existing .torrent files without asking and disable the piece size, tracker and node validations
       -v, --verbose         verbose mode
       -q, --quiet           be quiet, e.g. don't print summary
       -o PATH, --output PATH
-                            custom output location (directory or complete path). default = current directory.
+    						custom output location (directory or complete path). default = current directory.
       -e PATH, --exclude PATH
-                            exclude path (can be repeated)
+    						exclude path (can be repeated)
       --exclude-pattern REGEXP
-                            exclude paths matching the regular expression (can be repeated)
+    						exclude paths matching the regular expression (can be repeated)
       --exclude-pattern-ci REGEXP
-                            exclude paths matching the case-insensitive regular expression (can be repeated)
+    						exclude paths matching the case-insensitive regular expression (can be repeated)
       -d TIMESTAMP, --date TIMESTAMP
-                            set creation date (unix timestamp). -1 = now (default). -2 = disable.
+    						set creation date (unix timestamp). -1 = now (default). -2 = disable.
       -n NAME, --name NAME  use this file (or directory) name instead of the real one
       --md5                 include MD5 hashes in torrent file
       --config CONFIG       use another config file instead of the default one from the home directory
-      -t TRACKER_URL, --tracker TRACKER_URL
-                            tracker to use for the torrent
-      --node HOST,PORT      DHT bootstrap node to use for the torrent
       --webseed WEBSEED_URL
-                            webseed URL for the torrent
+    						webseed URL for the torrent
 
 Specifying trackers (``-t``, ``--tracker``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
