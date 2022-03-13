@@ -14,7 +14,7 @@ Some of the features:
 * you can add a **comment** to the torrent file
 * you can create **private torrents** (disabled DHT, ...)
 * you can create torrents with **multiple trackers**
-* you can create **trackerless torrents** (not yet released, but already implemented in develop branch)
+* you can create **trackerless torrents**
 * you can add **webseeds** to torrents
 * you can **exclude specific files/folders**
 * you can exclude files/folders based on **regular expressions**
@@ -49,4 +49,4 @@ Of course, you need to have Python 3 installed on your system. py3createtorrent 
 Full documentation
 ------------------
 
-https://py3createtorrent.readthedocs.io/en/develop/user.html
+https://py3createtorrent.readthedocs.io/en/latest/user.html

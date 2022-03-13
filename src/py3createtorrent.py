@@ -2,7 +2,7 @@
 """
 Create torrents via command line!
 
-Copyright (C) 2010-2021 Robert Nitsch
+Copyright (C) 2010-2022 Robert Nitsch
 Licensed according to GPL v3.
 """
 
@@ -44,7 +44,7 @@ __all__ = ['calculate_piece_length', 'get_files_in_directory', 'sha1', 'split_pa
 
 # Do not touch anything below this line unless you know what you're doing!
 
-__version__ = '1.0.0b2'
+__version__ = '1.0.1'
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
@@ -294,7 +294,7 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
     pieces = bytes(pieces[:(i + 1) * 20])
 
     # Build the final dictionary.
-    info = {'pieces': pieces, 'name': os.path.basename(directory.strip("/\\")), 'files': info_files}
+    info = {'pieces': bytes(pieces), 'name': os.path.basename(os.path.abspath(directory)), 'files': info_files}
 
     return info
 
@@ -558,7 +558,24 @@ def get_best_trackers(count: int, url: str):
 def main() -> None:
     # Create and configure ArgumentParser.
     parser = argparse.ArgumentParser(
-        description="py3createtorrent is a comprehensive command line utility for creating torrents.")
+        description="py3createtorrent is a comprehensive command line utility for creating torrents.",
+        usage='%(prog)s <path_to_data> [-t tracker_url] [options ...]',
+        epilog="You are using py3createtorrent v%s" % __version__)
+
+    parser.add_argument("-t",
+                        "--tracker",
+                        metavar="TRACKER_URL",
+                        action="append",
+                        dest="trackers",
+                        default=[],
+                        help="tracker to use for the torrent")
+
+    parser.add_argument("--node",
+                        metavar="HOST,PORT",
+                        action="append",
+                        dest="nodes",
+                        default=[],
+                        help="DHT bootstrap node to use for the torrent")
 
     parser.add_argument("-p",
                         "--piece-length",
@@ -590,7 +607,8 @@ def main() -> None:
                         action="store_true",
                         dest="force",
                         default=False,
-                        help="do not ask anything, just do it")
+                        help="overwrite existing .torrent files without asking and disable the piece size," +
+                        " tracker and node validations")
 
     parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", default=False, help="verbose mode")
 
@@ -663,25 +681,17 @@ def main() -> None:
                         action="store",
                         help="use another config file instead of the default one from the home directory")
 
-    parser.add_argument("-t",
-                        "--tracker",
-                        metavar="TRACKER_URL",
-                        action="append",
-                        dest="trackers",
-                        default=[],
-                        help="tracker to use for the torrent")
-    parser.add_argument("--node",
-                        metavar="HOST,PORT",
-                        action="append",
-                        dest="nodes",
-                        default=[],
-                        help="DHT bootstrap node to use for the torrent")
     parser.add_argument("--webseed",
                         metavar="WEBSEED_URL",
                         action="append",
                         dest="webseeds",
                         default=[],
                         help="webseed URL for the torrent")
+
+    parser.add_argument("--version",
+                        action="version",
+                        version="py3createtorrent v" + __version__,
+                        help="show version number of py3createtorrent")
 
     parser.add_argument("path", help="file or folder for which to create a torrent")
 

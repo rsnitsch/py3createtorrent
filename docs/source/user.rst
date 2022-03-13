@@ -83,17 +83,18 @@ Syntax:
 
 .. code-block:: none
 
-    usage: py3createtorrent.py [-h] [-p PIECE_LENGTH] [-P] [-c COMMENT] [-s SOURCE] [-f] [-v] [-q] [-o PATH] [-e PATH] [--exclude-pattern REGEXP] [--exclude-pattern-ci REGEXP] [-d TIMESTAMP] [-n NAME] [--md5] [--config CONFIG]
-                               [-t TRACKER_URL] [--node HOST,PORT] [--webseed WEBSEED_URL]
-                               path
-
+    usage: py3createtorrent.py <path_to_data> [-t tracker_url] [options ...]
+    
     py3createtorrent is a comprehensive command line utility for creating torrents.
-
+    
     positional arguments:
       path                  file or folder for which to create a torrent
-
+    
     optional arguments:
       -h, --help            show this help message and exit
+      -t TRACKER_URL, --tracker TRACKER_URL
+                            tracker to use for the torrent
+      --node HOST,PORT      DHT bootstrap node to use for the torrent
       -p PIECE_LENGTH, --piece-length PIECE_LENGTH
                             piece size in KiB. 0 = automatic selection (default).
       -P, --private         create private torrent
@@ -101,7 +102,7 @@ Syntax:
                             include comment
       -s SOURCE, --source SOURCE
                             include source
-      -f, --force           do not ask anything, just do it
+      -f, --force           overwrite existing .torrent files without asking and disable the piece size, tracker and node validations
       -v, --verbose         verbose mode
       -q, --quiet           be quiet, e.g. don't print summary
       -o PATH, --output PATH
@@ -117,11 +118,9 @@ Syntax:
       -n NAME, --name NAME  use this file (or directory) name instead of the real one
       --md5                 include MD5 hashes in torrent file
       --config CONFIG       use another config file instead of the default one from the home directory
-      -t TRACKER_URL, --tracker TRACKER_URL
-                            tracker to use for the torrent
-      --node HOST,PORT      DHT bootstrap node to use for the torrent
       --webseed WEBSEED_URL
                             webseed URL for the torrent
+      --version             show version number of py3createtorrent
 
 Specifying trackers (``-t``, ``--tracker``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -248,8 +247,12 @@ are unique to the private tracker.
 Force (``-f``)
 ^^^^^^^^^^^^^^
 
-Force makes py3createtorrent e.g. overwrite existing .torrent files without
-asking for your permission.
+The force option makes py3createtorrent
+
+- overwrite existing .torrent files without asking for your permission
+- disable checking for uncommon and possibly unsupported piece sizes
+- disable checking for possibly invalid tracker specifications
+- disable checking for possibly invalid node specifications
 
 Verbose (``-v``)
 ^^^^^^^^^^^^^^^^
