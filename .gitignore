@@ -7,3 +7,5 @@ build
 testdata/
 .idea/
 *.torrent
+benchmark/*.csv
+benchmark/*.png
