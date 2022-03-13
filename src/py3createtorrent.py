@@ -527,6 +527,7 @@ def main() -> None:
     # Create and configure ArgumentParser.
     parser = argparse.ArgumentParser(
         description="py3createtorrent is a comprehensive command line utility for creating torrents.",
+        usage='%(prog)s <path_to_data> [-t tracker_url] [options ...]',
         epilog="You are using py3createtorrent v%s" % __version__)
 
     parser.add_argument("-t",

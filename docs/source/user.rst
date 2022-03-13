@@ -83,9 +83,7 @@ Syntax:
 
 .. code-block:: none
 
-    usage: py3createtorrent.py [-h] [-t TRACKER_URL] [--node HOST,PORT] [-p PIECE_LENGTH] [-P] [-c COMMENT] [-s SOURCE] [-f] [-v] [-q] [-o PATH] [-e PATH] [--exclude-pattern REGEXP] [--exclude-pattern-ci REGEXP] [-d TIMESTAMP] [-n NAME]
-                               [--md5] [--config CONFIG] [--webseed WEBSEED_URL] [--version]
-                               path
+    usage: py3createtorrent.py <path_to_data> [-t tracker_url] [options ...]
     
     py3createtorrent is a comprehensive command line utility for creating torrents.
     
