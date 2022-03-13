@@ -650,6 +650,10 @@ def main() -> None:
                         dest="webseeds",
                         default=[],
                         help="webseed URL for the torrent")
+    parser.add_argument("--version",
+                        action="version",
+                        version="py3createtorrent v" + __version__,
+                        help="show version number of py3createtorrent")
 
     parser.add_argument("path", help="file or folder for which to create a torrent")
 
