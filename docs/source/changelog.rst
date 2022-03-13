@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 1.0.2
+-------------
+
+*Release date: tbd*
+
+* added: ``--version`` command
+
 Version 1.0.1
 -------------
 
