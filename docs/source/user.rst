@@ -249,8 +249,12 @@ are unique to the private tracker.
 Force (``-f``)
 ^^^^^^^^^^^^^^
 
-Force makes py3createtorrent e.g. overwrite existing .torrent files without
-asking for your permission.
+The force option makes py3createtorrent
+
+- overwrite existing .torrent files without asking for your permission
+- disable checking for uncommon and possibly unsupported piece sizes
+- disable checking for possibly invalid tracker specifications
+- disable checking for possibly invalid node specifications
 
 Verbose (``-v``)
 ^^^^^^^^^^^^^^^^
