@@ -574,7 +574,8 @@ def main() -> None:
                         action="store_true",
                         dest="force",
                         default=False,
-                        help="do not ask anything, just do it")
+                        help="overwrite existing .torrent files without asking and disable the piece size," +
+                        " tracker and node validations")
 
     parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", default=False, help="verbose mode")
 
