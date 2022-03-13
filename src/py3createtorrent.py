@@ -526,7 +526,8 @@ def get_best_trackers(count: int, url: str):
 def main() -> None:
     # Create and configure ArgumentParser.
     parser = argparse.ArgumentParser(
-        description="py3createtorrent is a comprehensive command line utility for creating torrents.")
+        description="py3createtorrent is a comprehensive command line utility for creating torrents.",
+        epilog="You are using py3createtorrent v%s" % __version__)
 
     parser.add_argument("-p",
                         "--piece-length",
