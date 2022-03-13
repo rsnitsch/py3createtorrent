@@ -127,7 +127,7 @@ def sha1(data: bytes) -> bytes:
     return m.digest()
 
 
-def create_single_file_info(file: str, piece_length: int, include_md5: bool = True) -> Dict:
+def create_single_file_info(file: str, piece_length: int, include_md5: bool = True, threads: int = 4) -> Dict:
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
@@ -160,7 +160,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
         elif count != 0:
             pieces[i * 20:(i + 1) * 20] = sha1(piece_data[:count])
 
-    MAX_FUTURES = max(2, multiprocessing.cpu_count() - 1)
+    MAX_FUTURES = min(threads, multiprocessing.cpu_count())
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
         with open(file, "rb") as fh:
             futures = set()
@@ -193,7 +193,11 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     return info
 
 
-def create_multi_file_info(directory: str, files: List[str], piece_length: int, include_md5: bool = True) -> Dict:
+def create_multi_file_info(directory: str,
+                           files: List[str],
+                           piece_length: int,
+                           include_md5: bool = True,
+                           threads: int = 4) -> Dict:
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
@@ -231,7 +235,7 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
         elif count != 0:
             pieces[i * 20:(i + 1) * 20] = sha1(piece_data[:count])
 
-    MAX_FUTURES = max(2, multiprocessing.cpu_count() - 1)
+    MAX_FUTURES = min(threads, multiprocessing.cpu_count())
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
         futures = set()
         i = 0
@@ -670,6 +674,13 @@ def main() -> None:
                         default=None,
                         help="use this file (or directory) name instead of the real one")
 
+    parser.add_argument("--threads",
+                        type=int,
+                        action="store",
+                        default=4,
+                        help="Set the maximum number of threads to use for hashing pieces. "
+                        "py3createtorrent will never use more threads than there are CPU cores.")
+
     parser.add_argument("--md5",
                         action="store_true",
                         dest="include_md5",
@@ -781,6 +792,10 @@ def main() -> None:
         if "yes" != input("Some tracker URLs are invalid. Continue? yes/no: "):
             parser.error("Aborted.")
 
+    # Validate number of threads.
+    if args.threads <= 0:
+        parser.error("Number of threads must be positive.")
+
     # Handle best[0-9] shortcut.
     if best_shortcut_present:
         new_trackers = []
@@ -866,9 +881,9 @@ def main() -> None:
     # Do the main work now.
     # -> prepare the metainfo dictionary.
     if os.path.isfile(input_path):
-        info = create_single_file_info(input_path, piece_length, args.include_md5)
+        info = create_single_file_info(input_path, piece_length, args.include_md5, threads=args.threads)
     else:
-        info = create_multi_file_info(input_path, torrent_files, piece_length, args.include_md5)
+        info = create_multi_file_info(input_path, torrent_files, piece_length, args.include_md5, threads=args.threads)
 
     assert len(info['pieces']) % 20 == 0, "len(pieces) not a multiple of 20"
 
