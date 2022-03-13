@@ -122,6 +122,7 @@ Syntax:
       --config CONFIG       use another config file instead of the default one from the home directory
       --webseed WEBSEED_URL
     						webseed URL for the torrent
+      --version             show version number of py3createtorrent
 
 Specifying trackers (``-t``, ``--tracker``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
