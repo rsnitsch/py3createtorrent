@@ -4,9 +4,7 @@ a given directory. The size of each file will be randomly (uniformly) chosen fro
 user-specified range.
 """
 import argparse
-import os
 import random
-import uuid
 from pathlib import Path
 
 from create_random_file import parse_size, create_random_file
