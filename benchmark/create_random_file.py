@@ -1,3 +1,6 @@
+"""
+Script to create files of given size with pseudo-random content.
+"""
 import argparse
 import os
 import random
@@ -20,6 +23,20 @@ def parse_size(size):
     return letter_to_unit[letter.upper()] * int(number)
 
 
+def create_random_file(dst, size):
+    BLOCK_SIZE = 4096
+    bytes_saved = 0
+    with open(dst, "wb") as fh:
+        while True:
+            remaining_bytes = size - bytes_saved
+            if remaining_bytes:
+                data = random.randbytes(min(remaining_bytes, BLOCK_SIZE))
+                bytes_saved += len(data)
+                fh.write(data)
+            else:
+                break
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("path", help="destination file path")
@@ -34,18 +51,7 @@ def main():
     if os.path.isfile(args.path) and not args.overwrite:
         parser.error("Destination file already exists")
 
-    KIB = 2**10
-    BLOCK_SIZE = 4096
-    bytes_saved = 0
-    with open(args.path, "wb") as fh:
-        while True:
-            remaining_bytes = args.size - bytes_saved
-            if remaining_bytes:
-                data = random.randbytes(min(remaining_bytes, BLOCK_SIZE))
-                bytes_saved += len(data)
-                fh.write(data)
-            else:
-                break
+    create_random_file(args.path, args.size)
 
 
 if __name__ == '__main__':
