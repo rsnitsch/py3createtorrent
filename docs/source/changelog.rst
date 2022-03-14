@@ -1,12 +1,13 @@
 Changelog
 =========
 
-Version 1.0.2
--------------
+Version 1.NEXT
+--------------
 
 *Release date: tbd*
 
 * added: ``--version`` command
+* improved formatting and content of ``--help`` output
 
 Version 1.0.1
 -------------
