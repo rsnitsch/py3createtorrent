@@ -54,6 +54,7 @@ VERBOSE = False
 
 
 class Config(object):
+
     class InvalidConfigError(Exception):
         pass
 
@@ -656,6 +657,8 @@ def main() -> None:
                         default=[],
                         help="webseed URL for the torrent")
 
+    parser.add_argument("--no-created-by", action="store_true", help=argparse.SUPPRESS)
+
     parser.add_argument("--version",
                         action="version",
                         version="py3createtorrent v" + __version__,
@@ -900,7 +903,8 @@ def main() -> None:
                      "automatically or -2 to disable storing a creation date altogether).")
 
     # Add the "created by" field.
-    metainfo['created by'] = 'py3createtorrent v%s' % __version__
+    if not args.no_created_by:
+        metainfo['created by'] = 'py3createtorrent v%s' % __version__
 
     # Add user's comment or advertise py3createtorrent (unless this behaviour has been disabled by the user).
     # The user may also decide not to include the comment field at all by specifying an empty comment.
