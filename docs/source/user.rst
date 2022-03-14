@@ -83,44 +83,54 @@ Syntax:
 
 .. code-block:: none
 
-    usage: py3createtorrent.py <path_to_data> [-t tracker_url] [options ...]
+    usage: py3createtorrent.py <target> [-t tracker_url] [options ...]
     
     py3createtorrent is a comprehensive command line utility for creating torrents.
     
     positional arguments:
-      path                  file or folder for which to create a torrent
+      target <path>         File or folder for which to create a torrent
     
     optional arguments:
       -h, --help            show this help message and exit
       -t TRACKER_URL, --tracker TRACKER_URL
-                            tracker to use for the torrent
-      --node HOST,PORT      DHT bootstrap node to use for the torrent
+                            Add one or multiple tracker (announce) URLs to
+                            the torrent file.
+      --node HOST,PORT      Add one or multiple DHT bootstrap nodes.
       -p PIECE_LENGTH, --piece-length PIECE_LENGTH
-                            piece size in KiB. 0 = automatic selection (default).
-      -P, --private         create private torrent
+                            Set piece size in KiB. [default: 0 = automatic selection]
+      -P, --private         Set the private flag to disable DHT and PEX.
       -c COMMENT, --comment COMMENT
-                            include comment
+                            Add a comment.
       -s SOURCE, --source SOURCE
-                            include source
-      -f, --force           overwrite existing .torrent files without asking and disable the piece size, tracker and node validations
-      -v, --verbose         verbose mode
-      -q, --quiet           be quiet, e.g. don't print summary
+                            Add a source tag.
+      -f, --force           Overwrite existing .torrent files without asking and
+                            disable the piece size, tracker and node validations.
+      -v, --verbose         Enable output of diagnostic information.
+      -q, --quiet           Suppress output, e.g. don't print summary
       -o PATH, --output PATH
-                            custom output location (directory or complete path). default = current directory.
+                            Set the filename and/or output directory of the
+                            created file. [default: <name>.torrent]
       -e PATH, --exclude PATH
-                            exclude path (can be repeated)
+                            Exclude a specific path (can be repeated to exclude
+                            multiple paths).
       --exclude-pattern REGEXP
-                            exclude paths matching the regular expression (can be repeated)
+                            Exclude paths matching a regular expression (can be repeated
+                            to use multiple patterns).
       --exclude-pattern-ci REGEXP
-                            exclude paths matching the case-insensitive regular expression (can be repeated)
+                            Same as --exclude-pattern but case-insensitive.
       -d TIMESTAMP, --date TIMESTAMP
-                            set creation date (unix timestamp). -1 = now (default). -2 = disable.
-      -n NAME, --name NAME  use this file (or directory) name instead of the real one
-      --md5                 include MD5 hashes in torrent file
-      --config CONFIG       use another config file instead of the default one from the home directory
+                            Overwrite creation date. This option expects a unix timestamp.
+                            Specify -2 to disable the inclusion of a creation date completely.
+                            [default: -1 = current date and time]
+      -n NAME, --name NAME  Set the name of the torrent. This changes the filename for
+                            single file torrents or the root directory name for multi-file torrents.
+                            [default: <basename of target>]
+      --md5                 Include MD5 hashes in torrent file.
+      --config CONFIG       Specify location of config file.
+                            [default: <home directiory>/.py3createtorrent.cfg]
       --webseed WEBSEED_URL
-                            webseed URL for the torrent
-      --version             show version number of py3createtorrent
+                            Add one or multiple HTTP/FTP urls as seeds (GetRight-style).
+      --version             Show version number of py3createtorrent
 
 Specifying trackers (``-t``, ``--tracker``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
