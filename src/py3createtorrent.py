@@ -272,7 +272,7 @@ def create_multi_file_info(directory: str,
 
                     data += filedata
                     if len(data) >= piece_length:
-                        executor.submit(calculate_sha1_hash_for_piece, i, data[:piece_length])
+                        futures.add(executor.submit(calculate_sha1_hash_for_piece, i, data[:piece_length]))
                         data = data[piece_length:]
                         i += 1
 
