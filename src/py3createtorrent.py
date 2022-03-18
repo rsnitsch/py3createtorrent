@@ -17,10 +17,12 @@ TODOs for 2.x:
 """
 
 import argparse
+import concurrent.futures
 import datetime
 import hashlib
 import json
 import math
+import multiprocessing
 import os
 import pprint
 import re
@@ -136,7 +138,7 @@ def sha1(data: bytes) -> bytes:
     return m.digest()
 
 
-def create_single_file_info(file: str, piece_length: int, include_md5: bool = True) -> Dict:
+def create_single_file_info(file: str, piece_length: int, include_md5: bool = True, threads: int = 4) -> Dict:
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
@@ -162,27 +164,31 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
 
     printv("Hashing file... ", end="")
 
-    piece_data = bytearray(piece_length)
-    with open(file, "rb") as fh:
-        i = 0
-        while True:
-            # readinto is not recognized by mypy
-            # Related: https://github.com/python/typing/issues/659
-            #          https://github.com/python/typeshed/issues/2166
-            count = fh.readinto(piece_data)  # type: ignore
+    def calculate_sha1_hash_for_piece(i, piece_data):
+        count = len(piece_data)
+        if count == piece_length:
+            pieces[i * 20:(i + 1) * 20] = sha1(piece_data)
+        elif count != 0:
+            pieces[i * 20:(i + 1) * 20] = sha1(piece_data[:count])
 
-            if count == piece_length:
+    MAX_FUTURES = min(threads, multiprocessing.cpu_count())
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
+        with open(file, "rb") as fh:
+            futures = set()
+            for i, piece_data in enumerate(iter(lambda: fh.read(piece_length), '')):
+                if not piece_data:
+                    break
+
+                futures.add(executor.submit(calculate_sha1_hash_for_piece, i, piece_data))
+
                 if include_md5:
                     md5.update(piece_data)
-                pieces[i * 20:(i + 1) * 20] = sha1(piece_data)
-            elif count != 0:
-                if include_md5:
-                    md5.update(piece_data[:count])
-                pieces[i * 20:(i + 1) * 20] = sha1(piece_data[:count])
-            else:
-                break
 
-            i += 1
+                if len(futures) >= MAX_FUTURES:
+                    _, notdone = concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_COMPLETED)
+                    futures = notdone
+
+            concurrent.futures.wait(futures)
 
     printv("done")
 
@@ -198,7 +204,11 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     return info
 
 
-def create_multi_file_info(directory: str, files: List[str], piece_length: int, include_md5: bool = True) -> Dict:
+def create_multi_file_info(directory: str,
+                           files: List[str],
+                           piece_length: int,
+                           include_md5: bool = True,
+                           threads: int = 4) -> Dict:
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
@@ -217,8 +227,9 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
     """
     assert os.path.isdir(directory), "not a directory"
 
-    # Concatenated 20byte sha1-hashes of all the torrent's pieces.
-    info_pieces = bytearray()
+    # Preallocate space for 2000 piece hashes. This way, we avoid the need for
+    # synchronizing the hashing threads that write into the pieces bytearray.
+    pieces = bytearray(2000 * 20)
 
     #
     info_files = []
@@ -228,52 +239,77 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
     # continuous stream, as required by info_pieces' BitTorrent specification.
     data = bytearray()
 
-    for file in files:
-        path = os.path.join(directory, file)
+    def calculate_sha1_hash_for_piece(i, piece_data):
+        count = len(piece_data)
+        if count == piece_length:
+            pieces[i * 20:(i + 1) * 20] = sha1(piece_data)
+        elif count != 0:
+            pieces[i * 20:(i + 1) * 20] = sha1(piece_data[:count])
 
-        # File's byte count.
-        length = 0
+    MAX_FUTURES = min(threads, multiprocessing.cpu_count())
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
+        futures = set()
+        i = 0
+        for file in files:
+            path = os.path.join(directory, file)
+            length = os.path.getsize(path)
 
-        # File's md5sum.
-        if include_md5:
-            md5 = hashlib.md5()
+            # File's md5sum.
+            if include_md5:
+                md5 = hashlib.md5()
 
-        printv("Processing file '%s'... " % os.path.relpath(path, directory), end="")
+            printv("Processing file '%s'... " % os.path.relpath(path, directory), end="")
 
-        with open(path, "rb") as fh:
-            while True:
-                filedata = fh.read(piece_length)
+            with open(path, "rb") as fh:
+                while True:
+                    filedata = fh.read(piece_length)
 
-                if len(filedata) == 0:
-                    break
+                    if not filedata:
+                        break
 
-                length += len(filedata)
+                    if i >= len(pieces) // 20:
+                        # Need to extend pieces bytearray.
+                        # Wait until all other threads/tasks are finished.
+                        concurrent.futures.wait(futures, return_when=concurrent.futures.ALL_COMPLETED)
 
-                data += filedata
+                        # Now we have exclusive access to the pieces bytearray.
+                        # Add space for 1000 additional piece hashes.
+                        pieces += bytes(1000 * 20)
 
-                if len(data) >= piece_length:
-                    info_pieces += sha1(data[:piece_length])
-                    data = data[piece_length:]
+                    data += filedata
+                    if len(data) >= piece_length:
+                        executor.submit(calculate_sha1_hash_for_piece, i, data[:piece_length])
+                        data = data[piece_length:]
+                        i += 1
 
-                if include_md5:
-                    md5.update(filedata)
+                    if include_md5:
+                        md5.update(filedata)
 
-        printv("done")
+                    if len(futures) >= MAX_FUTURES:
+                        _, notdone = concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_COMPLETED)
+                        futures = notdone
 
-        # Build the current file's dictionary.
-        fdict = {'length': length, 'path': split_path(file)}
+            printv("done")
 
-        if include_md5:
-            fdict['md5sum'] = md5.hexdigest()
+            # Build the current file's dictionary.
+            fdict = {'length': length, 'path': split_path(file)}
 
-        info_files.append(fdict)
+            if include_md5:
+                fdict['md5sum'] = md5.hexdigest()
+
+            info_files.append(fdict)
+
+        concurrent.futures.wait(futures)
 
     # Don't forget to hash the last piece. (Probably the piece that has not reached the regular piece size.)
-    if len(data) > 0:
-        info_pieces += sha1(data)
+    if data:
+        pieces[i * 20:(i + 1) * 20] = sha1(data)
+
+    # Cut off unused pieces space.
+    pieces = bytes(pieces[:(i + 1) * 20])
 
     # Build the final dictionary.
-    info = {'pieces': bytes(info_pieces), 'name': os.path.basename(os.path.abspath(directory)), 'files': info_files}
+    info = {'pieces': bytes(pieces), 'name': os.path.basename(os.path.abspath(directory)), 'files': info_files}
 
     return info
 
@@ -667,6 +703,13 @@ def main() -> None:
                         "single file torrents or the root directory name for multi-file torrents.\n" +
                         "[default: <basename of target>]")
 
+    parser.add_argument("--threads",
+                        type=int,
+                        action="store",
+                        default=4,
+                        help="Set the maximum number of threads to use for hashing pieces. "
+                        "py3createtorrent will never use more threads than there are CPU cores.")
+
     parser.add_argument("--md5",
                         action="store_true",
                         dest="include_md5",
@@ -781,6 +824,10 @@ def main() -> None:
         if "yes" != input("Some tracker URLs are invalid. Continue? yes/no: "):
             parser.error("Aborted.")
 
+    # Validate number of threads.
+    if args.threads <= 0:
+        parser.error("Number of threads must be positive.")
+
     # Handle best[0-9] shortcut.
     if best_shortcut_present:
         new_trackers = []
@@ -866,9 +913,9 @@ def main() -> None:
     # Do the main work now.
     # -> prepare the metainfo dictionary.
     if os.path.isfile(input_path):
-        info = create_single_file_info(input_path, piece_length, args.include_md5)
+        info = create_single_file_info(input_path, piece_length, args.include_md5, threads=args.threads)
     else:
-        info = create_multi_file_info(input_path, torrent_files, piece_length, args.include_md5)
+        info = create_multi_file_info(input_path, torrent_files, piece_length, args.include_md5, threads=args.threads)
 
     assert len(info['pieces']) % 20 == 0, "len(pieces) not a multiple of 20"
 
