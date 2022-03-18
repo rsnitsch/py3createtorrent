@@ -9,7 +9,7 @@ def generate_plot_for_piece_size(df, piece_size):
     df = df[df["parameter_piece_size"] == piece_size].copy()
     df = df.drop(columns="parameter_piece_size")
 
-    TOOLS = ["py3createtorrent", "torrenttools", "torf"]
+    TOOLS = ["py3createtorrent", "torrenttools", "torf", "mktorrent", "transmission-create"]
 
     for tool in TOOLS:
         df.loc[df["command"].str.contains(tool), "tool"] = tool
@@ -58,9 +58,10 @@ def main():
         else:
             df = pd.concat([df, df_file])
 
-    # Normalize piece sizes of torf
+    # Normalize piece sizes
     #print(df[df["command"].str.contains("torf")].head())
     df.loc[df["command"].str.contains("torf"), "parameter_piece_size"] *= 2**10
+    df.loc[df["command"].str.contains("mktorrent"), "parameter_piece_size"] = 2**(df.loc[df["command"].str.contains("mktorrent"), "parameter_piece_size"] - 10)
 
     #print(df)
     piece_sizes = df["parameter_piece_size"].unique()
