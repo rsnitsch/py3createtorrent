@@ -5,15 +5,9 @@ Create torrents via command line!
 Copyright (C) 2010-2022 Robert Nitsch
 Licensed according to GPL v3.
 
-TODOs for 1.0.x:
-- better --help output
-- implement tests
-
-TODOs for 1.1.x:
-- merge multithreading
-
 TODOs for 2.x:
 - breaking changes to usage
+- breaking changes to file/folder scanning
 """
 
 import argparse
