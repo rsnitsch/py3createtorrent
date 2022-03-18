@@ -158,7 +158,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
 
     printv("Hashing file... ", end="")
 
-    def calculate_sha1_hash_for_piece(i, piece_data):
+    def calculate_sha1_hash_for_piece(i: int, piece_data: bytes) -> None:
         count = len(piece_data)
         if count == piece_length:
             pieces[i * 20:(i + 1) * 20] = sha1(piece_data)
@@ -168,7 +168,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     MAX_FUTURES = min(threads, multiprocessing.cpu_count())
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
         with open(file, "rb") as fh:
-            futures: Set[concurrent.futures.Future] = set()
+            futures: Set[concurrent.futures.Future[None]] = set()
             for i, piece_data in enumerate(iter(lambda: fh.read(piece_length), '')):
                 if not piece_data:
                     break
@@ -233,7 +233,7 @@ def create_multi_file_info(directory: str,
     # continuous stream, as required by info_pieces' BitTorrent specification.
     data = bytearray()
 
-    def calculate_sha1_hash_for_piece(i, piece_data):
+    def calculate_sha1_hash_for_piece(i: int, piece_data: bytes) -> None:
         count = len(piece_data)
         if count == piece_length:
             pieces[i * 20:(i + 1) * 20] = sha1(piece_data)
@@ -242,7 +242,7 @@ def create_multi_file_info(directory: str,
 
     MAX_FUTURES = min(threads, multiprocessing.cpu_count())
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
-        futures: Set[concurrent.futures.Future] = set()
+        futures: Set[concurrent.futures.Future[None]] = set()
         i = 0
         for file in files:
             path = os.path.join(directory, file)
@@ -355,7 +355,7 @@ def get_files_in_directory(directory: str,
                                 excluded_paths: Optional[Set[str]] = None,
                                 relative_to: Optional[str] = None,
                                 excluded_regexps: Optional[Set[Pattern[str]]] = None,
-                                processed_paths: Optional[Set[str]] = None):
+                                processed_paths: Optional[Set[str]] = None) -> List[str]:
         if excluded_paths is None:
             excluded_paths = set()
         if excluded_regexps is None:
@@ -425,7 +425,7 @@ def get_files_in_directory(directory: str,
     return files
 
 
-def split_path(path: str):
+def split_path(path: str) -> List[str]:
     """
     Return a list containing all of a path's components.
 
@@ -540,7 +540,7 @@ def calculate_piece_length(size: int) -> int:
     return int(piece_length)
 
 
-def get_best_trackers(count: int, url: str):
+def get_best_trackers(count: int, url: str) -> List[str]:
     if count < 0:
         raise ValueError("count must be positive")
 
