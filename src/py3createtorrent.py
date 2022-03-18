@@ -707,8 +707,9 @@ def main() -> None:
                         type=int,
                         action="store",
                         default=4,
-                        help="Set the maximum number of threads to use for hashing pieces. "
-                        "py3createtorrent will never use more threads than there are CPU cores.")
+                        help="Set the maximum number of threads to use for hashing pieces.\n"
+                        "py3createtorrent will never use more threads than there are CPU cores.\n"
+                        "[default: 4]")
 
     parser.add_argument("--md5",
                         action="store_true",
