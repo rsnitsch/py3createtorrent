@@ -10,24 +10,15 @@ Features
 
 Some of the features:
 
-* you can create **huge torrents** for any amount of data
-* you can add a **comment** to the torrent file
-* you can create **private torrents** (disabled DHT, ...)
-* you can create torrents with **multiple trackers**
-* you can create **trackerless torrents**
-* you can add **webseeds** to torrents
-* you can **exclude specific files/folders**
-* you can exclude files/folders based on **regular expressions**
-* you can specify **custom piece sizes**
-* you can specify custom creation dates
-
-Motivation
-----------
-
-There already is rTorrent, but unfortunately it does not support creating torrents.
-Thus, it is often a pain to seed torrents from your servers directly.
-
-py3createtorrent is intended to fill this gap.
+* create torrents with **multiple trackers** or **trackerless torrents**
+* **automatically choose the most reliable trackers** from `ngosang/trackerslist <https://github.com/ngosang/trackerslist>`_
+* fast torrent creation thanks to **multithreading**
+* add **webseeds** to torrents
+* create **private torrents** (disabled DHT, ...)
+* **exclude specific files/folders**
+* exclude files/folders based on **regular expressions**
+* specify **custom piece sizes**
+* specify custom creation dates
 
 Requirements
 ------------
@@ -76,52 +67,80 @@ Then you can execute py3createtorrent.py with pipenv as follows::
 
   pipenv run src/py3createtorrent.py
 
-Usage
------
+Basic usage
+-----------
+
+Creating a torrent is as simple as::
+
+    py3createtorrent -t udp://tracker.opentrackr.org:1337/announce file_or_folder
+
+The shortcut ``bestN`` can be used for conveniently adding the best N trackers
+from `ngosang/trackerslist <https://github.com/ngosang/trackerslist>`_. Example::
+
+    py3createtorrent -t best3 file_or_folder
+
+Multiple trackers can also be specified manually by using `-t` multiple times, for example::
+
+    py3createtorrent -t udp://tracker.opentrackr.org:1337/announce -t udp://tracker.coppersurfer.tk:6969/announce file_or_folder
+
+Full usage guide
+----------------
 
 Syntax:
 
 .. code-block:: none
 
-    usage: py3createtorrent.py [-h] [-p PIECE_LENGTH] [-P] [-c COMMENT] [-s SOURCE] [-f] [-v] [-q] [-o PATH] [-e PATH] [--exclude-pattern REGEXP] [--exclude-pattern-ci REGEXP] [-d TIMESTAMP] [-n NAME] [--md5] [--config CONFIG]
-                               [-t TRACKER_URL] [--node HOST,PORT] [--webseed WEBSEED_URL]
-                               path
-
+    usage: py3createtorrent.py <target> [-t tracker_url] [options ...]
+    
     py3createtorrent is a comprehensive command line utility for creating torrents.
-
+    
     positional arguments:
-      path                  file or folder for which to create a torrent
-
+      target <path>         File or folder for which to create a torrent
+    
     optional arguments:
       -h, --help            show this help message and exit
-      -p PIECE_LENGTH, --piece-length PIECE_LENGTH
-                            piece size in KiB. 0 = automatic selection (default).
-      -P, --private         create private torrent
-      -c COMMENT, --comment COMMENT
-                            include comment
-      -s SOURCE, --source SOURCE
-                            include source
-      -f, --force           do not ask anything, just do it
-      -v, --verbose         verbose mode
-      -q, --quiet           be quiet, e.g. don't print summary
-      -o PATH, --output PATH
-                            custom output location (directory or complete path). default = current directory.
-      -e PATH, --exclude PATH
-                            exclude path (can be repeated)
-      --exclude-pattern REGEXP
-                            exclude paths matching the regular expression (can be repeated)
-      --exclude-pattern-ci REGEXP
-                            exclude paths matching the case-insensitive regular expression (can be repeated)
-      -d TIMESTAMP, --date TIMESTAMP
-                            set creation date (unix timestamp). -1 = now (default). -2 = disable.
-      -n NAME, --name NAME  use this file (or directory) name instead of the real one
-      --md5                 include MD5 hashes in torrent file
-      --config CONFIG       use another config file instead of the default one from the home directory
       -t TRACKER_URL, --tracker TRACKER_URL
-                            tracker to use for the torrent
-      --node HOST,PORT      DHT bootstrap node to use for the torrent
+                            Add one or multiple tracker (announce) URLs to
+                            the torrent file.
+      --node HOST,PORT      Add one or multiple DHT bootstrap nodes.
+      -p PIECE_LENGTH, --piece-length PIECE_LENGTH
+                            Set piece size in KiB. [default: 0 = automatic selection]
+      -P, --private         Set the private flag to disable DHT and PEX.
+      -c COMMENT, --comment COMMENT
+                            Add a comment.
+      -s SOURCE, --source SOURCE
+                            Add a source tag.
+      -f, --force           Overwrite existing .torrent files without asking and
+                            disable the piece size, tracker and node validations.
+      -v, --verbose         Enable output of diagnostic information.
+      -q, --quiet           Suppress output, e.g. don't print summary
+      -o PATH, --output PATH
+                            Set the filename and/or output directory of the
+                            created file. [default: <name>.torrent]
+      -e PATH, --exclude PATH
+                            Exclude a specific path (can be repeated to exclude
+                            multiple paths).
+      --exclude-pattern REGEXP
+                            Exclude paths matching a regular expression (can be repeated
+                            to use multiple patterns).
+      --exclude-pattern-ci REGEXP
+                            Same as --exclude-pattern but case-insensitive.
+      -d TIMESTAMP, --date TIMESTAMP
+                            Overwrite creation date. This option expects a unix timestamp.
+                            Specify -2 to disable the inclusion of a creation date completely.
+                            [default: -1 = current date and time]
+      -n NAME, --name NAME  Set the name of the torrent. This changes the filename for
+                            single file torrents or the root directory name for multi-file torrents.
+                            [default: <basename of target>]
+      --threads THREADS     Set the maximum number of threads to use for hashing pieces.
+                            py3createtorrent will never use more threads than there are CPU cores.
+                            [default: 4]
+      --md5                 Include MD5 hashes in torrent file.
+      --config CONFIG       Specify location of config file.
+                            [default: <home directiory>/.py3createtorrent.cfg]
       --webseed WEBSEED_URL
-                            webseed URL for the torrent
+                            Add one or multiple HTTP/FTP urls as seeds (GetRight-style).
+      --version             Show version number of py3createtorrent
 
 Specifying trackers (``-t``, ``--tracker``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -248,8 +267,12 @@ are unique to the private tracker.
 Force (``-f``)
 ^^^^^^^^^^^^^^
 
-Force makes py3createtorrent e.g. overwrite existing .torrent files without
-asking for your permission.
+The force option makes py3createtorrent
+
+- overwrite existing .torrent files without asking for your permission
+- disable checking for uncommon and possibly unsupported piece sizes
+- disable checking for possibly invalid tracker specifications
+- disable checking for possibly invalid node specifications
 
 Verbose (``-v``)
 ^^^^^^^^^^^^^^^^
@@ -328,6 +351,17 @@ this name will also be used to deduce the name of the resulting .torrent file.
    what you're doing.
 
    For most intents and purposes, the ``-o`` switch is probably more suitable.
+
+Threads (``--threads``)
+^^^^^^^^^^^^^^^^^^^^^^^
+
+This controls the *maximum* number of parallel threads that will be used during torrent
+creation. Namely, for hashing the pieces.
+
+py3createtorrent will never use more threads than there are CPU cores on your system.
+
+By default py3createtorrent will try to use up to 4 threads for hashing the pieces
+of the torrent.
 
 MD5 hashes (``--md5``)
 ^^^^^^^^^^^^^^^^^^^^^^

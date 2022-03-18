@@ -8,6 +8,10 @@ sphinx = "~=3.1"
 mypy = "~=0.782"
 yapf = "~=0.30"
 twine = "*"
+matplotlib = "*"
+pandas = "*"
+torf-cli = {file = "https://github.com/rndusr/torf-cli/archive/refs/heads/master.zip"}
+faker = "*"
 
 [packages]
 "bencode.py" = "~=4.0"

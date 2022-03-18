@@ -10,16 +10,15 @@ Features
 
 Some of the features:
 
-* you can create **huge torrents** for any amount of data
-* you can add a **comment** to the torrent file
-* you can create **private torrents** (disabled DHT, ...)
-* you can create torrents with **multiple trackers**
-* you can create **trackerless torrents**
-* you can add **webseeds** to torrents
-* you can **exclude specific files/folders**
-* you can exclude files/folders based on **regular expressions**
-* you can specify **custom piece sizes**
-* you can specify custom creation dates
+* create torrents with **multiple trackers** or **trackerless torrents**
+* **automatically choose the most reliable trackers** from [ngosang/trackerslist](https://github.com/ngosang/trackerslist)
+* fast torrent creation thanks to **multithreading**
+* add **webseeds** to torrents
+* create **private torrents** (disabled DHT, ...)
+* **exclude specific files/folders**
+* exclude files/folders based on **regular expressions**
+* specify **custom piece sizes**
+* specify custom creation dates
 
 Basic usage
 -----------

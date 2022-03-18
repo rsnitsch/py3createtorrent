@@ -5,8 +5,8 @@ python setup.py bdist_wheel
 
 # Uploading
 
-twine upload dist/*
-twine upload --repository testpypi dist/*
+twine upload --skip-existing dist/*
+twine upload --skip-existing --repository testpypi dist/*
 
 # Testing
 

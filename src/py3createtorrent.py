@@ -4,13 +4,19 @@ Create torrents via command line!
 
 Copyright (C) 2010-2022 Robert Nitsch
 Licensed according to GPL v3.
+
+TODOs for 2.x:
+- breaking changes to usage
+- breaking changes to file/folder scanning
 """
 
 import argparse
+import concurrent.futures
 import datetime
 import hashlib
 import json
 import math
+import multiprocessing
 import os
 import pprint
 import re
@@ -42,7 +48,7 @@ __all__ = ['calculate_piece_length', 'get_files_in_directory', 'sha1', 'split_pa
 
 # Do not touch anything below this line unless you know what you're doing!
 
-__version__ = '1.0.1'
+__version__ = '1.1.0'
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
@@ -54,6 +60,7 @@ VERBOSE = False
 
 
 class Config(object):
+
     class InvalidConfigError(Exception):
         pass
 
@@ -125,7 +132,7 @@ def sha1(data: bytes) -> bytes:
     return m.digest()
 
 
-def create_single_file_info(file: str, piece_length: int, include_md5: bool = True) -> Dict:
+def create_single_file_info(file: str, piece_length: int, include_md5: bool = True, threads: int = 4) -> Dict:
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
@@ -151,27 +158,31 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
 
     printv("Hashing file... ", end="")
 
-    piece_data = bytearray(piece_length)
-    with open(file, "rb") as fh:
-        i = 0
-        while True:
-            # readinto is not recognized by mypy
-            # Related: https://github.com/python/typing/issues/659
-            #          https://github.com/python/typeshed/issues/2166
-            count = fh.readinto(piece_data)  # type: ignore
+    def calculate_sha1_hash_for_piece(i: int, piece_data: bytes) -> None:
+        count = len(piece_data)
+        if count == piece_length:
+            pieces[i * 20:(i + 1) * 20] = sha1(piece_data)
+        elif count != 0:
+            pieces[i * 20:(i + 1) * 20] = sha1(piece_data[:count])
 
-            if count == piece_length:
+    MAX_FUTURES = min(threads, multiprocessing.cpu_count())
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
+        with open(file, "rb") as fh:
+            futures: Set[concurrent.futures.Future[None]] = set()
+            for i, piece_data in enumerate(iter(lambda: fh.read(piece_length), '')):
+                if not piece_data:
+                    break
+
+                futures.add(executor.submit(calculate_sha1_hash_for_piece, i, piece_data))
+
                 if include_md5:
                     md5.update(piece_data)
-                pieces[i * 20:(i + 1) * 20] = sha1(piece_data)
-            elif count != 0:
-                if include_md5:
-                    md5.update(piece_data[:count])
-                pieces[i * 20:(i + 1) * 20] = sha1(piece_data[:count])
-            else:
-                break
 
-            i += 1
+                if len(futures) >= MAX_FUTURES:
+                    _, notdone = concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_COMPLETED)
+                    futures = notdone
+
+            concurrent.futures.wait(futures)
 
     printv("done")
 
@@ -187,7 +198,11 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     return info
 
 
-def create_multi_file_info(directory: str, files: List[str], piece_length: int, include_md5: bool = True) -> Dict:
+def create_multi_file_info(directory: str,
+                           files: List[str],
+                           piece_length: int,
+                           include_md5: bool = True,
+                           threads: int = 4) -> Dict:
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
@@ -206,8 +221,9 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
     """
     assert os.path.isdir(directory), "not a directory"
 
-    # Concatenated 20byte sha1-hashes of all the torrent's pieces.
-    info_pieces = bytearray()
+    # Preallocate space for 2000 piece hashes. This way, we avoid the need for
+    # synchronizing the hashing threads that write into the pieces bytearray.
+    pieces = bytearray(2000 * 20)
 
     #
     info_files = []
@@ -217,52 +233,77 @@ def create_multi_file_info(directory: str, files: List[str], piece_length: int, 
     # continuous stream, as required by info_pieces' BitTorrent specification.
     data = bytearray()
 
-    for file in files:
-        path = os.path.join(directory, file)
+    def calculate_sha1_hash_for_piece(i: int, piece_data: bytes) -> None:
+        count = len(piece_data)
+        if count == piece_length:
+            pieces[i * 20:(i + 1) * 20] = sha1(piece_data)
+        elif count != 0:
+            pieces[i * 20:(i + 1) * 20] = sha1(piece_data[:count])
 
-        # File's byte count.
-        length = 0
+    MAX_FUTURES = min(threads, multiprocessing.cpu_count())
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
+        futures: Set[concurrent.futures.Future[None]] = set()
+        i = 0
+        for file in files:
+            path = os.path.join(directory, file)
+            length = os.path.getsize(path)
 
-        # File's md5sum.
-        if include_md5:
-            md5 = hashlib.md5()
+            # File's md5sum.
+            if include_md5:
+                md5 = hashlib.md5()
 
-        printv("Processing file '%s'... " % os.path.relpath(path, directory), end="")
+            printv("Processing file '%s'... " % os.path.relpath(path, directory), end="")
 
-        with open(path, "rb") as fh:
-            while True:
-                filedata = fh.read(piece_length)
+            with open(path, "rb") as fh:
+                while True:
+                    filedata = fh.read(piece_length)
 
-                if len(filedata) == 0:
-                    break
+                    if not filedata:
+                        break
 
-                length += len(filedata)
+                    if i >= len(pieces) // 20:
+                        # Need to extend pieces bytearray.
+                        # Wait until all other threads/tasks are finished.
+                        concurrent.futures.wait(futures, return_when=concurrent.futures.ALL_COMPLETED)
 
-                data += filedata
+                        # Now we have exclusive access to the pieces bytearray.
+                        # Add space for 1000 additional piece hashes.
+                        pieces += bytes(1000 * 20)
 
-                if len(data) >= piece_length:
-                    info_pieces += sha1(data[:piece_length])
-                    data = data[piece_length:]
+                    data += filedata
+                    if len(data) >= piece_length:
+                        futures.add(executor.submit(calculate_sha1_hash_for_piece, i, data[:piece_length]))
+                        data = data[piece_length:]
+                        i += 1
 
-                if include_md5:
-                    md5.update(filedata)
+                    if include_md5:
+                        md5.update(filedata)
 
-        printv("done")
+                    if len(futures) >= MAX_FUTURES:
+                        _, notdone = concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_COMPLETED)
+                        futures = notdone
 
-        # Build the current file's dictionary.
-        fdict = {'length': length, 'path': split_path(file)}
+            printv("done")
 
-        if include_md5:
-            fdict['md5sum'] = md5.hexdigest()
+            # Build the current file's dictionary.
+            fdict = {'length': length, 'path': split_path(file)}
 
-        info_files.append(fdict)
+            if include_md5:
+                fdict['md5sum'] = md5.hexdigest()
+
+            info_files.append(fdict)
+
+        concurrent.futures.wait(futures)
 
     # Don't forget to hash the last piece. (Probably the piece that has not reached the regular piece size.)
-    if len(data) > 0:
-        info_pieces += sha1(data)
+    if data:
+        pieces[i * 20:(i + 1) * 20] = sha1(data)
+
+    # Cut off unused pieces space.
+    pieces = pieces[:(i + 1) * 20]
 
     # Build the final dictionary.
-    info = {'pieces': bytes(info_pieces), 'name': os.path.basename(os.path.abspath(directory)), 'files': info_files}
+    info = {'pieces': bytes(pieces), 'name': os.path.basename(os.path.abspath(directory)), 'files': info_files}
 
     return info
 
@@ -314,7 +355,7 @@ def get_files_in_directory(directory: str,
                                 excluded_paths: Optional[Set[str]] = None,
                                 relative_to: Optional[str] = None,
                                 excluded_regexps: Optional[Set[Pattern[str]]] = None,
-                                processed_paths: Optional[Set[str]] = None):
+                                processed_paths: Optional[Set[str]] = None) -> List[str]:
         if excluded_paths is None:
             excluded_paths = set()
         if excluded_regexps is None:
@@ -384,7 +425,7 @@ def get_files_in_directory(directory: str,
     return files
 
 
-def split_path(path: str):
+def split_path(path: str) -> List[str]:
     """
     Return a list containing all of a path's components.
 
@@ -499,7 +540,7 @@ def calculate_piece_length(size: int) -> int:
     return int(piece_length)
 
 
-def get_best_trackers(count: int, url: str):
+def get_best_trackers(count: int, url: str) -> List[str]:
     if count < 0:
         raise ValueError("count must be positive")
 
@@ -526,7 +567,25 @@ def get_best_trackers(count: int, url: str):
 def main() -> None:
     # Create and configure ArgumentParser.
     parser = argparse.ArgumentParser(
-        description="py3createtorrent is a comprehensive command line utility for creating torrents.")
+        description="py3createtorrent is a comprehensive command line utility for creating torrents.",
+        usage='%(prog)s <target> [-t tracker_url] [options ...]',
+        epilog="You are using py3createtorrent v%s" % __version__,
+        formatter_class=argparse.RawTextHelpFormatter)
+
+    parser.add_argument("-t",
+                        "--tracker",
+                        metavar="TRACKER_URL",
+                        action="append",
+                        dest="trackers",
+                        default=[],
+                        help="Add one or multiple tracker (announce) URLs to\n" + "the torrent file.")
+
+    parser.add_argument("--node",
+                        metavar="HOST,PORT",
+                        action="append",
+                        dest="nodes",
+                        default=[],
+                        help="Add one or multiple DHT bootstrap nodes.")
 
     parser.add_argument("-p",
                         "--piece-length",
@@ -534,14 +593,14 @@ def main() -> None:
                         action="store",
                         dest="piece_length",
                         default=0,
-                        help="piece size in KiB. 0 = automatic selection (default).")
+                        help="Set piece size in KiB. [default: 0 = automatic selection]")
 
     parser.add_argument("-P",
                         "--private",
                         action="store_true",
                         dest="private",
                         default=False,
-                        help="create private torrent")
+                        help="Set the private flag to disable DHT and PEX.")
 
     parser.add_argument("-c",
                         "--comment",
@@ -549,25 +608,37 @@ def main() -> None:
                         action="store",
                         dest="comment",
                         default=False,
-                        help="include comment")
+                        help="Add a comment.")
 
-    parser.add_argument("-s", "--source", type=str, action="store", dest="source", default=False, help="include source")
+    parser.add_argument("-s",
+                        "--source",
+                        type=str,
+                        action="store",
+                        dest="source",
+                        default=False,
+                        help="Add a source tag.")
 
     parser.add_argument("-f",
                         "--force",
                         action="store_true",
                         dest="force",
                         default=False,
-                        help="do not ask anything, just do it")
+                        help="Overwrite existing .torrent files without asking and\n" +
+                        "disable the piece size, tracker and node validations.")
 
-    parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", default=False, help="verbose mode")
+    parser.add_argument("-v",
+                        "--verbose",
+                        action="store_true",
+                        dest="verbose",
+                        default=False,
+                        help="Enable output of diagnostic information.")
 
     parser.add_argument("-q",
                         "--quiet",
                         action="store_true",
                         dest="quiet",
                         default=False,
-                        help="be quiet, e.g. don't print summary")
+                        help="Suppress output, e.g. don't print summary")
 
     parser.add_argument("-o",
                         "--output",
@@ -576,7 +647,8 @@ def main() -> None:
                         dest="output",
                         default=None,
                         metavar="PATH",
-                        help="custom output location (directory or complete path). default = current directory.")
+                        help="Set the filename and/or output directory of the\n" +
+                        "created file. [default: <name>.torrent]")
 
     parser.add_argument("-e",
                         "--exclude",
@@ -585,7 +657,7 @@ def main() -> None:
                         dest="exclude",
                         default=[],
                         metavar="PATH",
-                        help="exclude path (can be repeated)")
+                        help="Exclude a specific path (can be repeated to exclude\n" + "multiple paths).")
 
     parser.add_argument("--exclude-pattern",
                         type=str,
@@ -593,7 +665,8 @@ def main() -> None:
                         dest="exclude_pattern",
                         default=[],
                         metavar="REGEXP",
-                        help="exclude paths matching the regular expression (can be repeated)")
+                        help="Exclude paths matching a regular expression (can be repeated\n" +
+                        "to use multiple patterns).")
 
     parser.add_argument("--exclude-pattern-ci",
                         type=str,
@@ -601,7 +674,7 @@ def main() -> None:
                         dest="exclude_pattern_ci",
                         default=[],
                         metavar="REGEXP",
-                        help="exclude paths matching the case-insensitive regular expression (can be repeated)")
+                        help="Same as --exclude-pattern but case-insensitive.")
 
     parser.add_argument("-d",
                         "--date",
@@ -610,7 +683,9 @@ def main() -> None:
                         dest="date",
                         default=-1,
                         metavar="TIMESTAMP",
-                        help="set creation date (unix timestamp). -1 = now (default). -2 = disable.")
+                        help="Overwrite creation date. This option expects a unix timestamp.\n" +
+                        "Specify -2 to disable the inclusion of a creation date completely.\n" +
+                        "[default: -1 = current date and time]")
 
     parser.add_argument("-n",
                         "--name",
@@ -618,40 +693,45 @@ def main() -> None:
                         action="store",
                         dest="name",
                         default=None,
-                        help="use this file (or directory) name instead of the real one")
+                        help="Set the name of the torrent. This changes the filename for\n" +
+                        "single file torrents or the root directory name for multi-file torrents.\n" +
+                        "[default: <basename of target>]")
+
+    parser.add_argument("--threads",
+                        type=int,
+                        action="store",
+                        default=4,
+                        help="Set the maximum number of threads to use for hashing pieces.\n"
+                        "py3createtorrent will never use more threads than there are CPU cores.\n"
+                        "[default: 4]")
 
     parser.add_argument("--md5",
                         action="store_true",
                         dest="include_md5",
                         default=False,
-                        help="include MD5 hashes in torrent file")
+                        help="Include MD5 hashes in torrent file.")
 
     parser.add_argument("--config",
                         type=str,
                         action="store",
-                        help="use another config file instead of the default one from the home directory")
+                        help="Specify location of config file.\n" +
+                        "[default: <home directiory>/.py3createtorrent.cfg]")
 
-    parser.add_argument("-t",
-                        "--tracker",
-                        metavar="TRACKER_URL",
-                        action="append",
-                        dest="trackers",
-                        default=[],
-                        help="tracker to use for the torrent")
-    parser.add_argument("--node",
-                        metavar="HOST,PORT",
-                        action="append",
-                        dest="nodes",
-                        default=[],
-                        help="DHT bootstrap node to use for the torrent")
     parser.add_argument("--webseed",
                         metavar="WEBSEED_URL",
                         action="append",
                         dest="webseeds",
                         default=[],
-                        help="webseed URL for the torrent")
+                        help="Add one or multiple HTTP/FTP urls as seeds (GetRight-style).")
 
-    parser.add_argument("path", help="file or folder for which to create a torrent")
+    parser.add_argument("--no-created-by", action="store_true", help=argparse.SUPPRESS)
+
+    parser.add_argument("--version",
+                        action="version",
+                        version="py3createtorrent v" + __version__,
+                        help="Show version number of py3createtorrent")
+
+    parser.add_argument("path", metavar="target <path>", help="File or folder for which to create a torrent")
 
     args = parser.parse_args()
 
@@ -739,6 +819,10 @@ def main() -> None:
         if "yes" != input("Some tracker URLs are invalid. Continue? yes/no: "):
             parser.error("Aborted.")
 
+    # Validate number of threads.
+    if args.threads <= 0:
+        parser.error("Number of threads must be positive.")
+
     # Handle best[0-9] shortcut.
     if best_shortcut_present:
         new_trackers = []
@@ -824,9 +908,9 @@ def main() -> None:
     # Do the main work now.
     # -> prepare the metainfo dictionary.
     if os.path.isfile(input_path):
-        info = create_single_file_info(input_path, piece_length, args.include_md5)
+        info = create_single_file_info(input_path, piece_length, args.include_md5, threads=args.threads)
     else:
-        info = create_multi_file_info(input_path, torrent_files, piece_length, args.include_md5)
+        info = create_multi_file_info(input_path, torrent_files, piece_length, args.include_md5, threads=args.threads)
 
     assert len(info['pieces']) % 20 == 0, "len(pieces) not a multiple of 20"
 
@@ -890,7 +974,8 @@ def main() -> None:
                      "automatically or -2 to disable storing a creation date altogether).")
 
     # Add the "created by" field.
-    metainfo['created by'] = 'py3createtorrent v%s' % __version__
+    if not args.no_created_by:
+        metainfo['created by'] = 'py3createtorrent v%s' % __version__
 
     # Add user's comment or advertise py3createtorrent (unless this behaviour has been disabled by the user).
     # The user may also decide not to include the comment field at all by specifying an empty comment.

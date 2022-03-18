@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 1.1.0
+-------------
+
+*Release date: 2022/03/18*
+
+* added: **multithreading** for much faster torrent creation (about 30-40% faster). The number of threads can be controlled with the new ``--threads`` option. It defaults to using 4 threads which will be a good choice on most systems.
+* added: ``--version`` command
+* improved: formatting and content of ``--help`` output
+
 Version 1.0.1
 -------------
 

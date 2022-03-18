@@ -1,9 +1,12 @@
+__pycache__
 docs/build/
-src/__pycache__/
 Pipfile.lock
 dist
 src/py3createtorrent.egg-info
 build
 testdata/
 .idea/
-*.torrent
+benchmark/*.csv
+benchmark/*.png
+benchmark/py3createtorrent.py
+benchmark/results
