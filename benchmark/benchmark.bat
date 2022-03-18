@@ -1,9 +1,10 @@
-python create_random_file.py ../testdata/random_file_15gib.dat 15g
-
-set target=../testdata/random_file_15gib.dat
+set size=15g
+set target=../tests/testdata/random_file_%size%.dat
 set warmup=1
-set runs=4
-set threads=1,2,3,4,5,6
+set runs=3
+set threads=1,4
+
+python create_random_file.py ../tests/testdata/random_file_%size%.dat %size%
 
 hyperfine --warmup %warmup% --runs %runs% --export-csv benchmark_results.csv -L threads %threads% -L piece_size 128,1024,8192 "python ../src/py3createtorrent.py %target% -p {piece_size} --threads {threads}" "torrenttools create %target% -v1 --piece-size {piece_size}K --threads {threads}"
 
