@@ -4,6 +4,7 @@ Script to create files of given size with pseudo-random content.
 import argparse
 import os
 import random
+import sys
 
 
 def parse_size(size):
@@ -50,7 +51,12 @@ def main():
     args = parser.parse_args()
 
     if os.path.isfile(args.path) and not args.overwrite:
-        parser.error("Destination file already exists")
+        if os.path.getsize(args.path) != args.size:
+            print("ERROR: Destination file already exists BUT DOES NOT HAVE THE CORRECT SIZE", file=sys.stderr)
+        else:
+            print("WARNING: Destination file already exists (already has the requested size)", file=sys.stderr)
+        print("Not doing anything. Use --overwrite option to force overwriting the existing file.")
+        sys.exit(1)
 
     random.seed(args.seed)
     create_random_file(args.path, args.size)
