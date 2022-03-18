@@ -168,7 +168,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     MAX_FUTURES = min(threads, multiprocessing.cpu_count())
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
         with open(file, "rb") as fh:
-            futures = set()
+            futures: Set[concurrent.futures.Future] = set()
             for i, piece_data in enumerate(iter(lambda: fh.read(piece_length), '')):
                 if not piece_data:
                     break
@@ -242,7 +242,7 @@ def create_multi_file_info(directory: str,
 
     MAX_FUTURES = min(threads, multiprocessing.cpu_count())
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
-        futures = set()
+        futures: Set[concurrent.futures.Future] = set()
         i = 0
         for file in files:
             path = os.path.join(directory, file)
@@ -300,7 +300,7 @@ def create_multi_file_info(directory: str,
         pieces[i * 20:(i + 1) * 20] = sha1(data)
 
     # Cut off unused pieces space.
-    pieces = bytes(pieces[:(i + 1) * 20])
+    pieces = pieces[:(i + 1) * 20]
 
     # Build the final dictionary.
     info = {'pieces': bytes(pieces), 'name': os.path.basename(os.path.abspath(directory)), 'files': info_files}
