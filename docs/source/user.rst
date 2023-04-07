@@ -401,11 +401,11 @@ Example 1 - from directory, no options, default behaviour
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent example -t udp://tracker.opentrackr.org:1337/announce
+   py3createtorrent example -t udp://tracker.opentrackr.org:1337/announce
 
 Alternative, equivalent command using a tracker abbreviation for convenience::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent example -t opentrackr
+   py3createtorrent example -t opentrackr
 
 **Effect**:
 Creates example.torrent inside the current directory.
@@ -427,7 +427,7 @@ Example 2 - from directory, excluding subfolders
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent -e example\subfolder example -t udp://tracker.opentrackr.org:1337/announce
+   py3createtorrent -e example\subfolder example -t udp://tracker.opentrackr.org:1337/announce
 
 **Effect**:
 Creates ``example.torrent`` inside the current directory. ``example\subfolder`` has
@@ -447,13 +447,13 @@ Example 3 - from directory, excluding files
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent -e example\anotherimage.jpg -e example\subfolder\10_more_minutes_please.JPG example -t udp://tracker.opentrackr.org:1337/announce
+   py3createtorrent -e example\anotherimage.jpg -e example\subfolder\10_more_minutes_please.JPG example -t udp://tracker.opentrackr.org:1337/announce
 
 Alternative, equivalent command using **regular expressions** instead of
 specifying each jpg seperately (also using a tracker abbreviation to make it
 even shorter)::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent --exclude-pattern "(jpg|JPG)$" example -t opentrackr
+   py3createtorrent --exclude-pattern "(jpg|JPG)$" example -t opentrackr
 
 **Effect**:
 Creates ``example.torrent`` inside the current directory. ``example\anotherimage.jpg``
@@ -582,11 +582,11 @@ To disable advertising, you can use the following in your config file:
 If you want to disable advertising for a single torrent only, you can use the
 ``--comment`` option to specify an empty comment::
 
-   $ py3createtorrent --comment "" ...
+   py3createtorrent --comment "" ...
 
-   or
+or::
 
-   $ py3createtorrent -c "" ...
+   py3createtorrent -c "" ...
 
 py3createtorrent will not advertise itself in this case, because you explicitly
 specified the empty comment.
