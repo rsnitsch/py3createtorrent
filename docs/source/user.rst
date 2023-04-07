@@ -430,7 +430,7 @@ Example 2 - from directory, excluding subfolders
    C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent -e example\subfolder example -t udp://tracker.opentrackr.org:1337/announce
 
 **Effect**:
-Creates example.torrent inside the current directory. example\subfolder has
+Creates ``example.torrent`` inside the current directory. ``example\subfolder`` has
 been excluded.
 
 .. tip::
@@ -456,8 +456,8 @@ even shorter)::
    C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent --exclude-pattern "(jpg|JPG)$" example -t opentrackr
 
 **Effect**:
-Creates example.torrent inside the current directory. example\anotherimage.jpg
-and example\subfolder\10_more_minutes_please.JPG have been excluded.
+Creates ``example.torrent`` inside the current directory. ``example\anotherimage.jpg``
+and ``example\subfolder\10_more_minutes_please.JPG`` have been excluded.
 
 In µTorrent it will look like this:
 
@@ -474,7 +474,7 @@ use the exclude-option anymore.
 Configuration
 -------------
 
-If present, the configuration file '.py3createtorrent.cfg' will be loaded from the user's
+If present, the configuration file ``.py3createtorrent.cfg`` will be loaded from the user's
 home directory. The configuration file uses JSON format. Use ``--config`` to load the config
 from another location. Use ``--verbose`` for troubleshooting this, if it does not work as
 expected.
