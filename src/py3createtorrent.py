@@ -68,7 +68,6 @@ class Config(object):
         self.path = None  # type: Optional[str]
         self.tracker_abbreviations = {
             'opentrackr': 'udp://tracker.opentrackr.org:1337/announce',
-            'coppersurfer': 'udp://tracker.coppersurfer.tk:6969/announce',
             'cyberia': 'udp://tracker.cyberia.is:6969/announce'
         }
         self.advertise = True  # type: Optional[bool]

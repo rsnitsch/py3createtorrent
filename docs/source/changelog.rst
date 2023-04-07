@@ -1,12 +1,19 @@
 Changelog
 =========
 
+Version 1.1.0+
+--------------
+
+* changed: removed coppersurfer tracker from default config (tracker abbreviations) and also removed all mentions of coppersurfer in the docs. It seems
+  that this tracker has been taken offline a long time ago.
+
 Version 1.1.0
 -------------
 
 *Release date: 2022/03/18*
 
-* added: **multithreading** for much faster torrent creation (about 30-40% faster). The number of threads can be controlled with the new ``--threads`` option. It defaults to using 4 threads which will be a good choice on most systems.
+* added: **multithreading** for much faster torrent creation (about 30-40% faster). The number of threads can be controlled with the new ``--threads``
+  option. It defaults to using 4 threads which will be a good choice on most systems.
 * added: ``--version`` command
 * improved: formatting and content of ``--help`` output
 
