@@ -131,7 +131,7 @@ def sha1(data: bytes) -> bytes:
     return m.digest()
 
 
-def create_single_file_info(file: str, piece_length: int, include_md5: bool = True, threads: int = 4) -> Dict:
+def create_single_file_info(file: str, piece_length: int, include_md5: bool = True, threads: int = 4) -> Dict[str, Any]:
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
@@ -201,7 +201,7 @@ def create_multi_file_info(directory: str,
                            files: List[str],
                            piece_length: int,
                            include_md5: bool = True,
-                           threads: int = 4) -> Dict:
+                           threads: int = 4) -> Dict[str, Any]:
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
@@ -449,7 +449,7 @@ def split_path(path: str) -> List[str]:
     return parts
 
 
-def remove_duplicates(old_list: List) -> List:
+def remove_duplicates(old_list: List[Any]) -> List[Any]:
     """
     Remove any duplicates in old_list, preserving the order of its elements.
 
@@ -468,7 +468,7 @@ def remove_duplicates(old_list: List) -> List:
     return new_list
 
 
-def replace_in_list(old_list: List, replacements: Dict) -> List:
+def replace_in_list(old_list: List[Any], replacements: Dict[Any, Any]) -> List[Any]:
     """
     Replace specific items in a list.
 
