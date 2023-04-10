@@ -12,6 +12,8 @@ matplotlib = "*"
 pandas = "*"
 torf-cli = {file = "https://github.com/rndusr/torf-cli/archive/refs/heads/master.zip"}
 faker = "*"
+pydocstyle = "*"
+pylint = "*"
 
 [packages]
 "bencode.py" = "~=4.0"
