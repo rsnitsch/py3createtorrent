@@ -30,25 +30,23 @@ try:
     from bencodepy import encode as bencode
 except ImportError as exc:
     print("ERROR:")
-    print("""bencodepy module could not be imported.
-
-Please install the bencodepy module using
-
-    pip install bencode.py
-
-or refer to the documentation on how to install it:
-https://py3createtorrent.readthedocs.io/en/latest/""")
-    print()
-    print()
+    print("bencodepy module could not be imported.\n"
+          "\n"
+          "Please install the bencodepy module using"
+          "\n"
+          "pip install bencode.py\n"
+          "\n"
+          "or refer to the documentation on how to install it:\n"
+          "https://py3createtorrent.readthedocs.io/en/latest/\n\n")
     print("-" * 40)
     print()
     raise
 
-__all__ = ['calculate_piece_length', 'get_files_in_directory', 'sha1', 'split_path']
+__all__ = ["calculate_piece_length", "get_files_in_directory", "sha1", "split_path"]
 
 # Do not touch anything below this line unless you know what you're doing!
 
-__version__ = '1.1.0'
+__version__ = "1.1.0"
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
@@ -67,15 +65,15 @@ class Config(object):
     def __init__(self) -> None:
         self.path = None  # type: Optional[str]
         self.tracker_abbreviations = {
-            'opentrackr': 'udp://tracker.opentrackr.org:1337/announce',
-            'cyberia': 'udp://tracker.cyberia.is:6969/announce'
+            "opentrackr": "udp://tracker.opentrackr.org:1337/announce",
+            "cyberia": "udp://tracker.cyberia.is:6969/announce",
         }
         self.advertise = True  # type: Optional[bool]
         self.best_trackers_url = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"  # type: str
 
     def get_path_to_config_file(self) -> str:
         if self.path is None:
-            return os.path.join(os.path.expanduser('~'), '.py3createtorrent.cfg')
+            return os.path.join(os.path.expanduser("~"), ".py3createtorrent.cfg")
         else:
             return self.path
 
@@ -87,15 +85,15 @@ class Config(object):
         printv("Path to config file: ", path)
 
         if not os.path.isfile(path):
-            printv('Config file does not exist')
+            printv("Config file does not exist")
             return
 
-        with open(path, 'r') as fh:
+        with open(path, "r") as fh:
             data = json.load(fh)
 
-        self.tracker_abbreviations = data.get('tracker_abbreviations', self.tracker_abbreviations)
-        self.advertise = data.get('advertise', self.advertise)
-        self.best_trackers_url = data.get('best_trackers_url', self.best_trackers_url)
+        self.tracker_abbreviations = data.get("tracker_abbreviations", self.tracker_abbreviations)
+        self.advertise = data.get("advertise", self.advertise)
+        self.best_trackers_url = data.get("best_trackers_url", self.best_trackers_url)
 
         # Validate the configuration.
         for abbr, replacement in self.tracker_abbreviations.items():
@@ -152,6 +150,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     piece_count = int(math.ceil(length / piece_length))
     pieces = bytearray(piece_count * 20)
 
+    md5 = None
     if include_md5:
         md5 = hashlib.md5()
 
@@ -168,13 +167,13 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
         with open(file, "rb") as fh:
             futures: Set[concurrent.futures.Future[None]] = set()
-            for i, piece_data in enumerate(iter(lambda: fh.read(piece_length), '')):
+            for i, piece_data in enumerate(iter(lambda: fh.read(piece_length), "")):
                 if not piece_data:
                     break
 
                 futures.add(executor.submit(calculate_sha1_hash_for_piece, i, piece_data))
 
-                if include_md5:
+                if md5:
                     md5.update(piece_data)
 
                 if len(futures) >= MAX_FUTURES:
@@ -186,22 +185,24 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     printv("done")
 
     info = {
-        'pieces': bytes(pieces),
-        'name': os.path.basename(file),
-        'length': length,
+        "pieces": bytes(pieces),
+        "name": os.path.basename(file),
+        "length": length
     }
 
-    if include_md5:
-        info['md5sum'] = md5.hexdigest()
+    if md5:
+        info["md5sum"] = md5.hexdigest()
 
     return info
 
 
-def create_multi_file_info(directory: str,
-                           files: List[str],
-                           piece_length: int,
-                           include_md5: bool = True,
-                           threads: int = 4) -> Dict[str, Any]:
+def create_multi_file_info(
+    directory: str,
+    files: List[str],
+    piece_length: int,
+    include_md5: bool = True,
+    threads: int = 4
+) -> Dict[str, Any]:
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
@@ -248,6 +249,7 @@ def create_multi_file_info(directory: str,
             length = os.path.getsize(path)
 
             # File's md5sum.
+            md5 = None
             if include_md5:
                 md5 = hashlib.md5()
 
@@ -275,7 +277,7 @@ def create_multi_file_info(directory: str,
                         data = data[piece_length:]
                         i += 1
 
-                    if include_md5:
+                    if md5:
                         md5.update(filedata)
 
                     if len(futures) >= MAX_FUTURES:
@@ -285,10 +287,10 @@ def create_multi_file_info(directory: str,
             printv("done")
 
             # Build the current file's dictionary.
-            fdict = {'length': length, 'path': split_path(file)}
+            fdict = {"length": length, "path": split_path(file)}
 
-            if include_md5:
-                fdict['md5sum'] = md5.hexdigest()
+            if md5:
+                fdict["md5sum"] = md5.hexdigest()
 
             info_files.append(fdict)
 
@@ -302,15 +304,21 @@ def create_multi_file_info(directory: str,
     pieces = pieces[:(i + 1) * 20]
 
     # Build the final dictionary.
-    info = {'pieces': bytes(pieces), 'name': os.path.basename(os.path.abspath(directory)), 'files': info_files}
+    info = {
+        "pieces": bytes(pieces),
+        "name": os.path.basename(os.path.abspath(directory)),
+        "files": info_files
+    }
 
     return info
 
 
-def get_files_in_directory(directory: str,
-                           excluded_paths: Optional[Set[str]] = None,
-                           relative_to: Optional[str] = None,
-                           excluded_regexps: Optional[Set[Pattern[str]]] = None) -> List[str]:
+def get_files_in_directory(
+    directory: str,
+    excluded_paths: Optional[Set[str]] = None,
+    relative_to: Optional[str] = None,
+    excluded_regexps: Optional[Set[Pattern[str]]] = None
+) -> List[str]:
     """
     Return a list containing the paths to all files in the given directory.
 
@@ -349,12 +357,14 @@ def get_files_in_directory(directory: str,
         raise TypeError("excluded_regexps must be instance of: set")
 
     # Helper function:
-    def _get_files_in_directory(directory: str,
-                                files: List[str],
-                                excluded_paths: Optional[Set[str]] = None,
-                                relative_to: Optional[str] = None,
-                                excluded_regexps: Optional[Set[Pattern[str]]] = None,
-                                processed_paths: Optional[Set[str]] = None) -> List[str]:
+    def _get_files_in_directory(
+        directory: str,
+        files: List[str],
+        excluded_paths: Optional[Set[str]] = None,
+        relative_to: Optional[str] = None,
+        excluded_regexps: Optional[Set[Pattern[str]]] = None,
+        processed_paths: Optional[Set[str]] = None
+    ) -> List[str]:
         if excluded_paths is None:
             excluded_paths = set()
         if excluded_regexps is None:
@@ -386,9 +396,11 @@ def get_files_in_directory(directory: str,
                 continue
 
             if os.path.normcase(os.path.realpath(path)) in processed_paths:
-                print("Warning: skipping symlink '%s', because it's target "
-                      "has already been processed." % path,
-                      file=sys.stderr)
+                print(
+                    "Warning: skipping symlink '%s', because it's target "
+                    "has already been processed." % path,
+                    file=sys.stderr,
+                )
                 continue
             processed_paths.add(os.path.normcase(os.path.realpath(path)))
 
@@ -397,12 +409,14 @@ def get_files_in_directory(directory: str,
                     path = os.path.relpath(path, relative_to)
                 files.append(path)
             elif os.path.isdir(path):
-                _get_files_in_directory(path,
-                                        files,
-                                        excluded_paths=excluded_paths,
-                                        relative_to=relative_to,
-                                        excluded_regexps=excluded_regexps,
-                                        processed_paths=processed_paths)
+                _get_files_in_directory(
+                    path,
+                    files,
+                    excluded_paths=excluded_paths,
+                    relative_to=relative_to,
+                    excluded_regexps=excluded_regexps,
+                    processed_paths=processed_paths,
+                )
             else:
                 assert False, "not a valid node: '%s'" % node
 
@@ -415,11 +429,13 @@ def get_files_in_directory(directory: str,
         relative_to = directory
 
     # Now do the main work.
-    files = _get_files_in_directory(directory,
-                                    list(),
-                                    excluded_paths=excluded_paths,
-                                    relative_to=relative_to,
-                                    excluded_regexps=excluded_regexps)
+    files = _get_files_in_directory(
+        directory,
+        list(),
+        excluded_paths=excluded_paths,
+        relative_to=relative_to,
+        excluded_regexps=excluded_regexps,
+    )
 
     return files
 
@@ -547,7 +563,7 @@ def get_best_trackers(count: int, url: str) -> List[str]:
         return []
 
     with urllib.request.urlopen(url) as f:
-        text = f.read().decode('utf-8')
+        text = f.read().decode("utf-8")
 
     best = []
     i = 0
@@ -567,170 +583,212 @@ def main() -> None:
     # Create and configure ArgumentParser.
     parser = argparse.ArgumentParser(
         description="py3createtorrent is a comprehensive command line utility for creating torrents.",
-        usage='%(prog)s <target> [-t tracker_url] [options ...]',
+        usage="%(prog)s <target> [-t tracker_url] [options ...]",
         epilog="You are using py3createtorrent v%s" % __version__,
-        formatter_class=argparse.RawTextHelpFormatter)
+        formatter_class=argparse.RawTextHelpFormatter
+    )
 
-    parser.add_argument("-t",
-                        "--tracker",
-                        metavar="TRACKER_URL",
-                        action="append",
-                        dest="trackers",
-                        default=[],
-                        help="Add one or multiple tracker (announce) URLs to\n" + "the torrent file.")
+    parser.add_argument(
+        "-t",
+        "--tracker",
+        metavar="TRACKER_URL",
+        action="append",
+        dest="trackers",
+        default=[],
+        help="Add one or multiple tracker (announce) URLs to\n" + "the torrent file."
+    )
 
-    parser.add_argument("--node",
-                        metavar="HOST,PORT",
-                        action="append",
-                        dest="nodes",
-                        default=[],
-                        help="Add one or multiple DHT bootstrap nodes.")
+    parser.add_argument(
+        "--node",
+        metavar="HOST,PORT",
+        action="append",
+        dest="nodes",
+        default=[],
+        help="Add one or multiple DHT bootstrap nodes."
+    )
 
-    parser.add_argument("-p",
-                        "--piece-length",
-                        type=int,
-                        action="store",
-                        dest="piece_length",
-                        default=0,
-                        help="Set piece size in KiB. [default: 0 = automatic selection]")
+    parser.add_argument(
+        "-p",
+        "--piece-length",
+        type=int,
+        action="store",
+        dest="piece_length",
+        default=0,
+        help="Set piece size in KiB. [default: 0 = automatic selection]"
+    )
 
-    parser.add_argument("-P",
-                        "--private",
-                        action="store_true",
-                        dest="private",
-                        default=False,
-                        help="Set the private flag to disable DHT and PEX.")
+    parser.add_argument(
+        "-P",
+        "--private",
+        action="store_true",
+        dest="private",
+        default=False,
+        help="Set the private flag to disable DHT and PEX."
+    )
 
-    parser.add_argument("-c",
-                        "--comment",
-                        type=str,
-                        action="store",
-                        dest="comment",
-                        default=False,
-                        help="Add a comment.")
+    parser.add_argument(
+        "-c",
+        "--comment",
+        type=str,
+        action="store",
+        dest="comment",
+        default=False,
+        help="Add a comment."
+    )
 
-    parser.add_argument("-s",
-                        "--source",
-                        type=str,
-                        action="store",
-                        dest="source",
-                        default=False,
-                        help="Add a source tag.")
+    parser.add_argument(
+        "-s",
+        "--source",
+        type=str,
+        action="store",
+        dest="source",
+        default=False,
+        help="Add a source tag."
+    )
 
-    parser.add_argument("-f",
-                        "--force",
-                        action="store_true",
-                        dest="force",
-                        default=False,
-                        help="Overwrite existing .torrent files without asking and\n" +
-                        "disable the piece size, tracker and node validations.")
+    parser.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        dest="force",
+        default=False,
+        help="Overwrite existing .torrent files without asking and\n" +
+        "disable the piece size, tracker and node validations."
+    )
 
-    parser.add_argument("-v",
-                        "--verbose",
-                        action="store_true",
-                        dest="verbose",
-                        default=False,
-                        help="Enable output of diagnostic information.")
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        dest="verbose",
+        default=False,
+        help="Enable output of diagnostic information."
+    )
 
-    parser.add_argument("-q",
-                        "--quiet",
-                        action="store_true",
-                        dest="quiet",
-                        default=False,
-                        help="Suppress output, e.g. don't print summary")
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        dest="quiet",
+        default=False,
+        help="Suppress output, e.g. don't print summary"
+    )
 
-    parser.add_argument("-o",
-                        "--output",
-                        type=str,
-                        action="store",
-                        dest="output",
-                        default=None,
-                        metavar="PATH",
-                        help="Set the filename and/or output directory of the\n" +
-                        "created file. [default: <name>.torrent]")
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        action="store",
+        dest="output",
+        default=None,
+        metavar="PATH",
+        help="Set the filename and/or output directory of the\n" + "created file. [default: <name>.torrent]"
+    )
 
-    parser.add_argument("-e",
-                        "--exclude",
-                        type=str,
-                        action="append",
-                        dest="exclude",
-                        default=[],
-                        metavar="PATH",
-                        help="Exclude a specific path (can be repeated to exclude\n" + "multiple paths).")
+    parser.add_argument(
+        "-e",
+        "--exclude",
+        type=str,
+        action="append",
+        dest="exclude",
+        default=[],
+        metavar="PATH",
+        help="Exclude a specific path (can be repeated to exclude\n" + "multiple paths)."
+    )
 
-    parser.add_argument("--exclude-pattern",
-                        type=str,
-                        action="append",
-                        dest="exclude_pattern",
-                        default=[],
-                        metavar="REGEXP",
-                        help="Exclude paths matching a regular expression (can be repeated\n" +
-                        "to use multiple patterns).")
+    parser.add_argument(
+        "--exclude-pattern",
+        type=str,
+        action="append",
+        dest="exclude_pattern",
+        default=[],
+        metavar="REGEXP",
+        help="Exclude paths matching a regular expression (can be repeated\n" + "to use multiple patterns)."
+    )
 
-    parser.add_argument("--exclude-pattern-ci",
-                        type=str,
-                        action="append",
-                        dest="exclude_pattern_ci",
-                        default=[],
-                        metavar="REGEXP",
-                        help="Same as --exclude-pattern but case-insensitive.")
+    parser.add_argument(
+        "--exclude-pattern-ci",
+        type=str,
+        action="append",
+        dest="exclude_pattern_ci",
+        default=[],
+        metavar="REGEXP",
+        help="Same as --exclude-pattern but case-insensitive."
+    )
 
-    parser.add_argument("-d",
-                        "--date",
-                        type=int,
-                        action="store",
-                        dest="date",
-                        default=-1,
-                        metavar="TIMESTAMP",
-                        help="Overwrite creation date. This option expects a unix timestamp.\n" +
-                        "Specify -2 to disable the inclusion of a creation date completely.\n" +
-                        "[default: -1 = current date and time]")
+    parser.add_argument(
+        "-d",
+        "--date",
+        type=int,
+        action="store",
+        dest="date",
+        default=-1,
+        metavar="TIMESTAMP",
+        help="Overwrite creation date. This option expects a unix timestamp.\n" +
+        "Specify -2 to disable the inclusion of a creation date completely.\n" +
+        "[default: -1 = current date and time]"
+    )
 
-    parser.add_argument("-n",
-                        "--name",
-                        type=str,
-                        action="store",
-                        dest="name",
-                        default=None,
-                        help="Set the name of the torrent. This changes the filename for\n" +
-                        "single file torrents or the root directory name for multi-file torrents.\n" +
-                        "[default: <basename of target>]")
+    parser.add_argument(
+        "-n",
+        "--name",
+        type=str,
+        action="store",
+        dest="name",
+        default=None,
+        help="Set the name of the torrent. This changes the filename for\n" +
+        "single file torrents or the root directory name for multi-file torrents.\n" +
+        "[default: <basename of target>]"
+    )
 
-    parser.add_argument("--threads",
-                        type=int,
-                        action="store",
-                        default=4,
-                        help="Set the maximum number of threads to use for hashing pieces.\n"
-                        "py3createtorrent will never use more threads than there are CPU cores.\n"
-                        "[default: 4]")
+    parser.add_argument(
+        "--threads",
+        type=int,
+        action="store",
+        default=4,
+        help="Set the maximum number of threads to use for hashing pieces.\n"
+        "py3createtorrent will never use more threads than there are CPU cores.\n"
+        "[default: 4]"
+    )
 
-    parser.add_argument("--md5",
-                        action="store_true",
-                        dest="include_md5",
-                        default=False,
-                        help="Include MD5 hashes in torrent file.")
+    parser.add_argument(
+        "--md5",
+        action="store_true",
+        dest="include_md5",
+        default=False,
+        help="Include MD5 hashes in torrent file."
+    )
 
-    parser.add_argument("--config",
-                        type=str,
-                        action="store",
-                        help="Specify location of config file.\n" +
-                        "[default: <home directiory>/.py3createtorrent.cfg]")
+    parser.add_argument(
+        "--config",
+        type=str,
+        action="store",
+        help="Specify location of config file.\n" + "[default: <home directiory>/.py3createtorrent.cfg]"
+    )
 
-    parser.add_argument("--webseed",
-                        metavar="WEBSEED_URL",
-                        action="append",
-                        dest="webseeds",
-                        default=[],
-                        help="Add one or multiple HTTP/FTP urls as seeds (GetRight-style).")
+    parser.add_argument(
+        "--webseed",
+        metavar="WEBSEED_URL",
+        action="append",
+        dest="webseeds",
+        default=[],
+        help="Add one or multiple HTTP/FTP urls as seeds (GetRight-style)."
+    )
 
     parser.add_argument("--no-created-by", action="store_true", help=argparse.SUPPRESS)
 
-    parser.add_argument("--version",
-                        action="version",
-                        version="py3createtorrent v" + __version__,
-                        help="Show version number of py3createtorrent")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="py3createtorrent v" + __version__,
+        help="Show version number of py3createtorrent"
+    )
 
-    parser.add_argument("path", metavar="target <path>", help="File or folder for which to create a torrent")
+    parser.add_argument(
+        "path",
+        metavar="target <path>",
+        help="File or folder for which to create a torrent"
+    )
 
     args = parser.parse_args()
 
@@ -746,16 +804,19 @@ def main() -> None:
     try:
         config.load_config()
     except json.JSONDecodeError as exc:
-        print("Could not parse config file at '%s'" % config.get_path_to_config_file(), file=sys.stderr)
+        print(
+            "Could not parse config file at '%s'" % config.get_path_to_config_file(),
+            file=sys.stderr,
+        )
         print(exc, file=sys.stderr)
         sys.exit(1)
     except Config.InvalidConfigError as exc:
         print(exc, file=sys.stderr)
         sys.exit(1)
 
-    printv('Config / Tracker abbreviations:\n' + pprint.pformat(config.tracker_abbreviations))
-    printv('Config / Advertise:         ' + str(config.advertise))
-    printv('Config / Best trackers URL: ' + config.best_trackers_url)
+    printv("Config / Tracker abbreviations:\n" + pprint.pformat(config.tracker_abbreviations))
+    printv("Config / Advertise:         " + str(config.advertise))
+    printv("Config / Best trackers URL: " + config.best_trackers_url)
 
     # Ask the user if he really wants to use uncommon piece lengths.
     # (Unless the force option has been set.)
@@ -831,9 +892,10 @@ def main() -> None:
                 try:
                     new_trackers.extend(get_best_trackers(int(m.group(1)), config.best_trackers_url))
                 except urllib.error.URLError as e:
-                    print("Error: Could not download best trackers from '%s'. Reason: %s" %
-                          (config.best_trackers_url, e),
-                          file=sys.stderr)
+                    print(
+                        "Error: Could not download best trackers from '%s'. Reason: %s" % (config.best_trackers_url, e),
+                        file=sys.stderr,
+                    )
                     sys.exit(1)
             else:
                 new_trackers.append(t)
@@ -850,13 +912,19 @@ def main() -> None:
     for n in args.nodes:
         splitted = n.split(",")
         if len(splitted) != 2:
-            print("Invalid format for DHT bootstrap node '%s'. Please use the format 'host,port'." % n, file=sys.stderr)
+            print(
+                "Invalid format for DHT bootstrap node '%s'. Please use the format 'host,port'." % n,
+                file=sys.stderr,
+            )
             invalid_nodes = True
             continue
 
         host, port = splitted
         if not port.isdigit():
-            print("Invalid port number for DHT bootstrap node '%s'. Ports must be numeric." % n, file=sys.stderr)
+            print(
+                "Invalid port number for DHT bootstrap node '%s'. Ports must be numeric." % n,
+                file=sys.stderr,
+            )
             invalid_nodes = True
 
         parsed_nodes.append([host, int(port)])
@@ -874,12 +942,18 @@ def main() -> None:
 
     # Warn the user if he attempts to exclude any paths when creating a torrent for a single file (makes no sense).
     if os.path.isfile(input_path) and (len(excluded_paths) > 0 or len(excluded_regexps) > 0):
-        print("Warning: Excluding paths is not possible when creating a torrent for a single file.", file=sys.stderr)
+        print(
+            "Warning: Excluding paths is not possible when creating a torrent for a single file.",
+            file=sys.stderr,
+        )
 
     # Warn the user if he attempts to exclude a specific path, that does not even exist.
     for path in excluded_paths:
         if not os.path.exists(path):
-            print("Warning: You're excluding a path that does not exist: '%s'" % path, file=sys.stderr)
+            print(
+                "Warning: You're excluding a path that does not exist: '%s'" % path,
+                file=sys.stderr,
+            )
 
     # Get the torrent's files and / or calculate its size.
     if os.path.isfile(input_path):
@@ -909,9 +983,15 @@ def main() -> None:
     if os.path.isfile(input_path):
         info = create_single_file_info(input_path, piece_length, args.include_md5, threads=args.threads)
     else:
-        info = create_multi_file_info(input_path, torrent_files, piece_length, args.include_md5, threads=args.threads)
+        info = create_multi_file_info(
+            input_path,
+            torrent_files,  # type:ignore
+            piece_length,
+            args.include_md5,
+            threads=args.threads,
+        )
 
-    assert len(info['pieces']) % 20 == 0, "len(pieces) not a multiple of 20"
+    assert len(info["pieces"]) % 20 == 0, "len(pieces) not a multiple of 20"
 
     # ###########################
     # FINISH METAINFO DICTIONARY:
@@ -927,10 +1007,10 @@ def main() -> None:
     # - comment (may be disabled as well)
 
     # Finish sub-dict "info".
-    info['piece length'] = piece_length
+    info["piece length"] = piece_length
 
     if args.private:
-        info['private'] = 1
+        info["private"] = 1
 
     # Re-use the name regex for source parameter.
     if args.source:
@@ -941,48 +1021,48 @@ def main() -> None:
         if not regexp.match(args.source):
             parser.error("Invalid source: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-} plus spaces." % args.source)
 
-        info['source'] = args.source
+        info["source"] = args.source
 
     # Construct outer metainfo dict, which contains the torrent's whole information.
-    metainfo = {'info': info}  # type: Dict[str, Any]
+    metainfo = {"info": info}  # type: Dict[str, Any]
     if trackers:
-        metainfo['announce'] = trackers[0]
+        metainfo["announce"] = trackers[0]
 
     # Make "announce-list" field, if there are multiple trackers.
     if len(trackers) > 1:
-        metainfo['announce-list'] = [[tracker] for tracker in trackers]
+        metainfo["announce-list"] = [[tracker] for tracker in trackers]
 
     # Set DHT bootstrap nodes.
     if parsed_nodes:
-        metainfo['nodes'] = parsed_nodes
+        metainfo["nodes"] = parsed_nodes
 
     # Set webseeds (url-list).
     if args.webseeds:
-        metainfo['url-list'] = args.webseeds
+        metainfo["url-list"] = args.webseeds
 
     # Set "creation date".
     # The user may specify a custom creation date. He may also decide not to include the creation date field at all.
     if args.date == -1:
         # use current time
-        metainfo['creation date'] = int(time.time())
+        metainfo["creation date"] = int(time.time())
     elif args.date >= 0:
         # use specified timestamp directly
-        metainfo['creation date'] = args.date
+        metainfo["creation date"] = args.date
     elif args.date < -2:
         parser.error("Invalid date: Negative timestamp values are not possible (except for -1 to use current date "
                      "automatically or -2 to disable storing a creation date altogether).")
 
     # Add the "created by" field.
     if not args.no_created_by:
-        metainfo['created by'] = 'py3createtorrent v%s' % __version__
+        metainfo["created by"] = "py3createtorrent v%s" % __version__
 
     # Add user's comment or advertise py3createtorrent (unless this behaviour has been disabled by the user).
     # The user may also decide not to include the comment field at all by specifying an empty comment.
     if isinstance(args.comment, str):
         if len(args.comment) > 0:
-            metainfo['comment'] = args.comment
+            metainfo["comment"] = args.comment
     elif config.advertise:
-        metainfo['comment'] = "created with " + metainfo['created by']
+        metainfo["comment"] = "created with " + metainfo["created by"]
 
     # Add the name field.
     # By default this is the name of directory or file the torrent is being created for.
@@ -994,7 +1074,7 @@ def main() -> None:
         if not regexp.match(args.name):
             parser.error("Invalid name: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-()} plus spaces." % args.name)
 
-        metainfo['info']['name'] = args.name
+        metainfo["info"]["name"] = args.name
 
     # ###################################################
     # BENCODE METAINFO DICTIONARY AND WRITE TORRENT FILE:
@@ -1004,7 +1084,7 @@ def main() -> None:
     # Respect the custom output location.
     if not args.output:
         # Use current directory.
-        output_path = metainfo['info']['name'] + ".torrent"
+        output_path = metainfo["info"]["name"] + ".torrent"
 
     else:
         # Use the directory or filename specified by the user.
@@ -1012,7 +1092,7 @@ def main() -> None:
 
         # The user specified an output directory:
         if os.path.isdir(args.output):
-            output_path = os.path.join(args.output, metainfo['info']['name'] + ".torrent")
+            output_path = os.path.join(args.output, metainfo["info"]["name"] + ".torrent")
             if os.path.isfile(output_path):
                 if not args.force and os.path.exists(output_path):
                     if "yes" != input("'%s' does already exist. Overwrite? yes/no: " % output_path):
@@ -1034,7 +1114,10 @@ def main() -> None:
             fh.write(bencode(metainfo))
     except IOError as exc:
         print("IOError: " + str(exc), file=sys.stderr)
-        print("Could not write the torrent file. Check torrent name and your privileges.", file=sys.stderr)
+        print(
+            "Could not write the torrent file. Check torrent name and your privileges.",
+            file=sys.stderr,
+        )
         print("Absolute output path: '%s'" % os.path.abspath(output_path), file=sys.stderr)
         sys.exit(1)
     except KeyboardInterrupt:
@@ -1056,8 +1139,8 @@ def main() -> None:
 
     # Create the list of backup trackers.
     backup_trackers = ""
-    if 'announce-list' in metainfo:
-        _backup_trackers = metainfo['announce-list'][1:]
+    if "announce-list" in metainfo:
+        _backup_trackers = metainfo["announce-list"][1:]
         _backup_trackers.sort(key=lambda x: x[0].lower())
 
         for tracker in _backup_trackers:
@@ -1067,7 +1150,7 @@ def main() -> None:
         backup_trackers = "    (none)"
 
     # Calculate piece count.
-    piece_count = math.ceil(torrent_size / metainfo['info']['piece length'])
+    piece_count = math.ceil(torrent_size / metainfo["info"]["piece length"])
 
     # Make torrent size human readable.
     if torrent_size > 10 * MIB:
@@ -1076,9 +1159,9 @@ def main() -> None:
         size = "%d KiB" % (torrent_size / KIB)
 
     # Make creation date human readable (ISO format).
-    if 'creation date' in metainfo:
-        creation_date = datetime.datetime.fromtimestamp(metainfo['creation \
-date']).isoformat(' ')
+    if "creation date" in metainfo:
+        creation_date = datetime.datetime.fromtimestamp(metainfo["creation \
+date"]).isoformat(" ")
     else:
         creation_date = "(none)"
 
@@ -1093,14 +1176,22 @@ date']).isoformat(' ')
           "  Webseeds:            %s\n"
           "  Primary tracker:     %s\n"
           "  Backup trackers:\n"
-          "%s" %
-          (metainfo['info']['name'], size, piece_count, piece_length / KIB,
-           metainfo['comment'] if 'comment' in metainfo else "(none)", "yes" if args.private else "no", creation_date,
-           metainfo['nodes'] if 'nodes' in metainfo else "(none)", metainfo['url-list'] if 'url-list' in metainfo else
-           "(none)", metainfo['announce'] if 'announce' in metainfo else "(none)", backup_trackers))
+          "%s" % (
+              metainfo["info"]["name"],
+              size,
+              piece_count,
+              piece_length / KIB,
+              metainfo["comment"] if "comment" in metainfo else "(none)",
+              "yes" if args.private else "no",
+              creation_date,
+              metainfo["nodes"] if "nodes" in metainfo else "(none)",
+              metainfo["url-list"] if "url-list" in metainfo else "(none)",
+              metainfo["announce"] if "announce" in metainfo else "(none)",
+              backup_trackers,
+          ))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
