@@ -187,7 +187,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     info = {
         "pieces": bytes(pieces),
         "name": os.path.basename(file),
-        "length": length,
+        "length": length
     }
 
     if md5:
@@ -201,7 +201,7 @@ def create_multi_file_info(
     files: List[str],
     piece_length: int,
     include_md5: bool = True,
-    threads: int = 4,
+    threads: int = 4
 ) -> Dict[str, Any]:
     """
     Return dictionary with the following keys:
@@ -307,7 +307,7 @@ def create_multi_file_info(
     info = {
         "pieces": bytes(pieces),
         "name": os.path.basename(os.path.abspath(directory)),
-        "files": info_files,
+        "files": info_files
     }
 
     return info
@@ -317,7 +317,7 @@ def get_files_in_directory(
     directory: str,
     excluded_paths: Optional[Set[str]] = None,
     relative_to: Optional[str] = None,
-    excluded_regexps: Optional[Set[Pattern[str]]] = None,
+    excluded_regexps: Optional[Set[Pattern[str]]] = None
 ) -> List[str]:
     """
     Return a list containing the paths to all files in the given directory.
@@ -363,7 +363,7 @@ def get_files_in_directory(
         excluded_paths: Optional[Set[str]] = None,
         relative_to: Optional[str] = None,
         excluded_regexps: Optional[Set[Pattern[str]]] = None,
-        processed_paths: Optional[Set[str]] = None,
+        processed_paths: Optional[Set[str]] = None
     ) -> List[str]:
         if excluded_paths is None:
             excluded_paths = set()
@@ -585,7 +585,7 @@ def main() -> None:
         description="py3createtorrent is a comprehensive command line utility for creating torrents.",
         usage="%(prog)s <target> [-t tracker_url] [options ...]",
         epilog="You are using py3createtorrent v%s" % __version__,
-        formatter_class=argparse.RawTextHelpFormatter,
+        formatter_class=argparse.RawTextHelpFormatter
     )
 
     parser.add_argument(
@@ -595,7 +595,7 @@ def main() -> None:
         action="append",
         dest="trackers",
         default=[],
-        help="Add one or multiple tracker (announce) URLs to\n" + "the torrent file.",
+        help="Add one or multiple tracker (announce) URLs to\n" + "the torrent file."
     )
 
     parser.add_argument(
@@ -604,7 +604,7 @@ def main() -> None:
         action="append",
         dest="nodes",
         default=[],
-        help="Add one or multiple DHT bootstrap nodes.",
+        help="Add one or multiple DHT bootstrap nodes."
     )
 
     parser.add_argument(
@@ -614,7 +614,7 @@ def main() -> None:
         action="store",
         dest="piece_length",
         default=0,
-        help="Set piece size in KiB. [default: 0 = automatic selection]",
+        help="Set piece size in KiB. [default: 0 = automatic selection]"
     )
 
     parser.add_argument(
@@ -623,7 +623,7 @@ def main() -> None:
         action="store_true",
         dest="private",
         default=False,
-        help="Set the private flag to disable DHT and PEX.",
+        help="Set the private flag to disable DHT and PEX."
     )
 
     parser.add_argument(
@@ -633,7 +633,7 @@ def main() -> None:
         action="store",
         dest="comment",
         default=False,
-        help="Add a comment.",
+        help="Add a comment."
     )
 
     parser.add_argument(
@@ -643,7 +643,7 @@ def main() -> None:
         action="store",
         dest="source",
         default=False,
-        help="Add a source tag.",
+        help="Add a source tag."
     )
 
     parser.add_argument(
@@ -653,7 +653,7 @@ def main() -> None:
         dest="force",
         default=False,
         help="Overwrite existing .torrent files without asking and\n" +
-        "disable the piece size, tracker and node validations.",
+        "disable the piece size, tracker and node validations."
     )
 
     parser.add_argument(
@@ -662,7 +662,7 @@ def main() -> None:
         action="store_true",
         dest="verbose",
         default=False,
-        help="Enable output of diagnostic information.",
+        help="Enable output of diagnostic information."
     )
 
     parser.add_argument(
@@ -671,7 +671,7 @@ def main() -> None:
         action="store_true",
         dest="quiet",
         default=False,
-        help="Suppress output, e.g. don't print summary",
+        help="Suppress output, e.g. don't print summary"
     )
 
     parser.add_argument(
@@ -682,7 +682,7 @@ def main() -> None:
         dest="output",
         default=None,
         metavar="PATH",
-        help="Set the filename and/or output directory of the\n" + "created file. [default: <name>.torrent]",
+        help="Set the filename and/or output directory of the\n" + "created file. [default: <name>.torrent]"
     )
 
     parser.add_argument(
@@ -693,7 +693,7 @@ def main() -> None:
         dest="exclude",
         default=[],
         metavar="PATH",
-        help="Exclude a specific path (can be repeated to exclude\n" + "multiple paths).",
+        help="Exclude a specific path (can be repeated to exclude\n" + "multiple paths)."
     )
 
     parser.add_argument(
@@ -703,7 +703,7 @@ def main() -> None:
         dest="exclude_pattern",
         default=[],
         metavar="REGEXP",
-        help="Exclude paths matching a regular expression (can be repeated\n" + "to use multiple patterns).",
+        help="Exclude paths matching a regular expression (can be repeated\n" + "to use multiple patterns)."
     )
 
     parser.add_argument(
@@ -713,7 +713,7 @@ def main() -> None:
         dest="exclude_pattern_ci",
         default=[],
         metavar="REGEXP",
-        help="Same as --exclude-pattern but case-insensitive.",
+        help="Same as --exclude-pattern but case-insensitive."
     )
 
     parser.add_argument(
@@ -726,7 +726,7 @@ def main() -> None:
         metavar="TIMESTAMP",
         help="Overwrite creation date. This option expects a unix timestamp.\n" +
         "Specify -2 to disable the inclusion of a creation date completely.\n" +
-        "[default: -1 = current date and time]",
+        "[default: -1 = current date and time]"
     )
 
     parser.add_argument(
@@ -738,7 +738,7 @@ def main() -> None:
         default=None,
         help="Set the name of the torrent. This changes the filename for\n" +
         "single file torrents or the root directory name for multi-file torrents.\n" +
-        "[default: <basename of target>]",
+        "[default: <basename of target>]"
     )
 
     parser.add_argument(
@@ -748,7 +748,7 @@ def main() -> None:
         default=4,
         help="Set the maximum number of threads to use for hashing pieces.\n"
         "py3createtorrent will never use more threads than there are CPU cores.\n"
-        "[default: 4]",
+        "[default: 4]"
     )
 
     parser.add_argument(
@@ -756,14 +756,14 @@ def main() -> None:
         action="store_true",
         dest="include_md5",
         default=False,
-        help="Include MD5 hashes in torrent file.",
+        help="Include MD5 hashes in torrent file."
     )
 
     parser.add_argument(
         "--config",
         type=str,
         action="store",
-        help="Specify location of config file.\n" + "[default: <home directiory>/.py3createtorrent.cfg]",
+        help="Specify location of config file.\n" + "[default: <home directiory>/.py3createtorrent.cfg]"
     )
 
     parser.add_argument(
@@ -772,7 +772,7 @@ def main() -> None:
         action="append",
         dest="webseeds",
         default=[],
-        help="Add one or multiple HTTP/FTP urls as seeds (GetRight-style).",
+        help="Add one or multiple HTTP/FTP urls as seeds (GetRight-style)."
     )
 
     parser.add_argument("--no-created-by", action="store_true", help=argparse.SUPPRESS)
@@ -781,13 +781,13 @@ def main() -> None:
         "--version",
         action="version",
         version="py3createtorrent v" + __version__,
-        help="Show version number of py3createtorrent",
+        help="Show version number of py3createtorrent"
     )
 
     parser.add_argument(
         "path",
         metavar="target <path>",
-        help="File or folder for which to create a torrent",
+        help="File or folder for which to create a torrent"
     )
 
     args = parser.parse_args()
