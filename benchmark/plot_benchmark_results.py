@@ -29,9 +29,9 @@ def generate_plot_for_piece_size(df, piece_size):
 
     fig, ax = plt.subplots(1, 1, figsize=(8, 6))
 
-    for idx, tool in enumerate(tools):
+    for _, tool in enumerate(tools):
         mean = df.loc[df.index.get_level_values(1) == tool, "mean"]
-        stddev = df.loc[df.index.get_level_values(1) == tool, "stddev"]
+        # stddev = df.loc[df.index.get_level_values(1) == tool, "stddev"]
         ax.plot(threads, mean)
         # ax.errorbar(threads, mean, stddev, linestyle='None', marker='x')
 
@@ -65,6 +65,9 @@ def main():
             df = df_file
         else:
             df = pd.concat([df, df_file])
+
+    if not df:
+        raise Exception("No DataFrame available, cant continue")
 
     # Normalize piece sizes
     # print(df[df["command"].str.contains("torf")].head())
