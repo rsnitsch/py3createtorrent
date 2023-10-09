@@ -48,9 +48,7 @@ def generate_plot_for_piece_size(df, piece_size):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "results_file", help="path to CSV file with the results", nargs="+"
-    )
+    parser.add_argument("results_file", help="path to CSV file with the results", nargs="+")
 
     args = parser.parse_args()
 
@@ -72,9 +70,8 @@ def main():
     # Normalize piece sizes
     # print(df[df["command"].str.contains("torf")].head())
     df.loc[df["command"].str.contains("torf"), "parameter_piece_size"] *= 2**10
-    df.loc[df["command"].str.contains("mktorrent"), "parameter_piece_size"] = 2 ** (
-        df.loc[df["command"].str.contains("mktorrent"), "parameter_piece_size"] - 10
-    )
+    df.loc[df["command"].str.contains("mktorrent"),
+           "parameter_piece_size"] = 2**(df.loc[df["command"].str.contains("mktorrent"), "parameter_piece_size"] - 10)
 
     # print(df)
     piece_sizes = df["parameter_piece_size"].unique()

@@ -10,10 +10,8 @@ import sys
 def parse_size(size):
     letter_to_unit = {"K": 2**10, "M": 2**20, "G": 2**30}
 
-    error_message = (
-        "must be a number ending with a single letter to "
-        "indicate the unit type K, M or G - for example, use 256k to specify 256 KiB"
-    )
+    error_message = ("must be a number ending with a single letter to "
+                     "indicate the unit type K, M or G - for example, use 256k to specify 256 KiB")
 
     letter = size[-1]
     if letter.isdigit():
@@ -48,12 +46,8 @@ def main():
         type=parse_size,
         help="size in KiB/MiB/GiB, specify unit with a single suffix letter K/M/G, for example 256k for 256 KiB",
     )
-    parser.add_argument(
-        "--seed", type=int, default=0, help="Set seed for the random number generator."
-    )
-    parser.add_argument(
-        "--overwrite", action="store_true", help="Overwrite existing file."
-    )
+    parser.add_argument("--seed", type=int, default=0, help="Set seed for the random number generator.")
+    parser.add_argument("--overwrite", action="store_true", help="Overwrite existing file.")
 
     args = parser.parse_args()
 
@@ -68,9 +62,7 @@ def main():
                 "WARNING: Destination file already exists (already has the requested size)",
                 file=sys.stderr,
             )
-        print(
-            "Not doing anything. Use --overwrite option to force overwriting the existing file."
-        )
+        print("Not doing anything. Use --overwrite option to force overwriting the existing file.")
         sys.exit(1)
 
     random.seed(args.seed)
