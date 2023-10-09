@@ -64,7 +64,7 @@ def main():
         else:
             df = pd.concat([df, df_file])
 
-    if df == None:
+    if df is None:
         raise Exception("No DataFrame available, cant continue")
 
     # Normalize piece sizes
