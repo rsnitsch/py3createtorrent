@@ -165,6 +165,7 @@ def create_single_file_info(
     piece_count = int(math.ceil(length / piece_length))
     pieces = bytearray(piece_count * 20)
 
+    md5 = None
     if include_md5:
         md5 = hashlib.md5()
 
@@ -189,7 +190,7 @@ def create_single_file_info(
                     executor.submit(calculate_sha1_hash_for_piece, i, piece_data)
                 )
 
-                if include_md5:
+                if md5:
                     md5.update(piece_data)
 
                 if len(futures) >= MAX_FUTURES:
@@ -208,7 +209,7 @@ def create_single_file_info(
         "length": length,
     }
 
-    if include_md5:
+    if md5:
         info["md5sum"] = md5.hexdigest()
 
     return info
@@ -267,6 +268,7 @@ def create_multi_file_info(
             length = os.path.getsize(path)
 
             # File's md5sum.
+            md5 = None
             if include_md5:
                 md5 = hashlib.md5()
 
@@ -302,7 +304,7 @@ def create_multi_file_info(
                         data = data[piece_length:]
                         i += 1
 
-                    if include_md5:
+                    if md5:
                         md5.update(filedata)
 
                     if len(futures) >= MAX_FUTURES:
@@ -316,7 +318,7 @@ def create_multi_file_info(
             # Build the current file's dictionary.
             fdict = {"length": length, "path": split_path(file)}
 
-            if include_md5:
+            if md5:
                 fdict["md5sum"] = md5.hexdigest()
 
             info_files.append(fdict)
@@ -1045,7 +1047,7 @@ def main() -> None:
     else:
         info = create_multi_file_info(
             input_path,
-            torrent_files,
+            torrent_files,  # type:ignore
             piece_length,
             args.include_md5,
             threads=args.threads,
