@@ -9,7 +9,13 @@ def generate_plot_for_piece_size(df, piece_size):
     df = df[df["parameter_piece_size"] == piece_size].copy()
     df = df.drop(columns="parameter_piece_size")
 
-    TOOLS = ["py3createtorrent", "torrenttools", "torf", "mktorrent", "transmission-create"]
+    TOOLS = [
+        "py3createtorrent",
+        "torrenttools",
+        "torf",
+        "mktorrent",
+        "transmission-create",
+    ]
 
     for tool in TOOLS:
         df.loc[df["command"].str.contains(tool), "tool"] = tool
@@ -27,14 +33,14 @@ def generate_plot_for_piece_size(df, piece_size):
         mean = df.loc[df.index.get_level_values(1) == tool, "mean"]
         stddev = df.loc[df.index.get_level_values(1) == tool, "stddev"]
         ax.plot(threads, mean)
-        #ax.errorbar(threads, mean, stddev, linestyle='None', marker='x')
+        # ax.errorbar(threads, mean, stddev, linestyle='None', marker='x')
 
     fig.suptitle("Performance (lower = faster)", fontsize=20)
     ax.set_title("Piece size = %d KiB" % piece_size)
     ax.set_xlabel("Number of threads for hashing")
     ax.set_ylabel("Time in s")
     ax.set_xticks(list(range(1, max_threads + 1)))
-    ax.legend(tools, loc='upper right')
+    ax.legend(tools, loc="upper right")
 
     fig.savefig("plot_for_piece_size_%dk.png" % piece_size, dpi=125)
     plt.close(fig)
@@ -42,7 +48,9 @@ def generate_plot_for_piece_size(df, piece_size):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("results_file", help="path to CSV file with the results", nargs='+')
+    parser.add_argument(
+        "results_file", help="path to CSV file with the results", nargs="+"
+    )
 
     args = parser.parse_args()
 
@@ -59,19 +67,21 @@ def main():
             df = pd.concat([df, df_file])
 
     # Normalize piece sizes
-    #print(df[df["command"].str.contains("torf")].head())
+    # print(df[df["command"].str.contains("torf")].head())
     df.loc[df["command"].str.contains("torf"), "parameter_piece_size"] *= 2**10
-    df.loc[df["command"].str.contains("mktorrent"), "parameter_piece_size"] = 2**(df.loc[df["command"].str.contains("mktorrent"), "parameter_piece_size"] - 10)
+    df.loc[df["command"].str.contains("mktorrent"), "parameter_piece_size"] = 2 ** (
+        df.loc[df["command"].str.contains("mktorrent"), "parameter_piece_size"] - 10
+    )
 
-    #print(df)
+    # print(df)
     piece_sizes = df["parameter_piece_size"].unique()
 
-    plt.style.use('ggplot')
+    plt.style.use("ggplot")
     for p in piece_sizes:
         print("Generating plot for piece size %s" % p)
         generate_plot_for_piece_size(df.copy(), p)
         print()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
