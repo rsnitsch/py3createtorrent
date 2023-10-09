@@ -7,7 +7,7 @@ import argparse
 import random
 from pathlib import Path
 
-from create_random_file import parse_size, create_random_file
+from create_random_file import create_random_file, parse_size
 from faker import Faker
 
 
@@ -16,11 +16,15 @@ def create_cache_dir_tag(path):
     if path.is_dir():
         path = path.joinpath("CACHEDIR.TAG")
     elif not path.name == "CACHEDIR.TAG":
-        raise ValueError("Full file path was specified, but file name is not CACHEDIR.TAG")
+        raise ValueError(
+            "Full file path was specified, but file name is not CACHEDIR.TAG"
+        )
 
     with open(path, "w") as fh:
         fh.write("Signature: 8a477f597d28d172789f06886806bc55\n")
-        fh.write("# This file instructs backup applications to ignore this directory.\n")
+        fh.write(
+            "# This file instructs backup applications to ignore this directory.\n"
+        )
         fh.write("# For more information see https://www.brynosaurus.com/cachedir/\n")
 
     return path
@@ -33,12 +37,17 @@ def main():
     parser.add_argument(
         "min_file_size",
         type=parse_size,
-        help=
-        "minimum file size in KiB/MiB/GiB, specify unit with a single suffix letter K/M/G, for example 256k for 256 KiB"
+        help="minimum file size in KiB/MiB/GiB, specify unit with a single suffix letter K/M/G, for example 256k for 256 KiB",
     )
     parser.add_argument("max_file_size", type=parse_size, help="maximum file size")
-    parser.add_argument("--seed", type=int, default=0, help="Set seed for the random number generator.")
-    parser.add_argument("--no-cachedir-tag", action="store_true", help="Do not generate CACHEDIR.TAG file")
+    parser.add_argument(
+        "--seed", type=int, default=0, help="Set seed for the random number generator."
+    )
+    parser.add_argument(
+        "--no-cachedir-tag",
+        action="store_true",
+        help="Do not generate CACHEDIR.TAG file",
+    )
 
     args = parser.parse_args()
 
@@ -61,5 +70,5 @@ def main():
         create_random_file(args.path.joinpath(filename), size)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
