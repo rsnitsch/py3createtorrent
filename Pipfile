@@ -5,7 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 sphinx = "~=7.2"
-mypy = "~=1.5"
+mypy = "~=1.6"
 yapf = "~=0.40"
 twine = "*"
 matplotlib = "*"
