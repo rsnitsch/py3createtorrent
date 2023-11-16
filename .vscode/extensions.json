@@ -1,0 +1,8 @@
+{
+	"recommendations": [
+		"microsoft.python",
+		"eeyore.yapf",
+		"ms-python.mypy-type-checker",
+		"swyddfa.esbonio"
+	]
+}

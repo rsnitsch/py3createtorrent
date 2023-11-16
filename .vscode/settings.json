@@ -1,8 +1,11 @@
 {
     "esbonio.sphinx.confDir": "",
-    "editor.formatOnSave": true,
-    "python.formatting.provider": "yapf",
-    "python.linting.mypyArgs": [
+    "[python]": {
+        "editor.formatOnSaveMode": "file",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "eeyore.yapf"
+    },
+    "mypy-type-checker.args": [
         "--follow-imports=silent",
         "--ignore-missing-imports",
         "--show-column-numbers",
