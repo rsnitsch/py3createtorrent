@@ -626,7 +626,7 @@ def main() -> None:
         type=str,
         action="store",
         dest="comment",
-        default=False,
+        default=None,
         help="Add a comment.",
     )
 
@@ -636,7 +636,7 @@ def main() -> None:
         type=str,
         action="store",
         dest="source",
-        default=False,
+        default=None,
         help="Add a source tag.",
     )
 
@@ -1007,7 +1007,7 @@ def main() -> None:
         info["private"] = 1
 
     # Re-use the name regex for source parameter.
-    if args.source:
+    if args.source is not None:
         args.source = args.source.strip()
 
         regexp = re.compile(r"^[A-Z0-9_\-., ]+$", re.I)
@@ -1052,7 +1052,7 @@ def main() -> None:
 
     # Add user's comment or advertise py3createtorrent (unless this behaviour has been disabled by the user).
     # The user may also decide not to include the comment field at all by specifying an empty comment.
-    if isinstance(args.comment, str):
+    if args.comment is not None:
         if len(args.comment) > 0:
             metainfo["comment"] = args.comment
     elif config.advertise:
