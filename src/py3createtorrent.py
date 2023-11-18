@@ -995,8 +995,8 @@ def create_torrent(
                     if _parser:
                         if "yes" != input("'%s' does already exist. Overwrite? yes/no: " % output):
                             raise_error("Aborted.", _parser)
-                        else:
-                            raise_error("The specified file exists already, and force flag is not set.")
+                    else:
+                        raise_error("The specified file exists already, and force flag is not set.")
 
             output_path = output
 
