@@ -1059,28 +1059,28 @@ def create_torrent(
 
         # Now actually print the summary table.
         print("  Name:                %s\n"
-            "  Size:                %s\n"
-            "  Pieces:              %d x %d KiB\n"
-            "  Comment:             %s\n"
-            "  Private:             %s\n"
-            "  Creation date:       %s\n"
-            "  DHT bootstrap nodes: %s\n"
-            "  Webseeds:            %s\n"
-            "  Primary tracker:     %s\n"
-            "  Backup trackers:\n"
-            "%s" % (
-                metainfo["info"]["name"],
-                size,
-                piece_count,
-                piece_length / KIB,
-                metainfo["comment"] if "comment" in metainfo else "(none)",
-                "yes" if private else "no",
-                creation_date,
-                metainfo["nodes"] if "nodes" in metainfo else "(none)",
-                metainfo["url-list"] if "url-list" in metainfo else "(none)",
-                metainfo["announce"] if "announce" in metainfo else "(none)",
-                backup_trackers,
-            ))
+              "  Size:                %s\n"
+              "  Pieces:              %d x %d KiB\n"
+              "  Comment:             %s\n"
+              "  Private:             %s\n"
+              "  Creation date:       %s\n"
+              "  DHT bootstrap nodes: %s\n"
+              "  Webseeds:            %s\n"
+              "  Primary tracker:     %s\n"
+              "  Backup trackers:\n"
+              "%s" % (
+                  metainfo["info"]["name"],
+                  size,
+                  piece_count,
+                  piece_length / KIB,
+                  metainfo["comment"] if "comment" in metainfo else "(none)",
+                  "yes" if private else "no",
+                  creation_date,
+                  metainfo["nodes"] if "nodes" in metainfo else "(none)",
+                  metainfo["url-list"] if "url-list" in metainfo else "(none)",
+                  metainfo["announce"] if "announce" in metainfo else "(none)",
+                  backup_trackers,
+              ))
 
 
 def main() -> None:
@@ -1296,7 +1296,30 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    create_torrent(args.path)
+    create_torrent(
+        args.path,
+        trackers=args.trackers,
+        nodes=args.nodes,
+        piece_length=args.piece_length,
+        private=args.private,
+        comment=args.comment,
+        source=args.source,
+        force=args.force,
+        verbose=args.verbose,
+        quiet=args.quiet,
+        output=args.output,
+        exclude=args.exclude,
+        exclude_pattern=args.exclude_pattern,
+        exclude_pattern_ci=args.exclude_pattern_ci,
+        date=args.date,
+        name=args.name,
+        threads=args.threads,
+        include_md5=args.include_md5,
+        config_path=args.config,
+        webseeds=args.webseeds,
+        no_created_by=args.no_created_by,
+        _parser=parser,
+    )
 
 
 if __name__ == "__main__":
