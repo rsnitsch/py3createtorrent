@@ -927,7 +927,7 @@ def create_torrent(
     if date is None or date == -1:
         # use current time
         metainfo["creation date"] = int(time.time())
-    elif date >= 0:
+    elif date >= 0 and not isinstance(date, bool):
         # use specified timestamp directly
         metainfo["creation date"] = date
     elif date < 0 and date != -2:
