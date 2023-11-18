@@ -709,7 +709,7 @@ def create_torrent(
                     "want to continue? yes/no: "):
                 raise_error("Aborted.", _parser)
         else:
-            raise_error("Piece length not a multiple if 16 KiB, and no force flag set.")
+            raise_error("Piece length not a multiple of 16 KiB, and no force flag set.")
 
     # Verbose and quiet options may not be used together.
     if verbose and quiet:
