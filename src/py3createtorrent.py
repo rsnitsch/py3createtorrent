@@ -60,14 +60,14 @@ class Config(object):
     class InvalidConfigError(Exception):
         pass
 
-    def __init__(self) -> None:
-        self.path = None  # type: Optional[str]
+    def __init__(self, path: Optional[str] = None) -> None:
+        self.path: Optional[str] = path
         self.tracker_abbreviations = {
             "opentrackr": "udp://tracker.opentrackr.org:1337/announce",
             "cyberia": "udp://tracker.cyberia.is:6969/announce",
         }
-        self.advertise = True  # type: Optional[bool]
-        self.best_trackers_url = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"  # type: str
+        self.advertise: Optional[bool] = True
+        self.best_trackers_url: str = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
 
     def get_path_to_config_file(self) -> str:
         if self.path is None:
@@ -446,7 +446,7 @@ def split_path(path: str) -> List[str]:
     if not isinstance(path, str):
         raise TypeError("path must be instance of: str")
 
-    parts = []  # type: List[str]
+    parts: List[str] = []
 
     path = os.path.normpath(path)
 
@@ -843,8 +843,8 @@ def main() -> None:
     #   - length and md5sum (if single file)
     #   - name (may be overwritten in the next section by the --name option)
 
-    input_path = args.path  # type: str
-    trackers = args.trackers  # type: List[str]
+    input_path: str = args.path
+    trackers: List[str] = args.trackers
 
     # Validate the given path.
     if not os.path.isfile(input_path) and not os.path.isdir(input_path):
@@ -1018,7 +1018,7 @@ def main() -> None:
         info["source"] = args.source
 
     # Construct outer metainfo dict, which contains the torrent's whole information.
-    metainfo = {"info": info}  # type: Dict[str, Any]
+    metainfo: Dict[str, Any] = {"info": info}
     if trackers:
         metainfo["announce"] = trackers[0]
 
