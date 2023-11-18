@@ -60,13 +60,13 @@ class Config(object):
     class InvalidConfigError(Exception):
         pass
 
-    def __init__(self, path: Optional[str] = None) -> None:
+    def __init__(self, path: Optional[str] = None, advertise: Optional[bool] = True) -> None:
         self.path: Optional[str] = path
         self.tracker_abbreviations = {
             "opentrackr": "udp://tracker.opentrackr.org:1337/announce",
             "cyberia": "udp://tracker.cyberia.is:6969/announce",
         }
-        self.advertise: Optional[bool] = True
+        self.advertise: Optional[bool] = advertise
         self.best_trackers_url: str = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
 
     def get_path_to_config_file(self) -> str:
@@ -664,7 +664,7 @@ def create_torrent(
         if not os.path.isfile(config_path):
             raise_error("The config file at '%s' does not exist" % config_path, _parser)
 
-    config: Config = Config(config_path)
+    config: Config = Config(config_path, advertise=not no_created_by)
 
     try:
         config.load_config()
@@ -686,7 +686,7 @@ def create_torrent(
     # Ask the user if he really wants to use uncommon piece lengths.
     # (Unless the force option has been set.)
     if not force and 0 < piece_length < 16:
-        if _parser is not None:
+        if _parser:
             if "yes" != input("It is strongly recommended to use a piece length greater or equal than 16 KiB! Do you "
                               "really want to continue? yes/no: "):
                 raise_error("Aborted.", _parser)
@@ -694,7 +694,7 @@ def create_torrent(
             raise_error("Uncommon piece length, and no force flag set.")
 
     if not force and piece_length > 16384:
-        if _parser is not None:
+        if _parser:
             if "yes" != input(
                     "It is strongly recommended to use a maximum piece length of 16384 KiB (16 MiB)! Do you really "
                     "want to continue? yes/no: "):
@@ -703,7 +703,7 @@ def create_torrent(
             raise_error("Piece length over 16384, and no force flag set.")
 
     if not force and piece_length % 16 != 0:
-        if _parser is not None:
+        if _parser:
             if "yes" != input(
                     "It is strongly recommended to use a piece length that is a multiple of 16 KiB! Do you really "
                     "want to continue? yes/no: "):
@@ -749,7 +749,7 @@ def create_torrent(
             invalid_trackers = True
 
     if invalid_trackers and not force:
-        if _parser is not None:
+        if _parser:
             if "yes" != input("Some tracker URLs are invalid. Continue? yes/no: "):
                 raise_error("Aborted.", _parser)
         else:
@@ -808,7 +808,7 @@ def create_torrent(
         parsed_nodes.append([host, int(port)])
 
     if invalid_nodes and not force:
-        if _parser is not None:
+        if _parser:
             if "yes" != input("Some DHT bootstrap nodes are invalid. Continue? yes/no: "):
                 raise_error("Aborted.", _parser)
         else:
@@ -981,7 +981,7 @@ def create_torrent(
             output_path = os.path.join(output, metainfo["info"]["name"] + ".torrent")
             if os.path.isfile(output_path):
                 if not force and os.path.exists(output_path):
-                    if _parser is not None:
+                    if _parser:
                         if "yes" != input("'%s' does already exist. Overwrite? yes/no: " % output_path):
                             raise_error("Aborted.", _parser)
                     else:
@@ -992,7 +992,7 @@ def create_torrent(
             # Is there already a file with this path? -> overwrite?!
             if os.path.isfile(output):
                 if not force and os.path.exists(output):
-                    if _parser is not None:
+                    if _parser:
                         if "yes" != input("'%s' does already exist. Overwrite? yes/no: " % output):
                             raise_error("Aborted.", _parser)
                     else:
@@ -1024,7 +1024,7 @@ def create_torrent(
 
     # If the quiet option has been set, we're already finished here, because we don't print a summary in this case.
     if quiet:
-        if _parser is not None:
+        if _parser:
             sys.exit(0)
     else:
         # Print summary!
