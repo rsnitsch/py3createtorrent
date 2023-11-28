@@ -530,7 +530,7 @@ def calculate_piece_length(size: int) -> int:
 
     However, enforce these bounds:
     - minimum piece length = 16 KiB.
-    - maximum piece length = 16 MiB.
+    - maximum piece length = 64 MiB.
     """
     if not isinstance(size, int):
         raise TypeError("size must be instance of: int")
@@ -549,8 +549,8 @@ def calculate_piece_length(size: int) -> int:
     while size / piece_length < 8:
         piece_length //= 2
 
-    # Ensure that: 16 KIB <= piece_length <= 16 * MIB
-    piece_length = max(min(piece_length, 16 * MIB), 16 * KIB)
+    # Ensure that: 16 KIB <= piece_length <= 64 * MIB
+    piece_length = max(min(piece_length, 64 * MIB), 16 * KIB)
 
     return int(piece_length)
 
