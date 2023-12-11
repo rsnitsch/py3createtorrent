@@ -14,7 +14,7 @@ def generate_plot_for_piece_size(df, piece_size):
         "torrenttools",
         "torf",
         "mktorrent",
-        "transmission-create"
+        "transmission-create",
     ]
 
     for tool in TOOLS:

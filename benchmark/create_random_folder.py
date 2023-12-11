@@ -41,7 +41,7 @@ def main():
     parser.add_argument(
         "--no-cachedir-tag",
         action="store_true",
-        help="Do not generate CACHEDIR.TAG file"
+        help="Do not generate CACHEDIR.TAG file",
     )
 
     args = parser.parse_args()
