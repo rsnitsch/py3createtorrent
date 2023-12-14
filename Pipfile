@@ -14,7 +14,7 @@ torf-cli = {file = "https://github.com/rndusr/torf-cli/archive/refs/heads/master
 faker = "*"
 pydocstyle = "*"
 pylint = "*"
-pyright = "~=1.1.339"
+pyright = "~=1.1.340"
 
 [packages]
 "bencode.py" = "~=4.0"
