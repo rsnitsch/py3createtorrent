@@ -81,7 +81,7 @@ from `ngosang/trackerslist <https://github.com/ngosang/trackerslist>`_. Example:
 
 Multiple trackers can also be specified manually by using `-t` multiple times, for example::
 
-    py3createtorrent -t udp://tracker.opentrackr.org:1337/announce -t udp://tracker.coppersurfer.tk:6969/announce file_or_folder
+    py3createtorrent -t udp://tracker.opentrackr.org:1337/announce -t udp://tracker.cyberia.is:6969/announce file_or_folder
 
 Full usage guide
 ----------------
@@ -155,11 +155,11 @@ This is equivalent to the short form using the :ref:`tracker abbreviation <track
 
 For multiple trackers, just use ``-t`` repeatedly. Multiple tracker example::
 
-    py3createtorrent -t udp://tracker.opentrackr.org:1337/announce -t udp://tracker.coppersurfer.tk:6969/announce -t udp://tracker.cyberia.is:6969/announce my_data_folder/
+    py3createtorrent -t udp://tracker.opentrackr.org:1337/announce -t udp://tracker.cyberia.is:6969/announce my_data_folder/
 
 This is equivalent to the short form using the tracker abbreviations::
 
-    py3createtorrent -t opentrackr -t coppersurfer -t cyberia my_data_folder/
+    py3createtorrent -t opentrackr -t cyberia my_data_folder/
 
 .. automatically_add_best_trackers:
 
@@ -401,11 +401,11 @@ Example 1 - from directory, no options, default behaviour
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent example -t udp://tracker.opentrackr.org:1337/announce
+   py3createtorrent example -t udp://tracker.opentrackr.org:1337/announce
 
 Alternative, equivalent command using a tracker abbreviation for convenience::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent example -t opentrackr
+   py3createtorrent example -t opentrackr
 
 **Effect**:
 Creates example.torrent inside the current directory.
@@ -427,10 +427,10 @@ Example 2 - from directory, excluding subfolders
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent -e example\subfolder example -t udp://tracker.opentrackr.org:1337/announce
+   py3createtorrent -e example\subfolder example -t udp://tracker.opentrackr.org:1337/announce
 
 **Effect**:
-Creates example.torrent inside the current directory. example\subfolder has
+Creates ``example.torrent`` inside the current directory. ``example\subfolder`` has
 been excluded.
 
 .. tip::
@@ -447,17 +447,21 @@ Example 3 - from directory, excluding files
 
 **Command**::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent -e example\anotherimage.jpg -e example\subfolder\10_more_minutes_please.JPG example -t udp://tracker.opentrackr.org:1337/announce
+   py3createtorrent -e example\anotherimage.jpg -e example\subfolder\10_more_minutes_please.JPG example -t udp://tracker.opentrackr.org:1337/announce
 
 Alternative, equivalent command using **regular expressions** instead of
 specifying each jpg seperately (also using a tracker abbreviation to make it
 even shorter)::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent --exclude-pattern "(jpg|JPG)$" example -t opentrackr
+   py3createtorrent --exclude-pattern "(jpg|JPG)$" example -t opentrackr
+
+With ``--exclude-pattern-ci`` the pattern-matching will be case-insensitive, so we can use a simplified regular expression::
+
+  py3createtorrent --exclude-pattern-ci "jpg$" example -t opentrackr
 
 **Effect**:
-Creates example.torrent inside the current directory. example\anotherimage.jpg
-and example\subfolder\10_more_minutes_please.JPG have been excluded.
+Creates ``example.torrent`` inside the current directory. ``example\anotherimage.jpg``
+and ``example\subfolder\10_more_minutes_please.JPG`` have been excluded.
 
 In µTorrent it will look like this:
 
@@ -474,7 +478,7 @@ use the exclude-option anymore.
 Configuration
 -------------
 
-If present, the configuration file '.py3createtorrent.cfg' will be loaded from the user's
+If present, the configuration file ``.py3createtorrent.cfg`` will be loaded from the user's
 home directory. The configuration file uses JSON format. Use ``--config`` to load the config
 from another location. Use ``--verbose`` for troubleshooting this, if it does not work as
 expected.
@@ -496,7 +500,6 @@ If the configuration file is not present, the following default values will be u
       "best_trackers_url": "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt",
       "tracker_abbreviations": {
         "opentrackr": "udp://tracker.opentrackr.org:1337/announce",
-        "coppersurfer": "udp://tracker.coppersurfer.tk:6969/announce",
         "cyberia": "udp://tracker.cyberia.is:6969/announce"
       },
       "advertise": true
@@ -529,16 +532,16 @@ Tracker abbrevations allow you to specify one or more tracker URLs with a single
 word, like 'opentrackr' in the default configuration. They add a lot of convenience,
 e.g. look at this neat & clear command::
 
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent example -t opentrackr -t coppersurfer
+   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent example -t opentrackr -t cyberia
    Successfully created torrent:
      Name:             example
     (...)
      Primary tracker:  udp://tracker.opentrackr.org:1337/announce
      Backup trackers:
-       udp://tracker.coppersurfer.tk:6969/announce
+       udp://tracker.cyberia.is:6969/announce
 
 In this case, py3createtorrent recognizes the tracker abbreviations 'opentrackr' and
-'coppersurfer' and automatically inserts the according tracker announce URLs.
+'cyberia' and automatically inserts the according tracker announce URLs.
 
 .. note::
 
@@ -554,10 +557,10 @@ In this case, py3createtorrent recognizes the tracker abbreviations 'opentrackr'
         "tracker_abbreviations": {
             "mytrackergroup": [
                 "udp://tracker.opentrackr.org:1337/announce",
-                "udp://tracker.coppersurfer.tk:6969/announce"
+                "udp://tracker.cyberia.is:6969/announce"
             ],
             "opentrackr": "udp://tracker.opentrackr.org:1337/announce",
-            "coppersurfer": "udp://tracker.coppersurfer.tk:6969/announce"
+            "cyberia": "udp://tracker.cyberia.is:6969/announce"
         }
     }
 
@@ -582,11 +585,11 @@ To disable advertising, you can use the following in your config file:
 If you want to disable advertising for a single torrent only, you can use the
 ``--comment`` option to specify an empty comment::
 
-   $ py3createtorrent --comment "" ...
+   py3createtorrent --comment "" ...
 
-   or
+or::
 
-   $ py3createtorrent -c "" ...
+   py3createtorrent -c "" ...
 
 py3createtorrent will not advertise itself in this case, because you explicitly
 specified the empty comment.

@@ -34,7 +34,7 @@ from [ngosang/trackerslist](https://github.com/ngosang/trackerslist). Example:
 
 Multiple trackers can also be specified manually by using `-t` multiple times, for example:
 
-    py3createtorrent -t udp://tracker.opentrackr.org:1337/announce -t udp://tracker.coppersurfer.tk:6969/announce file_or_folder
+    py3createtorrent -t udp://tracker.opentrackr.org:1337/announce -t udp://tracker.cyberia.is:6969/announce file_or_folder
 
 Install
 -------

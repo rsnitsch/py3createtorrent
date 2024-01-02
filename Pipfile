@@ -4,14 +4,17 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-sphinx = "~=3.1"
-mypy = "~=0.782"
-yapf = "~=0.30"
+sphinx = "~=7.2"
+mypy = "~=1.8"
+yapf = "~=0.40"
 twine = "*"
 matplotlib = "*"
 pandas = "*"
 torf-cli = {file = "https://github.com/rndusr/torf-cli/archive/refs/heads/master.zip"}
 faker = "*"
+pydocstyle = "*"
+pylint = "*"
+pyright = "~=1.1.339"
 
 [packages]
 "bencode.py" = "~=4.0"

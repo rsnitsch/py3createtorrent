@@ -7,7 +7,7 @@ import argparse
 import random
 from pathlib import Path
 
-from create_random_file import parse_size, create_random_file
+from create_random_file import create_random_file, parse_size
 from faker import Faker
 
 
@@ -34,11 +34,15 @@ def main():
         "min_file_size",
         type=parse_size,
         help=
-        "minimum file size in KiB/MiB/GiB, specify unit with a single suffix letter K/M/G, for example 256k for 256 KiB"
+        "minimum file size in KiB/MiB/GiB, specify unit with a single suffix letter K/M/G, for example 256k for 256 KiB",
     )
     parser.add_argument("max_file_size", type=parse_size, help="maximum file size")
     parser.add_argument("--seed", type=int, default=0, help="Set seed for the random number generator.")
-    parser.add_argument("--no-cachedir-tag", action="store_true", help="Do not generate CACHEDIR.TAG file")
+    parser.add_argument(
+        "--no-cachedir-tag",
+        action="store_true",
+        help="Do not generate CACHEDIR.TAG file",
+    )
 
     args = parser.parse_args()
 
@@ -61,5 +65,5 @@ def main():
         create_random_file(args.path.joinpath(filename), size)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -44,7 +44,8 @@ def main():
     parser.add_argument(
         "size",
         type=parse_size,
-        help="size in KiB/MiB/GiB, specify unit with a single suffix letter K/M/G, for example 256k for 256 KiB")
+        help="size in KiB/MiB/GiB, specify unit with a single suffix letter K/M/G, for example 256k for 256 KiB",
+    )
     parser.add_argument("--seed", type=int, default=0, help="Set seed for the random number generator.")
     parser.add_argument("--overwrite", action="store_true", help="Overwrite existing file.")
 
@@ -52,9 +53,15 @@ def main():
 
     if os.path.isfile(args.path) and not args.overwrite:
         if os.path.getsize(args.path) != args.size:
-            print("ERROR: Destination file already exists BUT DOES NOT HAVE THE CORRECT SIZE", file=sys.stderr)
+            print(
+                "ERROR: Destination file already exists BUT DOES NOT HAVE THE CORRECT SIZE",
+                file=sys.stderr,
+            )
         else:
-            print("WARNING: Destination file already exists (already has the requested size)", file=sys.stderr)
+            print(
+                "WARNING: Destination file already exists (already has the requested size)",
+                file=sys.stderr,
+            )
         print("Not doing anything. Use --overwrite option to force overwriting the existing file.")
         sys.exit(1)
 
@@ -62,5 +69,5 @@ def main():
     create_random_file(args.path, args.size)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
