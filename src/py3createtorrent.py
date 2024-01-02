@@ -837,6 +837,7 @@ def create_torrent(
             )
 
     # Get the torrent's files and / or calculate its size.
+    printv("Scanning size of input file/s...")
     if os.path.isfile(input_path):
         torrent_size = os.path.getsize(input_path)
     else:
@@ -852,12 +853,16 @@ def create_torrent(
         sys.exit(1)
 
     # Calculate or parse the piece size.
+    printv("Total size of input file/s: %d KiB" % torrent_size)
     if piece_length == 0:
         piece_length = calculate_piece_length(torrent_size)
+        printv("Calculated piece length:    %d KiB" % (piece_length / KIB))
     elif piece_length > 0:
         piece_length = piece_length * KIB
     else:
         raise_error("Invalid piece size: '%d'" % piece_length, _parser)
+
+    printv("Torrent will have %d pieces." % int(math.ceil(torrent_size / piece_length)))
 
     # Do the main work now.
     # -> prepare the metainfo dictionary.
