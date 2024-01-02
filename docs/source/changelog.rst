@@ -1,11 +1,18 @@
 Changelog
 =========
 
-Version 1.1.0+
---------------
+Version 1.2.0
+-------------
 
+*Release date: 2024/01/02*
+
+* added: py3createtorrent **can now be used as a Python module**. This extension was contributed by `@ToasterUwu <https://github.com/ToasterUwU>`_.
+* changed: the automatic piece size calculation now uses a **larger maximum piece size of 64 MiB** (previously 16 MiB was the maximum).
+* changed: **switched to LGPL license** to accomodate usage as a module.
 * changed: removed coppersurfer tracker from default config (tracker abbreviations) and also removed all mentions of coppersurfer in the docs. It seems
   that this tracker has been taken offline a long time ago.
+* internal: configured GitHub Workflows for automatic dependency updates and code checks. This was contributed by
+  `@ToasterUwu <https://github.com/ToasterUwU>`_.
 
 Version 1.1.0
 -------------
