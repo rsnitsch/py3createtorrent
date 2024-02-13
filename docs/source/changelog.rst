@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 1.2.0b1 (beta)
+----------------------
+
+*Release date: 2024/02/13*
+
+* Attempt to fix the UnicodeEncodeErrors (or similar) that occur when printing files/paths with rare characters that are not
+  compatible with the console's codec. See `#33 <https://github.com/rsnitsch/py3createtorrent/issues/33>`_.
+
 Version 1.2.0
 -------------
 

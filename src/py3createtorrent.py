@@ -44,7 +44,7 @@ __all__ = ["create_torrent", "calculate_piece_length", "get_files_in_directory",
 
 # Do not touch anything below this line unless you know what you're doing!
 
-__version__ = "1.2.0"
+__version__ = "1.2.1b1"
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
@@ -112,6 +112,17 @@ class Config(object):
         if not isinstance(self.advertise, bool):
             raise Config.InvalidConfigError("Configuration error: invalid value for advertise: %s "
                                             "(must be true/false)" % self.best_trackers_url)
+
+
+def clean_str_for_console(path: str) -> str:
+    """
+    Returns the string for printing to the console.
+    
+    Non-printable characters are replaced by a backslashed escape sequence like \\xhh, \\uxxxx or \\Uxxxxxxxx.
+    """
+    encoding = sys.stdout.encoding
+    errors = "backslashreplace"
+    return path.encode(encoding, errors).decode(encoding, errors)
 
 
 def printv(*args: Any, **kwargs: Any) -> None:
@@ -247,7 +258,7 @@ def create_multi_file_info(
             if include_md5:
                 md5 = hashlib.md5()
 
-            printv("Processing file '%s'... " % os.path.relpath(path, directory), end="")
+            printv("Processing file '%s'... " % clean_str_for_console(os.path.relpath(path, directory)), end="")
 
             with open(path, "rb") as fh:
                 while True:
@@ -377,13 +388,15 @@ def get_files_in_directory(
             path = os.path.join(directory, node)
 
             if os.path.normcase(path) in excluded_paths:
-                printv("Skipping '%s' due to explicit exclusion." % os.path.relpath(path, relative_to))
+                printv("Skipping '%s' due to explicit exclusion." %
+                       clean_str_for_console(os.path.relpath(path, relative_to)))
                 continue
 
             regexp_match = False
             for regexp in excluded_regexps:
                 if regexp.search(path):
-                    printv("Skipping '%s' due to pattern exclusion." % os.path.relpath(path, relative_to))
+                    printv("Skipping '%s' due to pattern exclusion." %
+                           clean_str_for_console(os.path.relpath(path, relative_to)))
                     regexp_match = True
                     break
             if regexp_match:
@@ -392,7 +405,7 @@ def get_files_in_directory(
             if os.path.normcase(os.path.realpath(path)) in processed_paths:
                 print(
                     "Warning: skipping symlink '%s', because it's target "
-                    "has already been processed." % path,
+                    "has already been processed." % clean_str_for_console(path),
                     file=sys.stderr,
                 )
                 continue
