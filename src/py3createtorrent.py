@@ -44,7 +44,7 @@ __all__ = ["create_torrent", "calculate_piece_length", "get_files_in_directory",
 
 # Do not touch anything below this line unless you know what you're doing!
 
-__version__ = "1.2.0"
+__version__ = "1.2.1b1"
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes
