@@ -32,7 +32,7 @@ jobs:
         run: echo "$(pipenv --venv)/bin" >> $GITHUB_PATH
 
       - name: Run pyright (Linux)
-        uses: jakebailey/pyright-action@v1.8.1
+        uses: jakebailey/pyright-action@v2.3.0
         with:
           python-version: ${{ matrix.python-version }}
           python-platform: Linux
@@ -40,7 +40,7 @@ jobs:
           warnings: true
 
       - name: Run pyright (Windows)
-        uses: jakebailey/pyright-action@v1.8.1
+        uses: jakebailey/pyright-action@v2.3.0
         # run anyway
         if: success() || failure()
         with:
