@@ -10,7 +10,6 @@ yapf = "~=0.40"
 twine = "*"
 matplotlib = "*"
 pandas = "*"
-torf-cli = {file = "https://github.com/rndusr/torf-cli/archive/refs/heads/master.zip"}
 faker = "*"
 pydocstyle = "*"
 pylint = "*"
