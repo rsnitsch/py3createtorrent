@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 1.2.1
+-------------
+
+*Release date: 2024/06/08*
+
+* Fix support for Python 3.7 and earlier. Users have to install the ``typing-extensions`` module, though.
+* Attempt to fix the UnicodeEncodeErrors (or similar) that occur when printing files/paths with rare characters that are not
+  compatible with the console's codec. See `#33 <https://github.com/rsnitsch/py3createtorrent/issues/33>`_.
+
 Version 1.2.1b1 (beta)
 ----------------------
 
