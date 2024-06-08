@@ -1,7 +1,7 @@
 Changelog
 =========
 
-Version 1.2.0b1 (beta)
+Version 1.2.1b1 (beta)
 ----------------------
 
 *Release date: 2024/02/13*
