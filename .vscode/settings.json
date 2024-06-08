@@ -1,6 +1,4 @@
 {
-    "esbonio.sphinx.confDir": "",
-    "python.formatting.provider": "none",
     "[python]": {
         "editor.formatOnSaveMode": "file",
         "editor.formatOnSave": true,

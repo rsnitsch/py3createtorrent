@@ -24,7 +24,23 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from typing import Any, Dict, List, Literal, Optional, Pattern, Set, Union
+from typing import Any, Dict, List, Optional, Pattern, Set, Union
+
+# Literal was introducted in Python 3.8.
+try:
+    from typing import Literal
+except ImportError:
+    try:
+        from typing_extensions import Literal
+    except ImportError:
+        print("ERROR:")
+        print("Missing type annotations. Are you using an older Python version?")
+        print("Please install the typing-extensions module and try again.")
+        print("You can install it by executing:")
+        print("  pip install typing-extensions")
+        print("-" * 40)
+        print()
+        raise
 
 try:
     from bencodepy import encode as bencode
@@ -44,7 +60,7 @@ __all__ = ["create_torrent", "calculate_piece_length", "get_files_in_directory",
 
 # Do not touch anything below this line unless you know what you're doing!
 
-__version__ = "1.2.1b1"
+__version__ = "1.2.1"
 
 # Note:
 #  Kilobyte = kB  = 1000 Bytes

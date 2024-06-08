@@ -4,13 +4,12 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-sphinx = "~=7.2"
-mypy = "~=1.8"
+sphinx = "~=7.3"
+mypy = "~=1.10"
 yapf = "~=0.40"
 twine = "*"
 matplotlib = "*"
 pandas = "*"
-torf-cli = {file = "https://github.com/rndusr/torf-cli/archive/refs/heads/master.zip"}
 faker = "*"
 pydocstyle = "*"
 pylint = "*"

@@ -43,7 +43,8 @@ You can install py3createtorrent by executing:
 
     pip3 install py3createtorrent
 
-Of course, you need to have Python 3 installed on your system. py3createtorrent requires Python 3.5 or later.
+Of course, you need to have Python 3 installed on your system. py3createtorrent requires Python 3.5 or later. For using
+Python 3.5 to 3.7 you need to install the ``typing-extensions`` module.
 
 Full documentation
 ------------------
