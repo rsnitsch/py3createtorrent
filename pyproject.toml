@@ -17,4 +17,4 @@ quote-style = "preserve"
 
 [tool.ruff.lint]
 extend-select = ["W291", "W293"]
-ignore = ["UP031", "SIM102"]
+ignore = ["C408", "UP031", "SIM102"]
