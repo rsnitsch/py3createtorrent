@@ -9,9 +9,6 @@ twine = "*"
 matplotlib = "*"
 pandas = "*"
 faker = "*"
-pydocstyle = "*"
-pylint = "*"
-pyright = "~=1.1.339"
 build = "*"
 
 [packages]
