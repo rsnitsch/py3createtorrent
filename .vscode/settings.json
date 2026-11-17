@@ -4,5 +4,6 @@
         "editor.formatOnSaveMode": "file",
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "charliermarsh.ruff"
-    }
+    },
+    "python-envs.defaultEnvManager": "ms-python.python:pipenv"
 }
