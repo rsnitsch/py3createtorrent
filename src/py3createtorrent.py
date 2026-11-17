@@ -1009,6 +1009,7 @@ def create_torrent(
             output_path = output
 
     # Actually write the torrent file now.
+    output_path_existed_before = os.path.isfile(output_path)
     try:
         with open(output_path, "wb") as fh:
             fh.write(bencode(metainfo))
@@ -1021,10 +1022,11 @@ def create_torrent(
         print("Absolute output path: '%s'" % os.path.abspath(output_path), file=sys.stderr)
         sys.exit(1)
     except KeyboardInterrupt:
-        # Properly handle KeyboardInterrupts.
-        # todo: open()'s context manager may already do this on his own?
-        if os.path.exists(output_path):
+        # Properly handle KeyboardInterrupts. Remove unfinished torrent file.
+        if not output_path_existed_before and os.path.exists(output_path):
             os.remove(output_path)
+        print("Aborted.")
+        sys.exit(0)
 
     # #########################
     # PREPARE AND PRINT SUMMARY
