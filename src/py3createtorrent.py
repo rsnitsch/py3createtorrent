@@ -31,12 +31,14 @@ try:
     from bencodepy import encode as bencode
 except ImportError as exc:
     print("ERROR:")
-    print("bencodepy module could not be imported.\n",
-          "Please install the bencodepy module using",
-          "pip install bencode.py\n",
-          "or refer to the documentation on how to install it:\n",
-          "https://py3createtorrent.readthedocs.io/en/latest/\n\n",
-          sep="\n")
+    print(
+        "bencodepy module could not be imported.\n",
+        "Please install the bencodepy module using",
+        "pip install bencode.py\n",
+        "or refer to the documentation on how to install it:\n",
+        "https://py3createtorrent.readthedocs.io/en/latest/\n\n",
+        sep="\n",
+    )
     print("-" * 40)
     print()
     raise
@@ -57,7 +59,6 @@ VERBOSE = False
 
 
 class Config(object):
-
     class InvalidConfigError(Exception):
         pass
 
@@ -97,28 +98,34 @@ class Config(object):
         # Validate the configuration.
         for abbr, replacement in self.tracker_abbreviations.items():
             if not isinstance(abbr, str):
-                raise Config.InvalidConfigError("Configuration error: invalid tracker abbreviation: '%s' "
-                                                "(must be a string instead)" % abbr)
+                raise Config.InvalidConfigError(
+                    "Configuration error: invalid tracker abbreviation: '%s' (must be a string instead)" % abbr
+                )
             if not isinstance(replacement, (str, list)):
-                raise Config.InvalidConfigError("Configuration error: invalid tracker abbreviation: '%s' "
-                                                "(must be a string or list of strings instead)" % str(replacement))
+                raise Config.InvalidConfigError(
+                    "Configuration error: invalid tracker abbreviation: '%s' "
+                    "(must be a string or list of strings instead)" % str(replacement)
+                )
 
         if not isinstance(self.best_trackers_url, str):
-            raise Config.InvalidConfigError("Configuration error: invalid best trackers url: %s "
-                                            "(must be a string)" % self.best_trackers_url)
+            raise Config.InvalidConfigError(
+                "Configuration error: invalid best trackers url: %s (must be a string)" % self.best_trackers_url
+            )
         if not self.best_trackers_url.startswith("http"):
-            raise Config.InvalidConfigError("Configuration error: invalid best trackers url: %s "
-                                            "(must be a http/https URL)" % self.best_trackers_url)
+            raise Config.InvalidConfigError(
+                "Configuration error: invalid best trackers url: %s (must be a http/https URL)" % self.best_trackers_url
+            )
 
         if not isinstance(self.advertise, bool):
-            raise Config.InvalidConfigError("Configuration error: invalid value for advertise: %s "
-                                            "(must be true/false)" % self.best_trackers_url)
+            raise Config.InvalidConfigError(
+                "Configuration error: invalid value for advertise: %s (must be true/false)" % self.best_trackers_url
+            )
 
 
 def clean_str_for_console(path: str) -> str:
     """
     Returns the string for printing to the console.
-    
+
     Non-printable characters are replaced by a backslashed escape sequence like \\xhh, \\uxxxx or \\Uxxxxxxxx.
     """
     encoding = sys.stdout.encoding
@@ -169,9 +176,9 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     def calculate_sha1_hash_for_piece(i: int, piece_data: bytes) -> None:
         count = len(piece_data)
         if count == piece_length:
-            pieces[i * 20:(i + 1) * 20] = sha1(piece_data)
+            pieces[i * 20 : (i + 1) * 20] = sha1(piece_data)
         elif count != 0:
-            pieces[i * 20:(i + 1) * 20] = sha1(piece_data[:count])
+            pieces[i * 20 : (i + 1) * 20] = sha1(piece_data[:count])
 
     MAX_FUTURES = min(threads, multiprocessing.cpu_count())
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
@@ -242,9 +249,9 @@ def create_multi_file_info(
     def calculate_sha1_hash_for_piece(i: int, piece_data: bytes) -> None:
         count = len(piece_data)
         if count == piece_length:
-            pieces[i * 20:(i + 1) * 20] = sha1(piece_data)
+            pieces[i * 20 : (i + 1) * 20] = sha1(piece_data)
         elif count != 0:
-            pieces[i * 20:(i + 1) * 20] = sha1(piece_data[:count])
+            pieces[i * 20 : (i + 1) * 20] = sha1(piece_data[:count])
 
     MAX_FUTURES = min(threads, multiprocessing.cpu_count())
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
@@ -304,10 +311,10 @@ def create_multi_file_info(
 
     # Don't forget to hash the last piece. (Probably the piece that has not reached the regular piece size.)
     if data:
-        pieces[i * 20:(i + 1) * 20] = sha1(data)
+        pieces[i * 20 : (i + 1) * 20] = sha1(data)
 
     # Cut off unused pieces space.
-    pieces = pieces[:(i + 1) * 20]
+    pieces = pieces[: (i + 1) * 20]
 
     # Build the final dictionary.
     info = {
@@ -389,15 +396,19 @@ def get_files_in_directory(
             path = os.path.join(directory, node)
 
             if os.path.normcase(path) in excluded_paths:
-                printv("Skipping '%s' due to explicit exclusion." %
-                       clean_str_for_console(os.path.relpath(path, relative_to)))
+                printv(
+                    "Skipping '%s' due to explicit exclusion."
+                    % clean_str_for_console(os.path.relpath(path, relative_to))
+                )
                 continue
 
             regexp_match = False
             for regexp in excluded_regexps:
                 if regexp.search(path):
-                    printv("Skipping '%s' due to pattern exclusion." %
-                           clean_str_for_console(os.path.relpath(path, relative_to)))
+                    printv(
+                        "Skipping '%s' due to pattern exclusion."
+                        % clean_str_for_console(os.path.relpath(path, relative_to))
+                    )
                     regexp_match = True
                     break
             if regexp_match:
@@ -701,8 +712,10 @@ def create_torrent(
     # (Unless the force option has been set.)
     if not force and 0 < piece_length < 16:
         if _parser is not None:
-            if "yes" != input("It is strongly recommended to use a piece length greater or equal than 16 KiB! Do you "
-                              "really want to continue? yes/no: "):
+            if "yes" != input(
+                "It is strongly recommended to use a piece length greater or equal than 16 KiB! Do you "
+                "really want to continue? yes/no: "
+            ):
                 raise_error("Aborted.", _parser)
         else:
             raise_error("Uncommon piece length, and no force flag set.")
@@ -710,8 +723,9 @@ def create_torrent(
     if not force and piece_length > 16384:
         if _parser is not None:
             if "yes" != input(
-                    "It is strongly recommended to use a maximum piece length of 16384 KiB (16 MiB)! Do you really "
-                    "want to continue? yes/no: "):
+                "It is strongly recommended to use a maximum piece length of 16384 KiB (16 MiB)! Do you really "
+                "want to continue? yes/no: "
+            ):
                 raise_error("Aborted.", _parser)
         else:
             raise_error("Piece length over 16384, and no force flag set.")
@@ -719,8 +733,9 @@ def create_torrent(
     if not force and piece_length % 16 != 0:
         if _parser is not None:
             if "yes" != input(
-                    "It is strongly recommended to use a piece length that is a multiple of 16 KiB! Do you really "
-                    "want to continue? yes/no: "):
+                "It is strongly recommended to use a piece length that is a multiple of 16 KiB! Do you really "
+                "want to continue? yes/no: "
+            ):
                 raise_error("Aborted.", _parser)
         else:
             raise_error("Piece length not a multiple of 16 KiB, and no force flag set.")
@@ -855,9 +870,9 @@ def create_torrent(
     if os.path.isfile(input_path):
         torrent_size = os.path.getsize(input_path)
     else:
-        torrent_files = get_files_in_directory(input_path,
-                                               excluded_paths=excluded_paths,
-                                               excluded_regexps=excluded_regexps)
+        torrent_files = get_files_in_directory(
+            input_path, excluded_paths=excluded_paths, excluded_regexps=excluded_regexps
+        )
         torrent_size = sum([os.path.getsize(os.path.join(input_path, file)) for file in torrent_files])
 
     # Torrents for 0 byte data can't be created.
@@ -919,8 +934,9 @@ def create_torrent(
         regexp = re.compile(r"^[A-Z0-9_\-., ]+$", re.I)
 
         if not regexp.match(source):
-            raise_error("Invalid source: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-} plus spaces." % source,
-                        _parser)
+            raise_error(
+                "Invalid source: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-} plus spaces." % source, _parser
+            )
 
         info["source"] = source
 
@@ -976,8 +992,9 @@ def create_torrent(
         regexp = re.compile(r"^[A-Z0-9_\-., ()]+$", re.I)
 
         if not regexp.match(name):
-            raise_error("Invalid name: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-()} plus spaces." % name,
-                        _parser)
+            raise_error(
+                "Invalid name: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-()} plus spaces." % name, _parser
+            )
 
         metainfo["info"]["name"] = name
 
@@ -1077,29 +1094,32 @@ def create_torrent(
             creation_date = "(none)"
 
         # Now actually print the summary table.
-        print("  Name:                %s\n"
-              "  Size:                %s\n"
-              "  Pieces:              %d x %d KiB\n"
-              "  Comment:             %s\n"
-              "  Private:             %s\n"
-              "  Creation date:       %s\n"
-              "  DHT bootstrap nodes: %s\n"
-              "  Webseeds:            %s\n"
-              "  Primary tracker:     %s\n"
-              "  Backup trackers:\n"
-              "%s" % (
-                  metainfo["info"]["name"],
-                  size,
-                  piece_count,
-                  piece_length / KIB,
-                  metainfo["comment"] if "comment" in metainfo else "(none)",
-                  "yes" if private else "no",
-                  creation_date,
-                  metainfo["nodes"] if "nodes" in metainfo else "(none)",
-                  metainfo["url-list"] if "url-list" in metainfo else "(none)",
-                  metainfo["announce"] if "announce" in metainfo else "(none)",
-                  backup_trackers,
-              ))
+        print(
+            "  Name:                %s\n"
+            "  Size:                %s\n"
+            "  Pieces:              %d x %d KiB\n"
+            "  Comment:             %s\n"
+            "  Private:             %s\n"
+            "  Creation date:       %s\n"
+            "  DHT bootstrap nodes: %s\n"
+            "  Webseeds:            %s\n"
+            "  Primary tracker:     %s\n"
+            "  Backup trackers:\n"
+            "%s"
+            % (
+                metainfo["info"]["name"],
+                size,
+                piece_count,
+                piece_length / KIB,
+                metainfo["comment"] if "comment" in metainfo else "(none)",
+                "yes" if private else "no",
+                creation_date,
+                metainfo["nodes"] if "nodes" in metainfo else "(none)",
+                metainfo["url-list"] if "url-list" in metainfo else "(none)",
+                metainfo["announce"] if "announce" in metainfo else "(none)",
+                backup_trackers,
+            )
+        )
 
 
 def main() -> None:
@@ -1175,8 +1195,8 @@ def main() -> None:
         action="store_true",
         dest="force",
         default=False,
-        help="Overwrite existing .torrent files without asking and\n" +
-        "disable the piece size, tracker and node validations.",
+        help="Overwrite existing .torrent files without asking and\n"
+        + "disable the piece size, tracker and node validations.",
     )
 
     parser.add_argument(
@@ -1247,9 +1267,9 @@ def main() -> None:
         dest="date",
         default=-1,
         metavar="TIMESTAMP",
-        help="Overwrite creation date. This option expects a unix timestamp.\n" +
-        "Specify -2 to disable the inclusion of a creation date completely.\n" +
-        "[default: -1 = current date and time]",
+        help="Overwrite creation date. This option expects a unix timestamp.\n"
+        + "Specify -2 to disable the inclusion of a creation date completely.\n"
+        + "[default: -1 = current date and time]",
     )
 
     parser.add_argument(
@@ -1259,9 +1279,9 @@ def main() -> None:
         action="store",
         dest="name",
         default=None,
-        help="Set the name of the torrent. This changes the filename for\n" +
-        "single file torrents or the root directory name for multi-file torrents.\n" +
-        "[default: <basename of target>]",
+        help="Set the name of the torrent. This changes the filename for\n"
+        + "single file torrents or the root directory name for multi-file torrents.\n"
+        + "[default: <basename of target>]",
     )
 
     parser.add_argument(

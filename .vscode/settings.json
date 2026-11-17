@@ -1,14 +1,8 @@
 {
     "[python]": {
+        "pylint.enabled": false,
         "editor.formatOnSaveMode": "file",
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "eeyore.yapf"
-    },
-    "mypy-type-checker.args": [
-        "--follow-imports=silent",
-        "--ignore-missing-imports",
-        "--show-column-numbers",
-        "--no-pretty",
-        "--strict"
-    ]
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    }
 }
