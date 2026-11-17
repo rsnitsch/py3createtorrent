@@ -14,3 +14,6 @@ line-length = 120
 [tool.ruff.format]
 indent-style = "space"
 quote-style = "preserve"
+
+[tool.ruff.lint]
+extend-select = ["W291", "W293"]
