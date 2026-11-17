@@ -58,7 +58,7 @@ MIB = KIB * KIB
 VERBOSE = False
 
 
-class Config(object):
+class Config:
     class InvalidConfigError(Exception):
         pass
 
