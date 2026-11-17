@@ -146,7 +146,7 @@ def sha1(data: bytes) -> bytes:
     return m.digest()
 
 
-def create_single_file_info(file: str, piece_length: int, include_md5: bool = True, threads: int = 4) -> Dict[str, Any]:
+def create_single_file_info(file: str, piece_length: int, include_md5: bool = True, threads: int = 4) -> dict[str, Any]:
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
@@ -183,7 +183,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     MAX_FUTURES = min(threads, multiprocessing.cpu_count())
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
         with open(file, "rb") as fh:
-            futures: Set[concurrent.futures.Future[None]] = set()
+            futures: set[concurrent.futures.Future[None]] = set()
             for i, piece_data in enumerate(iter(lambda: fh.read(piece_length), "")):
                 if not piece_data:
                     break
@@ -211,11 +211,11 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
 
 def create_multi_file_info(
     directory: str,
-    files: List[str],
+    files: list[str],
     piece_length: int,
     include_md5: bool = True,
     threads: int = 4,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Return dictionary with the following keys:
       - pieces: concatenated 20-byte-sha1-hashes
@@ -255,7 +255,7 @@ def create_multi_file_info(
 
     MAX_FUTURES = min(threads, multiprocessing.cpu_count())
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_FUTURES) as executor:
-        futures: Set[concurrent.futures.Future[None]] = set()
+        futures: set[concurrent.futures.Future[None]] = set()
         i = 0
         for file in files:
             path = os.path.join(directory, file)
@@ -328,10 +328,10 @@ def create_multi_file_info(
 
 def get_files_in_directory(
     directory: str,
-    excluded_paths: Optional[Set[str]] = None,
+    excluded_paths: Optional[set[str]] = None,
     relative_to: Optional[str] = None,
-    excluded_regexps: Optional[Set[Pattern[str]]] = None,
-) -> List[str]:
+    excluded_regexps: Optional[set[Pattern[str]]] = None,
+) -> list[str]:
     """
     Return a list containing the paths to all files in the given directory.
 
@@ -372,12 +372,12 @@ def get_files_in_directory(
     # Helper function:
     def _get_files_in_directory(
         directory: str,
-        files: List[str],
-        excluded_paths: Optional[Set[str]] = None,
+        files: list[str],
+        excluded_paths: Optional[set[str]] = None,
         relative_to: Optional[str] = None,
-        excluded_regexps: Optional[Set[Pattern[str]]] = None,
-        processed_paths: Optional[Set[str]] = None,
-    ) -> List[str]:
+        excluded_regexps: Optional[set[Pattern[str]]] = None,
+        processed_paths: Optional[set[str]] = None,
+    ) -> list[str]:
         if excluded_paths is None:
             excluded_paths = set()
         if excluded_regexps is None:
@@ -459,7 +459,7 @@ def get_files_in_directory(
     return files
 
 
-def split_path(path: str) -> List[str]:
+def split_path(path: str) -> list[str]:
     """
     Return a list containing all of a path's components.
 
@@ -471,7 +471,7 @@ def split_path(path: str) -> List[str]:
     if not isinstance(path, str):
         raise TypeError("path must be instance of: str")
 
-    parts: List[str] = []
+    parts: list[str] = []
 
     path = os.path.normpath(path)
 
@@ -484,7 +484,7 @@ def split_path(path: str) -> List[str]:
     return parts
 
 
-def remove_duplicates(old_list: List[Any]) -> List[Any]:
+def remove_duplicates(old_list: list[Any]) -> list[Any]:
     """
     Remove any duplicates in old_list, preserving the order of its elements.
 
@@ -503,7 +503,7 @@ def remove_duplicates(old_list: List[Any]) -> List[Any]:
     return new_list
 
 
-def replace_in_list(old_list: List[Any], replacements: Dict[Any, Any]) -> List[Any]:
+def replace_in_list(old_list: list[Any], replacements: dict[Any, Any]) -> list[Any]:
     """
     Replace specific items in a list.
 
@@ -574,7 +574,7 @@ def calculate_piece_length(size: int) -> int:
     return int(piece_length)
 
 
-def get_best_trackers(count: int, url: str) -> List[str]:
+def get_best_trackers(count: int, url: str) -> list[str]:
     if count < 0:
         raise ValueError("count must be positive")
 
@@ -610,8 +610,8 @@ def raise_error(
 
 def create_torrent(
     path: str,
-    trackers: List[str] = [],
-    nodes: List[str] = [],
+    trackers: list[str] = [],
+    nodes: list[str] = [],
     piece_length: int = 0,
     private: bool = False,
     comment: Optional[str] = None,
@@ -620,15 +620,15 @@ def create_torrent(
     verbose: bool = False,
     quiet: bool = False,
     output: Optional[str] = None,
-    exclude: List[str] = [],
-    exclude_pattern: List[str] = [],
-    exclude_pattern_ci: List[str] = [],
+    exclude: list[str] = [],
+    exclude_pattern: list[str] = [],
+    exclude_pattern_ci: list[str] = [],
     date: Optional[Union[Literal[False], int]] = None,
     name: Optional[str] = None,
     threads: int = 4,
     include_md5: bool = False,
     config_path: Optional[str] = None,
-    webseeds: List[str] = [],
+    webseeds: list[str] = [],
     no_created_by: bool = False,
     _parser: Optional[argparse.ArgumentParser] = None,
 ):
@@ -941,7 +941,7 @@ def create_torrent(
         info["source"] = source
 
     # Construct outer metainfo dict, which contains the torrent's whole information.
-    metainfo: Dict[str, Any] = {"info": info}
+    metainfo: dict[str, Any] = {"info": info}
     if trackers:
         metainfo["announce"] = trackers[0]
 
