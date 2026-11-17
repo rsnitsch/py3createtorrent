@@ -757,8 +757,8 @@ def create_torrent(
     # Validate tracker URLs.
     invalid_trackers = False
     best_shortcut_present = False
-    regexp = re.compile(r"^(http|https|udp)://", re.I)
-    regexp_best = re.compile(r"best([0-9]+)", re.I)
+    regexp = re.compile(r"^(http|https|udp)://", re.IGNORECASE)
+    regexp_best = re.compile(r"best([0-9]+)", re.IGNORECASE)
     for t in trackers:
         m = regexp_best.match(t)
         if m:
@@ -914,7 +914,7 @@ def create_torrent(
     if source is not None:
         source = source.strip()
 
-        regexp = re.compile(r"^[A-Z0-9_\-., ]+$", re.I)
+        regexp = re.compile(r"^[A-Z0-9_\-., ]+$", re.IGNORECASE)
 
         if not regexp.match(source):
             parser.error("Invalid source: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-} plus spaces." % source)
@@ -969,7 +969,7 @@ def create_torrent(
     if name:
         name = name.strip()
 
-        regexp = re.compile(r"^[A-Z0-9_\-., ()]+$", re.I)
+        regexp = re.compile(r"^[A-Z0-9_\-., ()]+$", re.IGNORECASE)
 
         if not regexp.match(name):
             parser.error("Invalid name: '%s'. Allowed chars: A_Z, a-z, 0-9, any of {.,_-()} plus spaces." % name)
