@@ -25,7 +25,7 @@ import time
 import urllib.error
 import urllib.request
 from re import Pattern
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal
 
 try:
     from bencodepy import encode as bencode
@@ -62,13 +62,13 @@ class Config:
     class InvalidConfigError(Exception):
         pass
 
-    def __init__(self, path: Optional[str] = None, advertise: Optional[bool] = True) -> None:
-        self.path: Optional[str] = path
+    def __init__(self, path: str | None = None, advertise: bool | None = True) -> None:
+        self.path: str | None = path
         self.tracker_abbreviations = {
             "opentrackr": "udp://tracker.opentrackr.org:1337/announce",
             "cyberia": "udp://tracker.cyberia.is:6969/announce",
         }
-        self.advertise: Optional[bool] = advertise
+        self.advertise: bool | None = advertise
         self.best_trackers_url: str = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
 
     def get_path_to_config_file(self) -> str:
@@ -328,9 +328,9 @@ def create_multi_file_info(
 
 def get_files_in_directory(
     directory: str,
-    excluded_paths: Optional[set[str]] = None,
-    relative_to: Optional[str] = None,
-    excluded_regexps: Optional[set[Pattern[str]]] = None,
+    excluded_paths: set[str] | None = None,
+    relative_to: str | None = None,
+    excluded_regexps: set[Pattern[str]] | None = None,
 ) -> list[str]:
     """
     Return a list containing the paths to all files in the given directory.
@@ -373,10 +373,10 @@ def get_files_in_directory(
     def _get_files_in_directory(
         directory: str,
         files: list[str],
-        excluded_paths: Optional[set[str]] = None,
-        relative_to: Optional[str] = None,
-        excluded_regexps: Optional[set[Pattern[str]]] = None,
-        processed_paths: Optional[set[str]] = None,
+        excluded_paths: set[str] | None = None,
+        relative_to: str | None = None,
+        excluded_regexps: set[Pattern[str]] | None = None,
+        processed_paths: set[str] | None = None,
     ) -> list[str]:
         if excluded_paths is None:
             excluded_paths = set()
@@ -600,7 +600,7 @@ def get_best_trackers(count: int, url: str) -> list[str]:
 
 def raise_error(
     message: str,
-    parser: Optional[argparse.ArgumentParser] = None,
+    parser: argparse.ArgumentParser | None = None,
 ):
     if parser is not None:
         parser.error(message)
@@ -614,23 +614,23 @@ def create_torrent(
     nodes: list[str] = [],
     piece_length: int = 0,
     private: bool = False,
-    comment: Optional[str] = None,
-    source: Optional[str] = None,
+    comment: str | None = None,
+    source: str | None = None,
     force: bool = False,
     verbose: bool = False,
     quiet: bool = False,
-    output: Optional[str] = None,
+    output: str | None = None,
     exclude: list[str] = [],
     exclude_pattern: list[str] = [],
     exclude_pattern_ci: list[str] = [],
-    date: Optional[Union[Literal[False], int]] = None,
-    name: Optional[str] = None,
+    date: Literal[False] | int | None = None,
+    name: str | None = None,
     threads: int = 4,
     include_md5: bool = False,
-    config_path: Optional[str] = None,
+    config_path: str | None = None,
     webseeds: list[str] = [],
     no_created_by: bool = False,
-    _parser: Optional[argparse.ArgumentParser] = None,
+    _parser: argparse.ArgumentParser | None = None,
 ):
     """Creates a torrent from a file or Folder
 
