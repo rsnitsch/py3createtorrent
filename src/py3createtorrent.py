@@ -43,7 +43,7 @@ except ImportError as exc:
     print()
     raise
 
-__all__ = ["create_torrent", "calculate_piece_length", "get_files_in_directory", "sha1", "split_path"]
+__all__ = ["calculate_piece_length", "create_torrent", "get_files_in_directory", "sha1", "split_path"]
 
 # Do not touch anything below this line unless you know what you're doing!
 
