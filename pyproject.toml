@@ -3,6 +3,10 @@ name = "py3createtorrent"
 version = "2.0.0a1"
 requires-python = ">=3.11"
 
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "standard" # oder "strict" für maximale Typsicherheit beim Neubau
+
 [tool.ruff]
 target-version = "py311"
 line-length = 120
