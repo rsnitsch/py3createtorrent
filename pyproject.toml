@@ -17,5 +17,5 @@ quote-style = "preserve"
 
 [tool.ruff.lint]
 extend-select = ["W291", "W293"]
-fixable = ["FURB167", "W291", "W293"]
+fixable = ["FURB167", "UP024", "W291", "W293"]
 ignore = ["C408", "UP031", "SIM102"]

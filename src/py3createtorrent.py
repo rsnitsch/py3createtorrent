@@ -1012,7 +1012,7 @@ def create_torrent(
     try:
         with open(output_path, "wb") as fh:
             fh.write(bencode(metainfo))
-    except IOError as exc:
+    except OSError as exc:
         print("IOError: " + str(exc), file=sys.stderr)
         print(
             "Could not write the torrent file. Check torrent name and your privileges.",
