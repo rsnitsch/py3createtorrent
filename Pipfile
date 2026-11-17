@@ -12,4 +12,4 @@ sphinx = "~=7.3"
 twine = "*"
 
 [packages]
-"bencode.py" = "~=4.0"
+"bencode.py" = "~=4.1"
