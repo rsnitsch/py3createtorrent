@@ -88,7 +88,7 @@ class Config:
             printv("Config file does not exist")
             return
 
-        with open(path, "r") as fh:
+        with open(path, "r", encoding="utf-8") as fh:
             data = json.load(fh)
 
         self.tracker_abbreviations = data.get("tracker_abbreviations", self.tracker_abbreviations)
@@ -164,7 +164,7 @@ def create_single_file_info(file: str, piece_length: int, include_md5: bool = Tr
     assert length > 0, "empty file"
 
     # Concatenated 20byte sha1-hashes of all the file's pieces.
-    piece_count = int(math.ceil(length / piece_length))
+    piece_count = math.ceil(length / piece_length)
     pieces = bytearray(piece_count * 20)
 
     md5 = None
@@ -601,8 +601,8 @@ def get_best_trackers(count: int, url: str) -> list[str]:
 def create_torrent(
     path: str,
     parser: argparse.ArgumentParser,
-    trackers: list[str] = [],
-    nodes: list[str] = [],
+    trackers: list[str],
+    nodes: list[str],
     piece_length: int = 0,
     private: bool = False,
     comment: str | None = None,
@@ -611,15 +611,15 @@ def create_torrent(
     verbose: bool = False,
     quiet: bool = False,
     output: str | None = None,
-    exclude: list[str] = [],
-    exclude_pattern: list[str] = [],
-    exclude_pattern_ci: list[str] = [],
+    exclude: list[str] | None = None,
+    exclude_pattern: list[str] | None = None,
+    exclude_pattern_ci: list[str] | None = None,
     date: Literal[False] | int | None = None,
     name: str | None = None,
     threads: int = 4,
     include_md5: bool = False,
     config_path: str | None = None,
-    webseeds: list[str] = [],
+    webseeds: list[str] | None = None,
     no_created_by: bool = False,
 ):
     """Creates a torrent from a file or Folder
@@ -671,6 +671,15 @@ def create_torrent(
     no_created_by, optional
         Prevents py3createtorrrent from setting the "created by" info to be itself and its version, by default False
     """
+
+    if webseeds is None:
+        webseeds = []
+    if exclude_pattern_ci is None:
+        exclude_pattern_ci = []
+    if exclude_pattern is None:
+        exclude_pattern = []
+    if exclude is None:
+        exclude = []
 
     global VERBOSE
     VERBOSE = verbose
@@ -818,11 +827,11 @@ def create_torrent(
             parser.error("Aborted.")
 
     # Parse and validate excluded paths.
-    excluded_paths = set([os.path.normcase(os.path.abspath(path)) for path in exclude])
+    excluded_paths = {os.path.normcase(os.path.abspath(path)) for path in exclude}
 
     # Parse exclude patterns.
-    excluded_regexps = set(re.compile(regexp) for regexp in exclude_pattern)
-    excluded_regexps |= set(re.compile(regexp, re.IGNORECASE) for regexp in exclude_pattern_ci)
+    excluded_regexps = {re.compile(regexp) for regexp in exclude_pattern}
+    excluded_regexps |= {re.compile(regexp, re.IGNORECASE) for regexp in exclude_pattern_ci}
 
     # Warn the user if he attempts to exclude any paths when creating a torrent for a single file (makes no sense).
     if os.path.isfile(input_path) and (len(excluded_paths) > 0 or len(excluded_regexps) > 0):
@@ -832,10 +841,10 @@ def create_torrent(
         )
 
     # Warn the user if he attempts to exclude a specific path, that does not even exist.
-    for path in excluded_paths:
-        if not os.path.exists(path):
+    for excluded_path in excluded_paths:
+        if not os.path.exists(excluded_path):
             print(
-                "Warning: You're excluding a path that does not exist: '%s'" % path,
+                "Warning: You're excluding a path that does not exist: '%s'" % excluded_path,
                 file=sys.stderr,
             )
 
@@ -865,7 +874,7 @@ def create_torrent(
     else:
         parser.error("Invalid piece size: '%d'" % piece_length)
 
-    printv("Torrent will have %d pieces." % int(math.ceil(torrent_size / piece_length)))
+    printv("Torrent will have %d pieces." % math.ceil(torrent_size / piece_length))
 
     # Do the main work now.
     # -> prepare the metainfo dictionary.
@@ -1073,12 +1082,12 @@ def create_torrent(
                 size,
                 piece_count,
                 piece_length / KIB,
-                metainfo["comment"] if "comment" in metainfo else "(none)",
+                metainfo.get("comment", "(none)"),
                 "yes" if private else "no",
                 creation_date,
-                metainfo["nodes"] if "nodes" in metainfo else "(none)",
-                metainfo["url-list"] if "url-list" in metainfo else "(none)",
-                metainfo["announce"] if "announce" in metainfo else "(none)",
+                metainfo.get("nodes", "(none)"),
+                metainfo.get("url-list", "(none)"),
+                metainfo.get("announce", "(none)"),
                 backup_trackers,
             )
         )
