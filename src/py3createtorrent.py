@@ -24,23 +24,8 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from typing import Any, Dict, List, Optional, Pattern, Set, Union
-
-# Literal was introducted in Python 3.8.
-try:
-    from typing import Literal
-except ImportError:
-    try:
-        from typing_extensions import Literal
-    except ImportError:
-        print("ERROR:")
-        print("Missing type annotations. Are you using an older Python version?")
-        print("Please install the typing-extensions module and try again.")
-        print("You can install it by executing:")
-        print("  pip install typing-extensions")
-        print("-" * 40)
-        print()
-        raise
+from re import Pattern
+from typing import Any, Literal, Optional, Union
 
 try:
     from bencodepy import encode as bencode
