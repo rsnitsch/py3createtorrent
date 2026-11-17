@@ -4,12 +4,12 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-sphinx = "~=7.3"
-twine = "*"
+build = "*"
+faker = "*"
 matplotlib = "*"
 pandas = "*"
-faker = "*"
-build = "*"
+sphinx = "~=7.3"
+twine = "*"
 
 [packages]
 "bencode.py" = "~=4.0"
