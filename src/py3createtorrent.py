@@ -29,7 +29,7 @@ from typing import Any, Literal
 
 try:
     from bencodepy import encode as bencode
-except ImportError as exc:
+except ImportError:
     print("ERROR:")
     print(
         "bencodepy module could not be imported.\n",
