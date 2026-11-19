@@ -26,6 +26,8 @@ try:
 except ImportError as exc:
     sys.exit(f"ERROR: bencodepy is required to run verification checks: {exc}")
 
+import cachedir_tag
+
 try:
     import libtorrent as lt
 except ImportError:
@@ -35,6 +37,8 @@ except ImportError:
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(PROJECT_ROOT) / "src"))
 
+from create_random_folder import create_random_folder
+from create_random_file import create_random_file
 from py3createtorrent import ProtocolVersion, TorrentSpec, create_torrent  # noqa: E402
 
 logger = logging.getLogger(__name__)
@@ -57,9 +61,9 @@ TEST_CASES = [
     TestCase("single_file_65k_v2", "random_file_65k.dat", ProtocolVersion.V2, 32),
     TestCase("single_file_100k_v2", "random_file_100k.dat", ProtocolVersion.V2),
     TestCase("single_file_100k_v2", "random_file_100k.dat", ProtocolVersion.V2, 32),
-    TestCase("single_file_v1", "random_file.dat", ProtocolVersion.V1),
-    TestCase("single_file_v2", "random_file.dat", ProtocolVersion.V2),
-    TestCase("single_file_hybrid", "random_file.dat", ProtocolVersion.HYBRID),
+    TestCase("single_file_v1", "random_file_50m.dat", ProtocolVersion.V1),
+    TestCase("single_file_v2", "random_file_50m.dat", ProtocolVersion.V2),
+    TestCase("single_file_hybrid", "random_file_50m.dat", ProtocolVersion.HYBRID),
     TestCase("multi_file_v1", "random_folder_big_files", ProtocolVersion.V1),
     TestCase("multi_file_v2", "random_folder_big_files", ProtocolVersion.V2),
     TestCase("multi_file_hybrid", "random_folder_big_files", ProtocolVersion.HYBRID),
@@ -69,6 +73,28 @@ TEST_CASES = [
     TestCase("multi_file_hybrid", "random_folder_tiny_files", ProtocolVersion.HYBRID, 16),
     TestCase("multi_file_hybrid", "random_folder_tiny_files", ProtocolVersion.HYBRID, 32),
 ]
+
+
+def ensure_testdata_is_generated():
+    testdata_path = PROJECT_ROOT / "tests" / "testdata"
+    logger.info("Creating fresh set of random testdata here: %s", testdata_path)
+
+    # Empty first. Always start with freshly generated testdata.
+    if testdata_path.is_dir():
+        shutil.rmtree(testdata_path)
+
+    testdata_path.mkdir()
+    cachedir_tag.tag(testdata_path)
+
+    seed = 0
+    KIB = 2**10
+    MIB = 2**20
+    create_random_file(testdata_path / "random_file_50m.dat", 50 * MIB, seed)
+    for kb in [16, 17, 48, 64, 65, 100]:
+        create_random_file(testdata_path / f"random_file_{kb}k.dat", kb * KIB, seed)
+
+    create_random_folder(testdata_path / "random_folder_tiny_files", 200, 1, 200 * KIB, seed)
+    create_random_folder(testdata_path / "random_folder_big_files", 30, 1 * KIB, 10 * MIB, seed)
 
 
 def verify_bencode_invariants(torrent_path: Path, protocol: ProtocolVersion, is_single_file: bool) -> None:
@@ -235,9 +261,7 @@ def run_all_tests(
     """
     Run the full integration test matrix. Returns True if all tests pass.
     """
-    if not testdata_dir.is_dir():
-        logger.error("Testdata directory does not exist: %s", testdata_dir)
-        return False
+    ensure_testdata_is_generated()
 
     if lt is None:
         msg = "libtorrent is not installed; skipping libtorrent verification."

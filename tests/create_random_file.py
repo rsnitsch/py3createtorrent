@@ -3,10 +3,12 @@ Script to create files of given size with pseudo-random content.
 """
 
 import argparse
-import os
+import logging
 import random
 import sys
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def parse_size(size):
@@ -28,13 +30,19 @@ def parse_size(size):
     return letter_to_unit[letter.upper()] * int(number)
 
 
-def create_random_file(dst: Path | str, size: int):
+def create_random_file(path: Path, size: int, seed: int = 0, overwrite=False):
     if size < 0:
         raise ValueError("size is negative")
 
+    if path.is_file() and not overwrite:
+        logger.warning("Destination file %s already exists - skipping.")
+        return
+
+    random.seed(seed)
+
     BLOCK_SIZE = 4096
     bytes_saved = 0
-    with open(dst, "wb") as fh:
+    with open(path, "wb") as fh:
         while True:
             remaining_bytes = size - bytes_saved
             if remaining_bytes:
@@ -58,22 +66,7 @@ def main():
 
     args = parser.parse_args()
 
-    if os.path.isfile(args.path) and not args.overwrite:
-        if os.path.getsize(args.path) != args.size:
-            print(
-                "ERROR: Destination file already exists BUT DOES NOT HAVE THE CORRECT SIZE",
-                file=sys.stderr,
-            )
-        else:
-            print(
-                "WARNING: Destination file already exists (already has the requested size)",
-                file=sys.stderr,
-            )
-        print("Not doing anything. Use --overwrite option to force overwriting the existing file.")
-        sys.exit(1)
-
-    random.seed(args.seed)
-    create_random_file(args.path, args.size)
+    create_random_file(args.path, args.size, args.seed, args.overwrite)
 
 
 if __name__ == "__main__":
