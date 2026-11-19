@@ -23,6 +23,7 @@ Version 2.0.0
     object-oriented API (``TorrentSpec``, ``create_torrent``).
   - switched from ``pipenv`` / ``Pipfile`` to ``uv`` / ``pyproject.toml``.
   - locked dependencies are now tracked in the repo (``uv.lock``).
+  - Python version is pinned to 3.13 via ``.python-version`` (respected by ``uv``).
   - implemented completely new test suite ``tests/test_integration.py``.
 
 Version 1.2.1
