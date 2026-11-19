@@ -60,6 +60,7 @@ class TorrentSpec:
     piece_length: int = 0
     private: bool = False
     protocol: ProtocolVersion = ProtocolVersion.HYBRID
+    output: Path | None = None
 
 
 def is_power_of_two(n: int) -> bool:
@@ -163,6 +164,21 @@ def scan_target(target: Path) -> list[FileEntry]:
         entries.append(FileEntry(abs_path=file_path, rel_parts=rel_parts, size=file_path.stat().st_size))
 
     return entries
+
+
+def resolve_output_path(output: Path | None, torrent_name: str) -> Path:
+    default_filename = f"{torrent_name}.torrent"
+    if output is None:
+        return Path.cwd() / default_filename
+
+    resolved = output.resolve()
+    if resolved.is_dir():
+        return resolved / default_filename
+
+    if not resolved.parent.is_dir():
+        raise FileNotFoundError(f"Output directory does not exist: {resolved.parent}")
+
+    return resolved
 
 
 def resolve_trackers(raw_trackers: list[str]) -> list[str]:
@@ -330,7 +346,8 @@ def create_torrent(spec: TorrentSpec) -> tuple[Path, dict[str, Any], int]:
         if len(trackers) > 1:
             metainfo["announce-list"] = [[t] for t in trackers]
 
-    output_path = Path.cwd() / f"{info['name']}.torrent"
+    output_path = resolve_output_path(spec.output, info["name"])
+    logger.debug("Writing torrent file to: %s", output_path)
     output_path.write_bytes(bencode(metainfo))
 
     return output_path, metainfo, total_size
@@ -415,6 +432,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="BitTorrent protocol version to generate. [default: hybrid]",
     )
     parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        default=None,
+        metavar="PATH",
+        help="Set the filename and/or output directory of the created file. [default: <name>.torrent]",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -444,6 +469,7 @@ def main() -> None:
         piece_length=args.piece_length,
         private=args.private,
         protocol=args.protocol,
+        output=args.output,
     )
 
     try:
