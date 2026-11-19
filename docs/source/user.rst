@@ -191,8 +191,8 @@ One or multiple HTTP/FTP URLs can be added as GetRight-style webseeds (stored in
 
     py3createtorrent --webseed https://example.com/files/ my_data_folder/
 
-Piece size (``-p``)
-^^^^^^^^^^^^^^^^^^^
+Piece size (``-p``, ``--piece-length``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This switch allows you to specify a custom piece size in KiB (must be a power of two and at least 16 KiB). The piece size should be
 chosen with care, because it affects the following properties:
@@ -235,15 +235,15 @@ completely can be shared with other peers). Therefore, if the piece size is
 large, it will take longer for any peer to finish downloading a piece and to be
 able to share this piece with other peers.
 
-Private torrents (``-P``)
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Private torrents (``-P``, ``--private``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Private torrents force the BitTorrent clients to only use the specified trackers
 for discovering other peers. Advanced peer discovery methods like DHT or
 peer list exchange are effectively disabled.
 
-Comment (``-c``)
-^^^^^^^^^^^^^^^^
+Comment (``-c``, ``--comment``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The comment is a short text stored in the .torrent file and displayed by most
 BitTorrent clients in the torrent info. If omitted, no ``comment`` field is added.
@@ -254,8 +254,8 @@ Created-by metadata (``--no-created-by``)
 By default, py3createtorrent sets the ``created by`` metainfo field to ``py3createtorrent v<version>``.
 Use ``--no-created-by`` to omit this field completely.
 
-Source (``-s``)
-^^^^^^^^^^^^^^^
+Source (``-s``, ``--source``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The source field is a non-standard metainfo field used by private trackers to
 reduce issues (such as misreported stats) caused by cross-seeding.  For
@@ -263,16 +263,16 @@ private trackers that forbid their torrent files from being uploaded elsewhere,
 it ensures that torrent files uploaded to the tracker from a different source
 are unique to the private tracker.
 
-Verbose (``-v``)
-^^^^^^^^^^^^^^^^
+Verbose (``-v``, ``--verbose``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Verbose mode makes py3createtorrent report about the individual steps it is
 undertaking while creating the .torrent file.
 
 This is particularly useful for debugging purposes.
 
-Output path (``-o``)
-^^^^^^^^^^^^^^^^^^^^
+Output path (``-o``, ``--output``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The output path is either the directory in which the .torrent file should be
 saved or the complete path to the destination .torrent file. In the former
@@ -284,8 +284,8 @@ overwritten (using the ``-n`` switch). (In the latter case, the name of the
 By default, py3createtorrent uses the current working directory as the output
 directory.
 
-Exclude path (``-e``)
-^^^^^^^^^^^^^^^^^^^^^
+Exclude path (``-e``, ``--exclude``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This allows for the exclusion of specific files or directories.
 
@@ -303,8 +303,8 @@ using forward slashes (``/``).
 The switches may be used repeatedly to specify multiple exclusion patterns.
 Use ``--exclude-pattern-ci`` for case-insensitive matching.
 
-Creation date (``-d``)
-^^^^^^^^^^^^^^^^^^^^^^
+Creation date (``-d``, ``--date``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This switch allows you to overwrite the creation date saved in the .torrent
 file. You can fake any creation date you like.
@@ -315,8 +315,8 @@ The creation date is specified as `UNIX timestamp
 You can disable storing a creation date altogether by providing a timestamp
 of -2.
 
-Name (``-n``)
-^^^^^^^^^^^^^
+Name (``-n``, ``--name``)
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This setting overwrites the file or directory name stored inside the .torrent
 file. **Thus it affects the file or directory name that will be presented
