@@ -247,15 +247,14 @@ def scan_target(
         children = sorted(current_dir.iterdir(), key=lambda p: p.name.encode("utf-8"))
         for child in children:
             norm_key = _normalize_path_key(child)
-            rel_str = str(child.relative_to(target))
+            rel_posix = child.relative_to(target).as_posix()
 
             if norm_key in excluded_paths:
-                logger.debug("Skipping '%s' due to explicit exclusion.", rel_str)
+                logger.debug("Skipping '%s' due to explicit exclusion.", rel_posix)
                 continue
 
-            rel_posix = child.relative_to(target).as_posix()
             if any(rx.search(rel_posix) for rx in excluded_patterns):
-                logger.debug("Skipping '%s' due to pattern exclusion.", rel_str)
+                logger.debug("Skipping '%s' due to pattern exclusion.", rel_posix)
                 continue
 
             if child.is_dir():
