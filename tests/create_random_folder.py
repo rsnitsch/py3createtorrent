@@ -10,29 +10,16 @@ import logging
 import random
 from pathlib import Path
 
+import cachedir_tag
+
 from create_random_file import create_random_file, parse_size
 from faker import Faker
 
 logger = logging.getLogger(__name__)
 
 
-def create_cache_dir_tag(path):
-    path = Path(path)
-    if path.is_dir():
-        path = path.joinpath("CACHEDIR.TAG")
-    elif not path.name == "CACHEDIR.TAG":
-        raise ValueError("Full file path was specified, but file name is not CACHEDIR.TAG")
-
-    with open(path, "w") as fh:
-        fh.write("Signature: 8a477f597d28d172789f06886806bc55\n")
-        fh.write("# This file instructs backup applications to ignore this directory.\n")
-        fh.write("# For more information see https://www.brynosaurus.com/cachedir/\n")
-
-    return path
-
-
 def create_random_folder(
-    path: Path, number_of_files: int, min_file_size: int, max_file_size: int, seed: int = 0, cachedir_tag=True
+    path: Path, number_of_files: int, min_file_size: int, max_file_size: int, seed: int = 0, create_cachedir_tag=True
 ):
     if min_file_size > max_file_size:
         raise ValueError("min_file_size is larger than max_file_size")
@@ -42,9 +29,8 @@ def create_random_folder(
     Faker.seed(seed)
 
     path.mkdir(parents=True, exist_ok=True)
-    if cachedir_tag:
-        p = create_cache_dir_tag(path)
-        logger.debug("Saved cachedir tag at: %s", p)
+    if create_cachedir_tag:
+        cachedir_tag.tag(path)
 
     for _ in range(number_of_files):
         filename = fake.file_name()

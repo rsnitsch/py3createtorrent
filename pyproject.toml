@@ -9,6 +9,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "build",
+    "cachedir-tag>=0.0.5",
     "faker",
     "libtorrent>=2.0.10; python_version < '3.14'",
     "matplotlib",
