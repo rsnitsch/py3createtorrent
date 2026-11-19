@@ -6,6 +6,7 @@ import argparse
 import os
 import random
 import sys
+from pathlib import Path
 
 
 def parse_size(size):
@@ -27,7 +28,10 @@ def parse_size(size):
     return letter_to_unit[letter.upper()] * int(number)
 
 
-def create_random_file(dst, size):
+def create_random_file(dst: Path | str, size: int):
+    if size < 0:
+        raise ValueError("size is negative")
+
     BLOCK_SIZE = 4096
     bytes_saved = 0
     with open(dst, "wb") as fh:

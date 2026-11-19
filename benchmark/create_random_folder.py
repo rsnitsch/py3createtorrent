@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Script to generate a specified number of files with pseudo-random names/contents in
 a given directory. The size of each file will be randomly (uniformly) chosen from a
@@ -5,11 +6,14 @@ user-specified range.
 """
 
 import argparse
+import logging
 import random
 from pathlib import Path
 
 from create_random_file import create_random_file, parse_size
 from faker import Faker
+
+logger = logging.getLogger(__name__)
 
 
 def create_cache_dir_tag(path):
@@ -25,6 +29,28 @@ def create_cache_dir_tag(path):
         fh.write("# For more information see https://www.brynosaurus.com/cachedir/\n")
 
     return path
+
+
+def create_random_folder(
+    path: Path, number_of_files: int, min_file_size: int, max_file_size: int, seed: int = 0, cachedir_tag=True
+):
+    if min_file_size > max_file_size:
+        raise ValueError("min_file_size is larger than max_file_size")
+
+    random.seed(seed)
+    fake = Faker()
+    Faker.seed(seed)
+
+    path.mkdir(parents=True, exist_ok=True)
+    if cachedir_tag:
+        p = create_cache_dir_tag(path)
+        logger.debug("Saved cachedir tag at: %s", p)
+
+    for _ in range(number_of_files):
+        filename = fake.file_name()
+        size = random.randint(min_file_size, max_file_size)
+        logger.debug("Creating random file: % 20s of size: % 10d bytes...", filename, size)
+        create_random_file(path.joinpath(filename), size)
 
 
 def main():
@@ -49,20 +75,9 @@ def main():
     if args.min_file_size > args.max_file_size:
         parser.error("min_file_size must be smaller or equal than max_file_size")
 
-    random.seed(args.seed)
-    fake = Faker()
-    Faker.seed(args.seed)
-
-    args.path.mkdir(parents=True, exist_ok=True)
-    if not args.no_cachedir_tag:
-        p = create_cache_dir_tag(args.path)
-        print("Saved cachedir tag at: %s" % p)
-
-    for i in range(args.number_of_files):
-        filename = fake.file_name()
-        size = random.randint(args.min_file_size, args.max_file_size)
-        print("Creating random file: % 20s of size: % 10d bytes..." % (filename, size))
-        create_random_file(args.path.joinpath(filename), size)
+    create_random_folder(
+        args.path, args.number_of_files, args.min_file_size, args.max_file_size, args.seed, not args.no_cachedir_tag
+    )
 
 
 if __name__ == "__main__":
