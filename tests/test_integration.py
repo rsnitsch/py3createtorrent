@@ -60,9 +60,14 @@ TEST_CASES = [
     TestCase("single_file_v1", "random_file.dat", ProtocolVersion.V1),
     TestCase("single_file_v2", "random_file.dat", ProtocolVersion.V2),
     TestCase("single_file_hybrid", "random_file.dat", ProtocolVersion.HYBRID),
-    TestCase("multi_file_v1", "random_folder", ProtocolVersion.V1),
-    TestCase("multi_file_v2", "random_folder", ProtocolVersion.V2),
-    TestCase("multi_file_hybrid", "random_folder", ProtocolVersion.HYBRID),
+    TestCase("multi_file_v1", "random_folder_big_files", ProtocolVersion.V1),
+    TestCase("multi_file_v2", "random_folder_big_files", ProtocolVersion.V2),
+    TestCase("multi_file_hybrid", "random_folder_big_files", ProtocolVersion.HYBRID),
+    TestCase("multi_file_v1", "random_folder_tiny_files", ProtocolVersion.V1),
+    TestCase("multi_file_v2", "random_folder_tiny_files", ProtocolVersion.V2),
+    TestCase("multi_file_hybrid", "random_folder_tiny_files", ProtocolVersion.HYBRID),
+    TestCase("multi_file_hybrid", "random_folder_tiny_files", ProtocolVersion.HYBRID, 16),
+    TestCase("multi_file_hybrid", "random_folder_tiny_files", ProtocolVersion.HYBRID, 32),
 ]
 
 
