@@ -36,6 +36,7 @@ KIB = 2**10
 MIB = KIB * KIB
 BLOCK_SIZE = 16 * KIB  # BEP 52 fixed leaf block size (16 KiB)
 BEST_TRACKERS_URL = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
+NAME_PATTERN = re.compile(r"^[A-Z0-9_\-., ()]+$", re.IGNORECASE)
 
 
 class ProtocolVersion(StrEnum):
@@ -61,6 +62,8 @@ class TorrentSpec:
     private: bool = False
     protocol: ProtocolVersion = ProtocolVersion.HYBRID
     output: Path | None = None
+    name: str | None = None
+    comment: str | None = None
 
 
 def is_power_of_two(n: int) -> bool:
@@ -317,8 +320,19 @@ def create_torrent(spec: TorrentSpec) -> tuple[Path, dict[str, Any], int]:
     include_v1 = spec.protocol in (ProtocolVersion.V1, ProtocolVersion.HYBRID)
     include_v2 = spec.protocol in (ProtocolVersion.V2, ProtocolVersion.HYBRID)
 
+    if spec.name is not None:
+        torrent_name = spec.name.strip()
+        if not torrent_name or not NAME_PATTERN.match(torrent_name):
+            raise ValueError(
+                f"Invalid name: '{spec.name}'. Allowed chars: A-Z, a-z, 0-9, any of {{.,_-()}} plus spaces."
+            )
+        if is_single_file:
+            entries[0].rel_parts = [torrent_name]
+    else:
+        torrent_name = spec.target.resolve().name
+
     info: dict[str, Any] = {
-        "name": spec.target.resolve().name,
+        "name": torrent_name,
         "piece length": piece_length,
     }
 
@@ -359,6 +373,9 @@ def create_torrent(spec: TorrentSpec) -> tuple[Path, dict[str, Any], int]:
         "creation date": int(time.time()),
         "created by": f"py3createtorrent v{__version__}",
     }
+
+    if spec.comment:
+        metainfo["comment"] = spec.comment
 
     if include_v2:
         metainfo["piece layers"] = piece_layers
@@ -403,6 +420,7 @@ def print_summary(metainfo: dict[str, Any], total_size: int, protocol: ProtocolV
         f"  Protocol:            {protocol.value}\n"
         f"  Size:                {size_str}\n"
         f"  Pieces:              {piece_count} x {piece_length // KIB} KiB\n"
+        f"  Comment:             {metainfo.get('comment', '(none)')}\n"
         f"  Private:             {is_private}\n"
         f"  Creation date:       {creation_date}\n"
         f"  Primary tracker:     {metainfo.get('announce', '(none)')}\n"
@@ -462,6 +480,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Set the filename and/or output directory of the created file. [default: <name>.torrent]",
     )
     parser.add_argument(
+        "-n",
+        "--name",
+        type=str,
+        default=None,
+        help="Set the name of the torrent. [default: <basename of target>]",
+    )
+    parser.add_argument(
+        "-c",
+        "--comment",
+        type=str,
+        default=None,
+        help="Add a comment.",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -492,6 +524,8 @@ def main() -> None:
         private=args.private,
         protocol=args.protocol,
         output=args.output,
+        name=args.name,
+        comment=args.comment,
     )
 
     try:
