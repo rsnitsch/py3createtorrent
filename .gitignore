@@ -1,6 +1,5 @@
 __pycache__
 docs/build/
-Pipfile.lock
 dist
 src/py3createtorrent.egg-info
 build
@@ -10,3 +9,4 @@ benchmark/*.csv
 benchmark/*.png
 benchmark/py3createtorrent.py
 benchmark/results
+uv.lock
