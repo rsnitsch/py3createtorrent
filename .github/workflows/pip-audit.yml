@@ -1,0 +1,45 @@
+name: Dependency Security Audit
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'pyproject.toml'
+      - '.github/workflows/pip-audit.yml'
+  pull_request:
+    paths:
+      - 'pyproject.toml'
+      - '.github/workflows/pip-audit.yml'
+  schedule:
+    # Each monday
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pip-audit:
+    name: Audit Python Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Export locked production dependencies
+        run: uv export --no-dev --no-emit-project -o requirements.txt
+
+      - name: Run pip-audit
+        run: |
+          echo "## pip-audit Ergebnis ($(uv run python --version))" >> "$GITHUB_STEP_SUMMARY"
+          uvx pip-audit -r requirements.txt --strict --desc --format markdown >> "$GITHUB_STEP_SUMMARY" \
+            || (echo "❌ Schwachstellen gefunden – Details in der Tabelle oben." >> "$GITHUB_STEP_SUMMARY" && exit 1)
+          echo "✅ Keine bekannten Schwachstellen gefunden." >> "$GITHUB_STEP_SUMMARY"
