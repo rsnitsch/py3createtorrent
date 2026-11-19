@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 KIB = 2**10
 MIB = KIB * KIB
 BLOCK_SIZE = 16 * KIB  # BEP 52 fixed leaf block size (16 KiB)
-BEST_TRACKERS_URL = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
+DEFAULT_BEST_TRACKERS_URL = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
 NAME_PATTERN = re.compile(r"^[A-Z0-9_\-., ()]+$", re.IGNORECASE)
 SOURCE_PATTERN = re.compile(r"^[A-Z0-9_\-., ]+$", re.IGNORECASE)
 
@@ -60,6 +60,7 @@ class FileEntry:
 class TorrentSpec:
     target: Path
     trackers: list[str] = field(default_factory=list)
+    best_trackers_url: str = DEFAULT_BEST_TRACKERS_URL
     nodes: list[str] = field(default_factory=list)
     webseeds: list[str] = field(default_factory=list)
     exclude: list[Path] = field(default_factory=list)
@@ -73,6 +74,7 @@ class TorrentSpec:
     comment: str | None = None
     source: str | None = None
     date: int | None = None
+    created_by: bool = True
 
 
 def is_power_of_two(n: int) -> bool:
@@ -281,7 +283,7 @@ def resolve_output_path(output: Path | None, torrent_name: str) -> Path:
     return resolved
 
 
-def resolve_trackers(raw_trackers: list[str]) -> list[str]:
+def resolve_trackers(raw_trackers: list[str], best_trackers_url: str) -> list[str]:
     """
     Expand 'bestN' shortcuts and deduplicate tracker URLs while preserving order.
     """
@@ -293,8 +295,10 @@ def resolve_trackers(raw_trackers: list[str]) -> list[str]:
         if match:
             count = int(match.group(1))
             if count > 0:
-                logger.debug("Fetching top %d trackers from %s", count, BEST_TRACKERS_URL)
-                with urllib.request.urlopen(BEST_TRACKERS_URL, timeout=15) as resp:
+                if not best_trackers_url.strip():
+                    raise ValueError("Best trackers URL must not be empty.")
+                logger.debug("Fetching top %d trackers from %s", count, best_trackers_url)
+                with urllib.request.urlopen(best_trackers_url.strip(), timeout=15) as resp:
                     lines = [line.strip() for line in resp.read().decode("utf-8").splitlines() if line.strip()]
                 resolved.extend(lines[:count])
         else:
@@ -431,7 +435,7 @@ def create_torrent(spec: TorrentSpec) -> tuple[Path, dict[str, Any], int]:
         if piece_length < 16 * KIB or not is_power_of_two(piece_length):
             raise ValueError("Piece length must be a power of two and at least 16 KiB.")
 
-    trackers = resolve_trackers(spec.trackers)
+    trackers = resolve_trackers(spec.trackers, spec.best_trackers_url)
     webseeds = list(dict.fromkeys(w.strip() for w in spec.webseeds if w.strip()))
     is_single_file = spec.target.is_file()
     include_v1 = spec.protocol in (ProtocolVersion.V1, ProtocolVersion.HYBRID)
@@ -495,8 +499,10 @@ def create_torrent(spec: TorrentSpec) -> tuple[Path, dict[str, Any], int]:
     # 3. Outer metainfo dictionary
     metainfo: dict[str, Any] = {
         "info": info,
-        "created by": f"py3createtorrent v{__version__}",
     }
+
+    if spec.created_by:
+        metainfo["created by"] = f"py3createtorrent v{__version__}"
 
     if spec.date is None or spec.date == -1:
         metainfo["creation date"] = int(time.time())
@@ -595,6 +601,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         dest="trackers",
         default=[],
         help="Add one or multiple tracker (announce) URLs (supports 'bestN').",
+    )
+    parser.add_argument(
+        "--best-trackers-url",
+        metavar="URL",
+        type=str,
+        default=DEFAULT_BEST_TRACKERS_URL,
+        help=f"URL used to fetch trackers when using 'bestN'. [default: {DEFAULT_BEST_TRACKERS_URL}]",
     )
     parser.add_argument(
         "--node",
@@ -700,6 +713,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "Specify -2 to disable creation date completely. [default: -1 = current date and time]",
     )
     parser.add_argument(
+        "--no-created-by",
+        action="store_true",
+        default=False,
+        help="Omit the 'created by' field from the torrent metainfo.",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -726,6 +745,7 @@ def main() -> None:
     spec = TorrentSpec(
         target=args.target,
         trackers=args.trackers,
+        best_trackers_url=args.best_trackers_url,
         nodes=args.nodes,
         webseeds=args.webseeds,
         exclude=args.exclude,
@@ -739,6 +759,7 @@ def main() -> None:
         comment=args.comment,
         source=args.source,
         date=args.date,
+        created_by=not args.no_created_by,
     )
 
     try:
