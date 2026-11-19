@@ -10,8 +10,10 @@ dependencies = [
 dev = [
     "build",
     "faker",
+    "libtorrent>=2.0.10; python_version < '3.14'",
     "matplotlib",
     "pandas",
+    "pytest>=8.0",
     "sphinx~=7.3",
     "twine",
 ]
