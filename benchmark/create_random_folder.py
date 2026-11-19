@@ -3,6 +3,7 @@ Script to generate a specified number of files with pseudo-random names/contents
 a given directory. The size of each file will be randomly (uniformly) chosen from a
 user-specified range.
 """
+
 import argparse
 import random
 from pathlib import Path
@@ -33,8 +34,7 @@ def main():
     parser.add_argument(
         "min_file_size",
         type=parse_size,
-        help=
-        "minimum file size in KiB/MiB/GiB, specify unit with a single suffix letter K/M/G, for example 256k for 256 KiB",
+        help="minimum file size in KiB/MiB/GiB, specify unit with a single suffix letter K/M/G, for example 256k for 256 KiB",
     )
     parser.add_argument("max_file_size", type=parse_size, help="maximum file size")
     parser.add_argument("--seed", type=int, default=0, help="Set seed for the random number generator.")

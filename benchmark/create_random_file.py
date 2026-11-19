@@ -1,6 +1,7 @@
 """
 Script to create files of given size with pseudo-random content.
 """
+
 import argparse
 import os
 import random
@@ -10,8 +11,10 @@ import sys
 def parse_size(size):
     letter_to_unit = {"K": 2**10, "M": 2**20, "G": 2**30}
 
-    error_message = ("must be a number ending with a single letter to "
-                     "indicate the unit type K, M or G - for example, use 256k to specify 256 KiB")
+    error_message = (
+        "must be a number ending with a single letter to "
+        "indicate the unit type K, M or G - for example, use 256k to specify 256 KiB"
+    )
 
     letter = size[-1]
     if letter.isdigit():
