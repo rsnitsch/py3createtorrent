@@ -147,15 +147,29 @@ For example::
 
     py3createtorrent -t best5 my_data_folder/
 
-You can override the source URL used to fetch the tracker list via ``--best-trackers-url``::
-
-    py3createtorrent -t best5 --best-trackers-url https://ngosang.github.io/trackerslist/trackers_best_ip.txt my_data_folder/
+See :ref:`best_trackers_url` if you want to fetch the tracker list from a different URL.
 
 Trackerless torrents
 """"""""""""""""""""
 
 You can create a trackerless torrent by not specifying any tracker URLs at all (i.e. don't
 use the ``-t`` switch at all).
+
+.. _best_trackers_url:
+
+Best trackers URL (``--best-trackers-url``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Overrides the URL from which tracker URLs are downloaded when using the :ref:`bestN shortcut <bestN_shortcut>`.
+The expected format is a plain text file containing one tracker announce URL per line (empty lines are ignored).
+
+The default URL is::
+
+    https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt
+
+Example::
+
+    py3createtorrent -t best5 --best-trackers-url https://ngosang.github.io/trackerslist/trackers_best_ip.txt my_data_folder/
 
 Specifying DHT bootstrap nodes (``--node``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
