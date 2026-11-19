@@ -37,6 +37,7 @@ MIB = KIB * KIB
 BLOCK_SIZE = 16 * KIB  # BEP 52 fixed leaf block size (16 KiB)
 BEST_TRACKERS_URL = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
 NAME_PATTERN = re.compile(r"^[A-Z0-9_\-., ()]+$", re.IGNORECASE)
+SOURCE_PATTERN = re.compile(r"^[A-Z0-9_\-., ]+$", re.IGNORECASE)
 
 
 class ProtocolVersion(StrEnum):
@@ -66,6 +67,8 @@ class TorrentSpec:
     output: Path | None = None
     name: str | None = None
     comment: str | None = None
+    source: str | None = None
+    date: int | None = None
 
 
 def is_power_of_two(n: int) -> bool:
@@ -369,6 +372,14 @@ def create_torrent(spec: TorrentSpec) -> tuple[Path, dict[str, Any], int]:
     if spec.private:
         info["private"] = 1
 
+    if spec.source is not None:
+        source = spec.source.strip()
+        if not source or not SOURCE_PATTERN.match(source):
+            raise ValueError(
+                f"Invalid source: '{spec.source}'. Allowed chars: A-Z, a-z, 0-9, any of {{.,_-}} plus spaces."
+            )
+        info["source"] = source
+
     # 1. BitTorrent v2 metadata
     piece_layers: dict[bytes, bytes] = {}
     if include_v2:
@@ -400,9 +411,18 @@ def create_torrent(spec: TorrentSpec) -> tuple[Path, dict[str, Any], int]:
     # 3. Outer metainfo dictionary
     metainfo: dict[str, Any] = {
         "info": info,
-        "creation date": int(time.time()),
         "created by": f"py3createtorrent v{__version__}",
     }
+
+    if spec.date is None or spec.date == -1:
+        metainfo["creation date"] = int(time.time())
+    elif spec.date >= 0:
+        metainfo["creation date"] = spec.date
+    elif spec.date != -2:
+        raise ValueError(
+            "Invalid date: Negative timestamp values are not allowed "
+            "(use -1 or None for current date, or -2 to omit creation date)."
+        )
 
     if spec.comment:
         metainfo["comment"] = spec.comment
@@ -448,7 +468,11 @@ def print_summary(metainfo: dict[str, Any], total_size: int, protocol: ProtocolV
     else:
         size_str = f"{total_size // KIB} KiB"
 
-    creation_date = datetime.datetime.fromtimestamp(metainfo["creation date"]).isoformat(" ")
+    if "creation date" in metainfo:
+        creation_date = datetime.datetime.fromtimestamp(metainfo["creation date"]).isoformat(" ")
+    else:
+        creation_date = "(none)"
+
     is_private = "yes" if metainfo["info"].get("private") == 1 else "no"
 
     print(
@@ -548,6 +572,22 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Add a comment.",
     )
     parser.add_argument(
+        "-s",
+        "--source",
+        type=str,
+        default=None,
+        help="Add a source tag.",
+    )
+    parser.add_argument(
+        "-d",
+        "--date",
+        type=int,
+        default=-1,
+        metavar="TIMESTAMP",
+        help="Overwrite creation date. Expects a unix timestamp. "
+        "Specify -2 to disable creation date completely. [default: -1 = current date and time]",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -582,6 +622,8 @@ def main() -> None:
         output=args.output,
         name=args.name,
         comment=args.comment,
+        source=args.source,
+        date=args.date,
     )
 
     try:
