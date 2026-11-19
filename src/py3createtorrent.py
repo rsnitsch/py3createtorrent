@@ -88,24 +88,38 @@ def calculate_piece_length(size: int) -> int:
     return max(min(piece_length, 64 * MIB), 16 * KIB)
 
 
-def merkle_root(hashes: list[bytes]) -> bytes:
+def _zero_subtree_hash(depth: int) -> bytes:
+    """
+    Compute the BEP 52 zero hash at a given tree depth:
+    depth 0 (16 KiB leaf) = 32 zero bytes,
+    depth d = SHA256(zero(d-1) || zero(d-1)).
+    """
+    h = b"\x00" * 32
+    for _ in range(depth):
+        h = hashlib.sha256(h + h).digest()
+    return h
+
+
+def merkle_root(hashes: list[bytes], pad_to: int | None = None, leaf_depth: int = 0) -> bytes:
     """
     Compute the SHA-256 Merkle tree root according to BEP 52.
-    Pads the leaf layer with 32-byte zero hashes up to the next power of two.
+    Pads the layer with the appropriate zero-subtree hashes for `leaf_depth`
+    up to `pad_to` (if given) or up to the next power of two.
     """
     if not hashes:
-        return b"\x00" * 32
+        return _zero_subtree_hash(leaf_depth)
 
     layer = list(hashes)
-    target_len = 1 << (len(layer) - 1).bit_length()
+    target_len = pad_to if pad_to is not None else (1 << (len(layer) - 1).bit_length())
+
     if len(layer) < target_len:
-        layer.extend([b"\x00" * 32] * (target_len - len(layer)))
+        pad_hash = _zero_subtree_hash(leaf_depth)
+        layer.extend([pad_hash] * (target_len - len(layer)))
 
     while len(layer) > 1:
         next_layer = []
         for i in range(0, len(layer), 2):
-            combined = layer[i] + layer[i + 1]
-            next_layer.append(hashlib.sha256(combined).digest())
+            next_layer.append(hashlib.sha256(layer[i] + layer[i + 1]).digest())
         layer = next_layer
 
     return layer[0]
@@ -116,11 +130,20 @@ def compute_v2_file_hashes(file_path: Path, piece_length: int) -> tuple[bytes, b
     Compute (pieces_root, piece_layers) for a single non-empty file according to BEP 52.
     """
     blocks_per_piece = piece_length // BLOCK_SIZE
-    piece_hashes: list[bytes] = []
+    piece_depth = blocks_per_piece.bit_length() - 1
+    file_size = file_path.stat().st_size
 
+    if file_size <= piece_length:
+        block_hashes: list[bytes] = []
+        with file_path.open("rb") as fh:
+            while block := fh.read(BLOCK_SIZE):
+                block_hashes.append(hashlib.sha256(block).digest())
+        return merkle_root(block_hashes, leaf_depth=0), None
+
+    piece_hashes: list[bytes] = []
     with file_path.open("rb") as fh:
         while True:
-            block_hashes: list[bytes] = []
+            block_hashes = []
             for _ in range(blocks_per_piece):
                 block = fh.read(BLOCK_SIZE)
                 if not block:
@@ -130,21 +153,17 @@ def compute_v2_file_hashes(file_path: Path, piece_length: int) -> tuple[bytes, b
             if not block_hashes:
                 break
 
-            # Pad incomplete trailing piece blocks only if there are multiple pieces,
-            # or let merkle_root pad to the next power of two.
-            if len(block_hashes) < blocks_per_piece and piece_hashes:
-                block_hashes.extend([b"\x00" * 32] * (blocks_per_piece - len(block_hashes)))
+            piece_hashes.append(merkle_root(block_hashes, pad_to=blocks_per_piece, leaf_depth=0))
 
-            piece_hashes.append(merkle_root(block_hashes))
-
-    root = merkle_root(piece_hashes)
-    layers = b"".join(piece_hashes) if len(piece_hashes) > 1 else None
+    root = merkle_root(piece_hashes, leaf_depth=piece_depth)
+    layers = b"".join(piece_hashes)
     return root, layers
 
 
 def scan_target(target: Path) -> list[FileEntry]:
     """
-    Scan target file or directory and return deterministically sorted FileEntry items.
+    Scan target file or directory and return FileEntry items sorted by raw UTF-8
+    path component bytes, matching BEP 52's bencoded 'file tree' traversal order.
     """
     if target.is_file():
         return [FileEntry(abs_path=target, rel_parts=[target.name], size=target.stat().st_size)]
@@ -153,10 +172,9 @@ def scan_target(target: Path) -> list[FileEntry]:
         raise FileNotFoundError(f"Target '{target}' is neither a file nor a directory.")
 
     entries: list[FileEntry] = []
-    # Sort case-insensitively across path parts for deterministic torrent layout
     all_files = sorted(
         (p for p in target.rglob("*") if p.is_file()),
-        key=lambda p: [part.lower() for part in p.relative_to(target).parts],
+        key=lambda p: [part.encode("utf-8") for part in p.relative_to(target).parts],
     )
 
     for file_path in all_files:
@@ -218,6 +236,9 @@ def build_v1_pieces_and_files(
     v1_files: list[dict[str, Any]] = []
     buffer = bytearray()
 
+    # Find index of the last non-empty file; trailing padding after it is forbidden in BEP 52
+    last_non_empty_idx = max((i for i, e in enumerate(entries) if e.size > 0), default=-1)
+
     for idx, entry in enumerate(entries):
         logger.debug("Hashing v1: %s", "/".join(entry.rel_parts))
         with entry.abs_path.open("rb") as fh:
@@ -230,8 +251,9 @@ def build_v1_pieces_and_files(
         if not is_single_file:
             v1_files.append({"length": entry.size, "path": entry.rel_parts})
 
-            # In hybrid torrents, pad every file (except the last) to a multiple of piece_length
-            if align_to_piece_boundaries and idx < len(entries) - 1 and len(buffer) > 0:
+            # In hybrid torrents, pad every non-empty file before the last non-empty file
+            # to a multiple of piece_length.
+            if align_to_piece_boundaries and entry.size > 0 and idx < last_non_empty_idx and len(buffer) > 0:
                 pad_len = piece_length - len(buffer)
                 buffer.extend(b"\x00" * pad_len)
                 v1_pieces.extend(hashlib.sha1(buffer).digest())
