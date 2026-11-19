@@ -2,6 +2,19 @@
 name = "py3createtorrent"
 version = "2.0.0a1"
 requires-python = ">=3.11"
+dependencies = [
+    "bencode.py~=4.1",
+]
+
+[dependency-groups]
+dev = [
+    "build",
+    "faker",
+    "matplotlib",
+    "pandas",
+    "sphinx~=7.3",
+    "twine",
+]
 
 [tool.pyright]
 pythonVersion = "3.11"
