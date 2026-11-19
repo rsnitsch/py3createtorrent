@@ -45,9 +45,18 @@ class TestCase:
     name: str
     target_rel_path: str
     protocol: ProtocolVersion
+    piece_size: int = 0
 
 
 TEST_CASES = [
+    TestCase("single_file_16k_v2", "random_file_16k.dat", ProtocolVersion.V2),
+    TestCase("single_file_17k_v2", "random_file_17k.dat", ProtocolVersion.V2),
+    TestCase("single_file_48k_v2", "random_file_48k.dat", ProtocolVersion.V2),
+    TestCase("single_file_64k_v2", "random_file_64k.dat", ProtocolVersion.V2),
+    TestCase("single_file_65k_v2", "random_file_65k.dat", ProtocolVersion.V2),
+    TestCase("single_file_65k_v2", "random_file_65k.dat", ProtocolVersion.V2, 32),
+    TestCase("single_file_100k_v2", "random_file_100k.dat", ProtocolVersion.V2),
+    TestCase("single_file_100k_v2", "random_file_100k.dat", ProtocolVersion.V2, 32),
     TestCase("single_file_v1", "random_file.dat", ProtocolVersion.V1),
     TestCase("single_file_v2", "random_file.dat", ProtocolVersion.V2),
     TestCase("single_file_hybrid", "random_file.dat", ProtocolVersion.HYBRID),
@@ -165,33 +174,42 @@ def verify_with_libtorrent_offline(
     }
 
     ses = lt.session(settings)
-    ses.pause()  # Keeps the entire session paused at network level
 
     params = lt.add_torrent_params()
     params.ti = ti
+    params.trackers = []  # Strip trackers from ti so no announces are ever queued
     params.save_path = str(save_path.resolve())
-    # Prevent automatic unpausing and force a full hash recheck instead of trusting seed_mode
+    # Allow libtorrent to run the file check immediately, but disable auto_managed and seed_mode
     params.flags &= ~lt.torrent_flags.auto_managed
     params.flags &= ~lt.torrent_flags.seed_mode
-    params.flags |= lt.torrent_flags.paused
+    params.flags &= ~lt.torrent_flags.paused
 
     handle = ses.add_torrent(params)
     handle.force_recheck()
 
-    # Wait briefly until checking actually starts or finishes
-    while True:
+    deadline = time.monotonic() + 30.0
+    check_started = False
+    while time.monotonic() < deadline:
         s = handle.status()
-        if s.errc:
+        if s.errc.value() != 0:
             raise AssertionError(f"libtorrent verification error for {torrent_path.name}: {s.errc.message()}")
-        if s.state not in (
+        if s.state in (
             lt.torrent_status.checking_files,
             lt.torrent_status.checking_resume_data,
         ):
-            # Guard against reading status before force_recheck transitions out of paused
-            if s.progress == 1.0 or s.num_pieces > 0:
-                break
+            check_started = True
+        elif check_started or s.state == lt.torrent_status.seeding or s.progress == 1.0:
+            break
         time.sleep(0.05)
+    else:
+        s = handle.status()
+        raise TimeoutError(
+            f"libtorrent verification timed out for {torrent_path.name} "
+            f"(state={s.state}, progress={s.progress * 100:.2f}%)"
+        )
 
+    handle.pause()
+    s = handle.status()
     logger.debug(
         "  libtorrent offline verification: %.2f%% (%d/%d pieces)",
         s.progress * 100,
@@ -246,7 +264,7 @@ def run_all_tests(
                 spec = TorrentSpec(
                     target=target,
                     trackers=["best3"],
-                    piece_length=0,
+                    piece_length=case.piece_size,
                     private=False,
                     protocol=case.protocol,
                     output=case_dir,
@@ -320,7 +338,7 @@ def main() -> None:
 
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
+        format="%(asctime)s | %(name)s | [%(levelname)s] %(message)s",
         datefmt="%H:%M:%S",
     )
 
