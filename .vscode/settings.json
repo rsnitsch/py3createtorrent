@@ -1,12 +1,7 @@
 {
     "[python]": {
-        "pylint.enabled": false,
         "editor.formatOnSaveMode": "file",
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "charliermarsh.ruff",
-        "editor.codeActionsOnSave": {
-            "source.fixAll.ruff": "explicit"
-        }
-    },
-    "python-envs.defaultEnvManager": "ms-python.python:pipenv"
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    }
 }

@@ -5,7 +5,7 @@ requires-python = ">=3.11"
 
 [tool.pyright]
 pythonVersion = "3.11"
-typeCheckingMode = "standard" # oder "strict" für maximale Typsicherheit beim Neubau
+typeCheckingMode = "standard"
 
 [tool.ruff]
 target-version = "py311"
@@ -16,6 +16,4 @@ indent-style = "space"
 quote-style = "preserve"
 
 [tool.ruff.lint]
-extend-select = ["W291", "W293"]
-fixable = ["FURB167", "UP024", "W291", "W293"]
 ignore = ["C408", "UP031", "SIM102"]
