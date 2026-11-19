@@ -22,6 +22,7 @@ Version 2.0.0
   - complete rewrite using Python 3.11+ features (``pathlib``, ``dataclasses``, ``StrEnum``) and an
     object-oriented API (``TorrentSpec``, ``create_torrent``).
   - switched from ``pipenv`` / ``Pipfile`` to ``uv`` / ``pyproject.toml``.
+  - locked dependencies are now tracked in the repo (``uv.lock``).
   - implemented completely new test suite ``tests/test_integration.py``.
 
 Version 1.2.1

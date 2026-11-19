@@ -9,4 +9,3 @@ benchmark/*.csv
 benchmark/*.png
 benchmark/py3createtorrent.py
 benchmark/results
-uv.lock
