@@ -58,6 +58,8 @@ class FileEntry:
 class TorrentSpec:
     target: Path
     trackers: list[str] = field(default_factory=list)
+    nodes: list[str] = field(default_factory=list)
+    webseeds: list[str] = field(default_factory=list)
     piece_length: int = 0
     private: bool = False
     protocol: ProtocolVersion = ProtocolVersion.HYBRID
@@ -225,6 +227,32 @@ def resolve_trackers(raw_trackers: list[str]) -> list[str]:
     return list(dict.fromkeys(resolved))
 
 
+def parse_nodes(raw_nodes: list[str], private: bool) -> list[list[str | int]]:
+    """
+    Validate and parse DHT bootstrap nodes given as 'host,port'.
+    """
+    if raw_nodes and private:
+        raise ValueError(
+            "DHT bootstrap nodes cannot be specified for a private torrent. Private torrents do not support DHT."
+        )
+
+    parsed: list[list[str | int]] = []
+    for raw in raw_nodes:
+        parts = raw.split(",")
+        if len(parts) != 2 or not parts[0].strip():
+            raise ValueError(f"Invalid format for DHT bootstrap node '{raw}'. Please use the format 'host,port'.")
+        host = parts[0].strip()
+        port_str = parts[1].strip()
+        if not port_str.isdigit():
+            raise ValueError(f"Invalid port number for DHT bootstrap node '{raw}'. Ports must be numeric.")
+        port = int(port_str)
+        if not (1 <= port <= 65535):
+            raise ValueError(f"Port number out of range (1-65535) for DHT bootstrap node '{raw}'.")
+        parsed.append([host, port])
+
+    return parsed
+
+
 def build_v1_pieces_and_files(
     entries: list[FileEntry],
     piece_length: int,
@@ -301,6 +329,7 @@ def create_torrent(spec: TorrentSpec) -> tuple[Path, dict[str, Any], int]:
     """
     Build the metainfo dictionary and write the .torrent file to disk.
     """
+    parsed_nodes = parse_nodes(spec.nodes, spec.private)
     entries = scan_target(spec.target)
     total_size = sum(e.size for e in entries)
 
@@ -316,6 +345,7 @@ def create_torrent(spec: TorrentSpec) -> tuple[Path, dict[str, Any], int]:
             raise ValueError("Piece length must be a power of two and at least 16 KiB.")
 
     trackers = resolve_trackers(spec.trackers)
+    webseeds = list(dict.fromkeys(w.strip() for w in spec.webseeds if w.strip()))
     is_single_file = spec.target.is_file()
     include_v1 = spec.protocol in (ProtocolVersion.V1, ProtocolVersion.HYBRID)
     include_v2 = spec.protocol in (ProtocolVersion.V2, ProtocolVersion.HYBRID)
@@ -385,6 +415,12 @@ def create_torrent(spec: TorrentSpec) -> tuple[Path, dict[str, Any], int]:
         if len(trackers) > 1:
             metainfo["announce-list"] = [[t] for t in trackers]
 
+    if parsed_nodes:
+        metainfo["nodes"] = parsed_nodes
+
+    if webseeds:
+        metainfo["url-list"] = webseeds
+
     output_path = resolve_output_path(spec.output, info["name"])
     logger.debug("Writing torrent file to: %s", output_path)
     output_path.write_bytes(bencode(metainfo))
@@ -423,6 +459,8 @@ def print_summary(metainfo: dict[str, Any], total_size: int, protocol: ProtocolV
         f"  Comment:             {metainfo.get('comment', '(none)')}\n"
         f"  Private:             {is_private}\n"
         f"  Creation date:       {creation_date}\n"
+        f"  DHT bootstrap nodes: {metainfo.get('nodes', '(none)')}\n"
+        f"  Webseeds:            {metainfo.get('url-list', '(none)')}\n"
         f"  Primary tracker:     {metainfo.get('announce', '(none)')}\n"
         f"  Backup trackers:\n"
         f"{backup_trackers}"
@@ -449,6 +487,22 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         dest="trackers",
         default=[],
         help="Add one or multiple tracker (announce) URLs (supports 'bestN').",
+    )
+    parser.add_argument(
+        "--node",
+        metavar="HOST,PORT",
+        action="append",
+        dest="nodes",
+        default=[],
+        help="Add one or multiple DHT bootstrap nodes.",
+    )
+    parser.add_argument(
+        "--webseed",
+        metavar="WEBSEED_URL",
+        action="append",
+        dest="webseeds",
+        default=[],
+        help="Add one or multiple HTTP/FTP URLs as seeds (GetRight-style).",
     )
     parser.add_argument(
         "-p",
@@ -520,6 +574,8 @@ def main() -> None:
     spec = TorrentSpec(
         target=args.target,
         trackers=args.trackers,
+        nodes=args.nodes,
+        webseeds=args.webseeds,
         piece_length=args.piece_length,
         private=args.private,
         protocol=args.protocol,
