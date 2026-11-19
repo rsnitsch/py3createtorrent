@@ -16,7 +16,7 @@ dev = [
     "pandas",
     "pip-audit>=2.10.1",
     "pytest>=8.0",
-    "sphinx~=7.3",
+    "sphinx~=9.2; python_version >= '3.13'",
     "twine",
 ]
 
