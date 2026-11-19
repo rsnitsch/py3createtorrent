@@ -13,6 +13,7 @@ import datetime
 import hashlib
 import logging
 import math
+import os
 import re
 import sys
 import time
@@ -61,6 +62,9 @@ class TorrentSpec:
     trackers: list[str] = field(default_factory=list)
     nodes: list[str] = field(default_factory=list)
     webseeds: list[str] = field(default_factory=list)
+    exclude: list[Path] = field(default_factory=list)
+    exclude_pattern: list[str] = field(default_factory=list)
+    exclude_pattern_ci: list[str] = field(default_factory=list)
     piece_length: int = 0
     private: bool = False
     protocol: ProtocolVersion = ProtocolVersion.HYBRID
@@ -168,7 +172,49 @@ def compute_v2_file_hashes(file_path: Path, piece_length: int) -> tuple[bytes, b
     return root, layers
 
 
-def scan_target(target: Path) -> list[FileEntry]:
+def _normalize_path_key(path: Path) -> str:
+    return os.path.normcase(str(path.resolve()))
+
+
+def compile_exclude_rules(
+    target: Path,
+    exclude: list[Path],
+    exclude_pattern: list[str],
+    exclude_pattern_ci: list[str],
+) -> tuple[set[str], list[re.Pattern[str]]]:
+    """
+    Validate and compile explicit path exclusions and regular expression exclusions.
+    """
+    excluded_paths: set[str] = set()
+    for path in exclude:
+        if not path.exists():
+            logger.warning("You're excluding a path that does not exist: '%s'", path)
+        excluded_paths.add(_normalize_path_key(path))
+
+    compiled_patterns: list[re.Pattern[str]] = []
+    for raw_pattern in exclude_pattern:
+        try:
+            compiled_patterns.append(re.compile(raw_pattern))
+        except re.error as exc:
+            raise ValueError(f"Invalid regular expression '{raw_pattern}': {exc}") from exc
+
+    for raw_pattern in exclude_pattern_ci:
+        try:
+            compiled_patterns.append(re.compile(raw_pattern, re.IGNORECASE))
+        except re.error as exc:
+            raise ValueError(f"Invalid case-insensitive regular expression '{raw_pattern}': {exc}") from exc
+
+    if target.is_file() and (excluded_paths or compiled_patterns):
+        logger.warning("Excluding paths is not possible when creating a torrent for a single file.")
+
+    return excluded_paths, compiled_patterns
+
+
+def scan_target(
+    target: Path,
+    excluded_paths: set[str] | None = None,
+    excluded_patterns: list[re.Pattern[str]] | None = None,
+) -> list[FileEntry]:
     """
     Scan target file or directory and return FileEntry items sorted by raw UTF-8
     path component bytes, matching BEP 52's bencoded 'file tree' traversal order.
@@ -179,16 +225,44 @@ def scan_target(target: Path) -> list[FileEntry]:
     if not target.is_dir():
         raise FileNotFoundError(f"Target '{target}' is neither a file nor a directory.")
 
+    excluded_paths = excluded_paths or set()
+    excluded_patterns = excluded_patterns or []
+
+    root_resolved = target.resolve()
+    if _normalize_path_key(root_resolved) in excluded_paths:
+        raise ValueError(f"Cannot exclude the target directory itself: '{target}'")
+
     entries: list[FileEntry] = []
-    all_files = sorted(
-        (p for p in target.rglob("*") if p.is_file()),
-        key=lambda p: [part.encode("utf-8") for part in p.relative_to(target).parts],
-    )
+    visited_dirs: set[Path] = set()
 
-    for file_path in all_files:
-        rel_parts = list(file_path.relative_to(target).parts)
-        entries.append(FileEntry(abs_path=file_path, rel_parts=rel_parts, size=file_path.stat().st_size))
+    def _walk(current_dir: Path) -> None:
+        resolved_dir = current_dir.resolve()
+        if resolved_dir in visited_dirs:
+            logger.warning("Skipping symlink '%s', because its target has already been processed.", current_dir)
+            return
+        visited_dirs.add(resolved_dir)
 
+        children = sorted(current_dir.iterdir(), key=lambda p: p.name.encode("utf-8"))
+        for child in children:
+            norm_key = _normalize_path_key(child)
+            rel_str = str(child.relative_to(target))
+
+            if norm_key in excluded_paths:
+                logger.debug("Skipping '%s' due to explicit exclusion.", rel_str)
+                continue
+
+            full_str = str(child.resolve())
+            if any(rx.search(full_str) for rx in excluded_patterns):
+                logger.debug("Skipping '%s' due to pattern exclusion.", rel_str)
+                continue
+
+            if child.is_dir():
+                _walk(child)
+            elif child.is_file():
+                rel_parts = list(child.relative_to(target).parts)
+                entries.append(FileEntry(abs_path=child, rel_parts=rel_parts, size=child.stat().st_size))
+
+    _walk(target)
     return entries
 
 
@@ -333,11 +407,21 @@ def create_torrent(spec: TorrentSpec) -> tuple[Path, dict[str, Any], int]:
     Build the metainfo dictionary and write the .torrent file to disk.
     """
     parsed_nodes = parse_nodes(spec.nodes, spec.private)
-    entries = scan_target(spec.target)
+    excluded_paths, excluded_patterns = compile_exclude_rules(
+        target=spec.target,
+        exclude=spec.exclude,
+        exclude_pattern=spec.exclude_pattern,
+        exclude_pattern_ci=spec.exclude_pattern_ci,
+    )
+    entries = scan_target(
+        spec.target,
+        excluded_paths=excluded_paths,
+        excluded_patterns=excluded_patterns,
+    )
     total_size = sum(e.size for e in entries)
 
     if total_size == 0:
-        raise ValueError("Cannot create torrent for 0-byte data.")
+        raise ValueError("Cannot create torrent for 0-byte data. Check your files and exclusions!")
 
     if spec.piece_length == 0:
         piece_length = calculate_piece_length(total_size)
@@ -558,6 +642,34 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Set the filename and/or output directory of the created file. [default: <name>.torrent]",
     )
     parser.add_argument(
+        "-e",
+        "--exclude",
+        type=Path,
+        action="append",
+        dest="exclude",
+        default=[],
+        metavar="PATH",
+        help="Exclude a specific path (can be repeated to exclude multiple paths).",
+    )
+    parser.add_argument(
+        "--exclude-pattern",
+        type=str,
+        action="append",
+        dest="exclude_pattern",
+        default=[],
+        metavar="REGEXP",
+        help="Exclude paths matching a regular expression (can be repeated to use multiple patterns).",
+    )
+    parser.add_argument(
+        "--exclude-pattern-ci",
+        type=str,
+        action="append",
+        dest="exclude_pattern_ci",
+        default=[],
+        metavar="REGEXP",
+        help="Same as --exclude-pattern but case-insensitive.",
+    )
+    parser.add_argument(
         "-n",
         "--name",
         type=str,
@@ -616,6 +728,9 @@ def main() -> None:
         trackers=args.trackers,
         nodes=args.nodes,
         webseeds=args.webseeds,
+        exclude=args.exclude,
+        exclude_pattern=args.exclude_pattern,
+        exclude_pattern_ci=args.exclude_pattern_ci,
         piece_length=args.piece_length,
         private=args.private,
         protocol=args.protocol,
