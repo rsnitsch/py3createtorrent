@@ -251,8 +251,8 @@ def scan_target(
                 logger.debug("Skipping '%s' due to explicit exclusion.", rel_str)
                 continue
 
-            full_str = str(child.resolve())
-            if any(rx.search(full_str) for rx in excluded_patterns):
+            rel_posix = child.relative_to(target).as_posix()
+            if any(rx.search(rel_posix) for rx in excluded_patterns):
                 logger.debug("Skipping '%s' due to pattern exclusion.", rel_str)
                 continue
 
