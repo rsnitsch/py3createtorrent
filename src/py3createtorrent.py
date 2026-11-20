@@ -17,19 +17,37 @@ import os
 import re
 import sys
 import time
+import tomllib
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
 from enum import StrEnum
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
+
+
+def _get_version() -> str:
+    try:
+        # Installed as a package (uv tool, pipx, pip, editable install)
+        return version("py3createtorrent")
+    except PackageNotFoundError:
+        # src/py3createtorrent.py is executed directly
+        pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+        if pyproject.is_file():
+            with pyproject.open("rb") as f:
+                data = tomllib.load(f)
+            return str(data["project"]["version"])
+        return "unknown"
+
+
+__version__ = _get_version()
 
 try:
     from bencodepy import encode as bencode
 except ImportError as exc:
     sys.exit("ERROR: bencodepy module could not be imported.\nPlease install it using: pip install bencode.py")
 
-__version__ = "2.0.0a1"
 
 logger = logging.getLogger(__name__)
 
