@@ -91,7 +91,7 @@ Via ``pip``::
 Install py3createtorrent 1.2 (stable)
 -------------------------------------
 
-py3createtorrent 1.2 requires Python 3.8. Python 3.5 to Python 3.7 might be possible if you
+py3createtorrent 1.2 requires Python 3.8 or later. Python 3.5 to Python 3.7 might be possible if you
 install the ``typing-extensions`` module.
 
 Note: The stable 1.2 version comes without v2/hybrid torrent support.
