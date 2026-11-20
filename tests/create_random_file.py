@@ -5,13 +5,12 @@ Script to create files of given size with pseudo-random content.
 import argparse
 import logging
 import random
-import sys
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 
-def parse_size(size):
+def parse_size(size: str):
     letter_to_unit = {"K": 2**10, "M": 2**20, "G": 2**30}
 
     error_message = (
@@ -30,7 +29,7 @@ def parse_size(size):
     return letter_to_unit[letter.upper()] * int(number)
 
 
-def create_random_file(path: Path, size: int, seed: int = 0, overwrite=False):
+def create_random_file(path: Path, size: int, seed: int = 0, overwrite: bool = False):
     if size < 0:
         raise ValueError("size is negative")
 

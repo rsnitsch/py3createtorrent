@@ -59,13 +59,13 @@ class FileEntry:
 @dataclass(slots=True)
 class TorrentSpec:
     target: Path
-    trackers: list[str] = field(default_factory=list)
+    trackers: list[str] = field(default_factory=list[str])
     best_trackers_url: str = DEFAULT_BEST_TRACKERS_URL
-    nodes: list[str] = field(default_factory=list)
-    webseeds: list[str] = field(default_factory=list)
-    exclude: list[Path] = field(default_factory=list)
-    exclude_pattern: list[str] = field(default_factory=list)
-    exclude_pattern_ci: list[str] = field(default_factory=list)
+    nodes: list[str] = field(default_factory=list[str])
+    webseeds: list[str] = field(default_factory=list[str])
+    exclude: list[Path] = field(default_factory=list[Path])
+    exclude_pattern: list[str] = field(default_factory=list[str])
+    exclude_pattern_ci: list[str] = field(default_factory=list[str])
     piece_length: int = 0
     private: bool = False
     protocol: ProtocolVersion = ProtocolVersion.HYBRID
@@ -131,7 +131,7 @@ def merkle_root(hashes: list[bytes], pad_to: int | None = None, leaf_depth: int 
         layer.extend([pad_hash] * (target_len - len(layer)))
 
     while len(layer) > 1:
-        next_layer = []
+        next_layer: list[bytes] = []
         for i in range(0, len(layer), 2):
             next_layer.append(hashlib.sha256(layer[i] + layer[i + 1]).digest())
         layer = next_layer

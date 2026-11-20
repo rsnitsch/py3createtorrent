@@ -22,7 +22,10 @@ dev = [
 
 [tool.pyright]
 pythonVersion = "3.11"
-typeCheckingMode = "standard"
+typeCheckingMode = "strict"
+executionEnvironments = [
+    { root = "tests", pythonVersion = "3.13" },
+]
 
 [tool.ruff]
 target-version = "py311"

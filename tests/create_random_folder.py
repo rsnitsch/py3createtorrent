@@ -11,7 +11,6 @@ import random
 from pathlib import Path
 
 import cachedir_tag
-
 from create_random_file import create_random_file, parse_size
 from faker import Faker
 
@@ -19,7 +18,12 @@ logger = logging.getLogger(__name__)
 
 
 def create_random_folder(
-    path: Path, number_of_files: int, min_file_size: int, max_file_size: int, seed: int = 0, create_cachedir_tag=True
+    path: Path,
+    number_of_files: int,
+    min_file_size: int,
+    max_file_size: int,
+    seed: int = 0,
+    create_cachedir_tag: bool = True,
 ):
     if min_file_size > max_file_size:
         raise ValueError("min_file_size is larger than max_file_size")

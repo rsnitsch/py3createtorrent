@@ -19,6 +19,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 try:
     from bencodepy import decode as bdecode
@@ -37,11 +38,13 @@ except ImportError:
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(PROJECT_ROOT) / "src"))
 
-from create_random_folder import create_random_folder
 from create_random_file import create_random_file
+from create_random_folder import create_random_folder
+
 from py3createtorrent import ProtocolVersion, TorrentSpec, create_torrent  # noqa: E402
 
 logger = logging.getLogger(__name__)
+type BencodeValue = int | bytes | list[BencodeValue] | dict[bytes, BencodeValue]
 
 
 @dataclass(frozen=True, slots=True)
@@ -103,30 +106,42 @@ def verify_bencode_invariants(torrent_path: Path, protocol: ProtocolVersion, is_
     according to BEP 3 and BEP 52.
     """
     raw_bytes = torrent_path.read_bytes()
-    meta = bdecode(raw_bytes)
-    assert isinstance(meta, dict), "Top-level torrent structure must be a dict"
+    decoded = cast(BencodeValue, bdecode(raw_bytes))
+    assert isinstance(decoded, dict), "Top-level torrent structure must be a dict"
+    meta: dict[bytes, BencodeValue] = decoded
 
     # Check trackers from best3
     assert b"announce" in meta, "Missing 'announce' key"
-    assert b"announce-list" in meta, "Missing 'announce-list' key for best3 trackers"
-    assert len(meta[b"announce-list"]) == 3, f"Expected 3 trackers, got {len(meta[b'announce-list'])}"
+    announce_list = meta.get(b"announce-list")
+    assert isinstance(announce_list, list), "Missing or invalid 'announce-list' key for best3 trackers"
+    assert len(announce_list) == 3, f"Expected 3 trackers, got {len(announce_list)}"
 
-    info = meta[b"info"]
-    assert isinstance(info, dict), "'info' must be a dict"
-    info_bencoded = bencode(info)
+    raw_info = meta[b"info"]
+    assert isinstance(raw_info, dict), "'info' must be a dict"
+    info: dict[bytes, BencodeValue] = raw_info
+    info_bencoded: bytes = bencode(info)  # type: ignore[no-untyped-call]
 
     if protocol in (ProtocolVersion.V1, ProtocolVersion.HYBRID):
         v1_infohash = hashlib.sha1(info_bencoded).hexdigest()
         logger.debug("  v1 infohash: %s", v1_infohash)
-        assert b"pieces" in info, "v1/hybrid torrent missing 'pieces'"
-        assert len(info[b"pieces"]) % 20 == 0, "v1 'pieces' length must be a multiple of 20"
+        pieces = info.get(b"pieces")
+        assert isinstance(pieces, bytes), "v1/hybrid torrent missing 'pieces'"
+        assert len(pieces) % 20 == 0, "v1 'pieces' length must be a multiple of 20"
 
         if is_single_file:
             assert b"length" in info and b"files" not in info
         else:
-            assert b"files" in info and b"length" not in info
+            files = info.get(b"files")
+            assert isinstance(files, list) and b"length" not in info
             if protocol == ProtocolVersion.HYBRID:
-                pad_entries = [f for f in info[b"files"] if f.get(b"attr") == b"p" and f[b"path"][0] == b".pad"]
+                pad_entries = [
+                    f
+                    for f in files
+                    if isinstance(f, dict)
+                    and f.get(b"attr") == b"p"
+                    and isinstance(path_list := f.get(b"path"), list)
+                    and path_list[0] == b".pad"
+                ]
                 logger.debug("  Hybrid BEP-47 pad files count: %d", len(pad_entries))
     else:
         assert b"pieces" not in info, "Pure v2 torrent must not contain v1 'pieces'"
@@ -182,6 +197,8 @@ def verify_with_libtorrent_offline(
     Verify torrent metadata and local payload hashes using libtorrent in strict
     offline mode (no listening sockets, no DHT/LSD/UPnP, no tracker announces).
     """
+    assert lt is not None, "libtorrent was not loaded"
+
     ti = lt.torrent_info(str(torrent_path))
     info_hashes = ti.info_hashes()
 
