@@ -29,7 +29,7 @@ try:
 except ImportError as exc:
     sys.exit("ERROR: bencodepy module could not be imported.\nPlease install it using: pip install bencode.py")
 
-__version__ = "2.0.0"
+__version__ = "2.0.0a1"
 
 logger = logging.getLogger(__name__)
 
