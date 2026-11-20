@@ -75,6 +75,9 @@ TEST_CASES = [
     TestCase("multi_file_hybrid", "random_folder_tiny_files", ProtocolVersion.HYBRID),
     TestCase("multi_file_hybrid", "random_folder_tiny_files", ProtocolVersion.HYBRID, 16),
     TestCase("multi_file_hybrid", "random_folder_tiny_files", ProtocolVersion.HYBRID, 32),
+    TestCase("multi_file_hybrid_with_empty_files", "random_folder_with_empty_files", ProtocolVersion.HYBRID),
+    TestCase("multi_file_hybrid_with_subfolder", "random_folder_with_subfolder", ProtocolVersion.HYBRID),
+    TestCase("multi_file_hybrid_with_subfolder", "random_folder_with_subfolder", ProtocolVersion.HYBRID, 16),
 ]
 
 
@@ -92,12 +95,69 @@ def ensure_testdata_is_generated():
     seed = 0
     KIB = 2**10
     MIB = 2**20
+    logger.info("  Creating random files with various sizes...")
     create_random_file(testdata_path / "random_file_50m.dat", 50 * MIB, seed)
     for kb in [16, 17, 48, 64, 65, 100]:
         create_random_file(testdata_path / f"random_file_{kb}k.dat", kb * KIB, seed)
 
+    logger.info("  Creating random_folder_tiny_files...")
     create_random_folder(testdata_path / "random_folder_tiny_files", 200, 1, 200 * KIB, seed)
+    logger.info("  Creating random_folder_big_files...")
     create_random_folder(testdata_path / "random_folder_big_files", 30, 1 * KIB, 10 * MIB, seed)
+    logger.info("  Creating random_folder_with_empty_files...")
+    create_random_folder(testdata_path / "random_folder_with_empty_files", 50, 1, 200 * KIB, seed)
+    (testdata_path / "random_folder_with_empty_files" / "empty123.txt").touch()
+    (testdata_path / "random_folder_with_empty_files" / "empty456.json").touch()
+    (testdata_path / "random_folder_with_empty_files" / "empty789.yaml").touch()
+
+    logger.info("  Creating random_folder_with_subfolder...")
+    create_random_folder(testdata_path / "random_folder_with_subfolder", 20, 1, 200 * KIB, seed)
+    create_random_folder(testdata_path / "random_folder_with_subfolder" / "subfolder1", 5, 1, 200 * KIB, seed)
+    create_random_folder(testdata_path / "random_folder_with_subfolder" / "subfolder2", 5, 1, 200 * KIB, seed)
+    create_random_folder(
+        testdata_path / "random_folder_with_subfolder" / "subfolder2" / "subsubfolder1", 5, 1, 200 * KIB, seed
+    )
+    (testdata_path / "random_folder_with_subfolder" / "empty123.txt").touch()
+    (testdata_path / "random_folder_with_subfolder" / "empty456.json").touch()
+    (testdata_path / "random_folder_with_subfolder" / "empty789.yaml").touch()
+    (testdata_path / "random_folder_with_subfolder" / "subfolder1" / "empty.txt").touch()
+
+
+def _verify_file_tree(
+    node: dict[bytes, BencodeValue],
+    piece_length: int,
+    piece_layers: dict[bytes, BencodeValue],
+) -> None:
+    """Recursively verify BEP-52 file tree entries and empty-file invariants."""
+    for name, child in node.items():
+        assert isinstance(name, bytes), "File tree keys must be bytes"
+        assert isinstance(child, dict), "File tree nodes must be dicts"
+
+        if name == b"":
+            # Leaf file entry
+            length = child.get(b"length")
+            assert isinstance(length, int) and length >= 0, f"Invalid file length: {length!r}"
+
+            if length == 0:
+                assert b"pieces root" not in child, (
+                    "BEP-52 violation: 0-byte file must NOT have a 'pieces root' in file tree"
+                )
+            else:
+                pieces_root = child.get(b"pieces root")
+                assert isinstance(pieces_root, bytes) and len(pieces_root) == 32, (
+                    f"Non-empty file (length={length}) must have a 32-byte 'pieces root'"
+                )
+                if length > piece_length:
+                    assert pieces_root in piece_layers, (
+                        f"File larger than piece_length ({length} > {piece_length}) missing from 'piece layers'"
+                    )
+                else:
+                    assert pieces_root not in piece_layers, (
+                        f"Single-piece file ({length} <= {piece_length}) must NOT appear in 'piece layers'"
+                    )
+        else:
+            # Directory node
+            _verify_file_tree(child, piece_length, piece_layers)
 
 
 def verify_bencode_invariants(torrent_path: Path, protocol: ProtocolVersion, is_single_file: bool) -> None:
@@ -121,6 +181,9 @@ def verify_bencode_invariants(torrent_path: Path, protocol: ProtocolVersion, is_
     info: dict[bytes, BencodeValue] = raw_info
     info_bencoded: bytes = bencode(info)  # type: ignore[no-untyped-call]
 
+    piece_length = info.get(b"piece length")
+    assert isinstance(piece_length, int) and piece_length > 0, "Invalid 'piece length'"
+
     if protocol in (ProtocolVersion.V1, ProtocolVersion.HYBRID):
         v1_infohash = hashlib.sha1(info_bencoded).hexdigest()
         logger.debug("  v1 infohash: %s", v1_infohash)
@@ -143,6 +206,38 @@ def verify_bencode_invariants(torrent_path: Path, protocol: ProtocolVersion, is_
                     and path_list[0] == b".pad"
                 ]
                 logger.debug("  Hybrid BEP-47 pad files count: %d", len(pad_entries))
+
+                # Verify padding alignment and empty-file rules in v1 'files' list
+                for idx, entry in enumerate(files):
+                    assert isinstance(entry, dict)
+                    file_len = entry.get(b"length")
+                    assert isinstance(file_len, int) and file_len >= 0
+                    is_pad = entry.get(b"attr") == b"p"
+
+                    if is_pad:
+                        assert 0 < file_len < piece_length, (
+                            f"Invalid pad file length {file_len} (must be 0 < len < {piece_length})"
+                        )
+                    elif idx < len(files) - 1:
+                        next_entry = files[idx + 1]
+                        assert isinstance(next_entry, dict)
+                        next_is_pad = next_entry.get(b"attr") == b"p"
+                        remainder = file_len % piece_length
+
+                        if remainder == 0:
+                            # Covers both 0-byte files and exact piece-multiple files
+                            assert not next_is_pad, (
+                                f"File of length {file_len} is already aligned to piece_length "
+                                f"{piece_length} and must NOT be followed by a .pad file"
+                            )
+                        else:
+                            expected_pad = piece_length - remainder
+                            assert next_is_pad, (
+                                f"Unaligned file (length={file_len}) in hybrid torrent must be followed by a .pad file"
+                            )
+                            assert next_entry.get(b"length") == expected_pad, (
+                                f"Expected pad length {expected_pad}, got {next_entry.get(b'length')!r}"
+                            )
     else:
         assert b"pieces" not in info, "Pure v2 torrent must not contain v1 'pieces'"
         assert b"files" not in info, "Pure v2 torrent must not contain v1 'files'"
@@ -151,8 +246,14 @@ def verify_bencode_invariants(torrent_path: Path, protocol: ProtocolVersion, is_
         v2_infohash = hashlib.sha256(info_bencoded).hexdigest()
         logger.debug("  v2 infohash: %s", v2_infohash)
         assert info.get(b"meta version") == 2, "v2/hybrid torrent must have 'meta version' == 2"
-        assert b"file tree" in info, "v2/hybrid torrent missing 'file tree'"
-        assert b"piece layers" in meta, "v2/hybrid torrent missing 'piece layers'"
+
+        file_tree = info.get(b"file tree")
+        assert isinstance(file_tree, dict), "v2/hybrid torrent missing 'file tree'"
+
+        piece_layers = meta.get(b"piece layers")
+        assert isinstance(piece_layers, dict), "v2/hybrid torrent missing 'piece layers'"
+
+        _verify_file_tree(file_tree, piece_length, piece_layers)
     else:
         assert b"meta version" not in info, "Pure v1 torrent must not contain 'meta version'"
         assert b"file tree" not in info, "Pure v1 torrent must not contain 'file tree'"
