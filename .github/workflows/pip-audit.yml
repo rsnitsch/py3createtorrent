@@ -6,6 +6,7 @@ on:
       - master
       - develop
     paths:
+      - 'uv.lock'
       - 'pyproject.toml'
       - '.github/workflows/pip-audit.yml'
   pull_request:
