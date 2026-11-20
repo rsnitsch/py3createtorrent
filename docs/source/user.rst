@@ -10,46 +10,61 @@ Features
 
 Some of the features:
 
-* create torrents with **multiple trackers** or **trackerless torrents**
-* **automatically choose the most reliable trackers** from `ngosang/trackerslist <https://github.com/ngosang/trackerslist>`_
-* fast torrent creation thanks to **multithreading**
-* add **webseeds** to torrents
-* create **private torrents** (disabled DHT, ...)
-* **exclude specific files/folders**
-* exclude files/folders based on **regular expressions**
-* specify **custom piece sizes**
-* specify custom creation dates
+- supports **BitTorrent v1, v2, and hybrid** torrents (BEP 52)
+- create torrents with **multiple trackers** or **trackerless torrents**
+- **automatically choose the most reliable trackers** from `ngosang/trackerslist <https://github.com/ngosang/trackerslist>`_
+- add **webseeds** to torrents
+- create **private torrents** (disabled DHT, ...)
+- **exclude specific files/folders**
+- exclude files/folders based on **regular expressions**
+- specify **custom piece sizes**
+- specify custom creation dates
 
 Requirements
 ------------
 
-py3createtorrent requires at least Python 3.5 and the `bencode.py <https://pypi.org/project/bencode.py/>`_ module.
-
-For using Python 3.5 to 3.7 you need to install the ``typing-extensions`` module::
-
-    pip install typing-extensions
-
-.. note::
-
-  It may be possible to use the script with older Python versions. For Python 3.2, 3.3, 3.4 you need to install
-  the backport of Python's ``typing`` module: https://pypi.org/project/typing/. For Python 3.1 you need to
-  additionally install the backport of Python's ``argparse`` module: https://pypi.org/project/argparse/.
-
-  This has not been tested, though. Feedback is welcome.
+py3createtorrent requires at least Python 3.11 and the `bencode.py <https://pypi.org/project/bencode.py/>`_ module.
 
 Installation
 ------------
 
-Recommended: Installation using pip
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Recommended: Isolated installation using uv or pipx
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-pip is the easiest and recommended way of installing py3createtorrent.
+Using `uv <https://docs.astral.sh/uv/>`_ or `pipx <https://pipx.pypa.io/>`_ is the recommended way to install
+command line tools like py3createtorrent in an isolated environment without affecting system packages.
 
-Just execute::
+.. note::
 
-  pip3 install py3createtorrent
+   You're looking at the documentation of the latest 2.0 release (alpha/unstable). Therefore,
+   the following commands contain special prerelease-options like ``--prerelease``, ``--pre``,
+   and ``--pip-args``.
 
-After that, you can use py3createtorrent on your commandline.
+   Alternatively, you can find the docs for the stable version here (without v2/hybrid torrent support):
+   https://py3createtorrent.readthedocs.io/en/v1.2.1/user.html
+
+**Recommended (isolated CLI installation via uv or pipx):**
+
+Using `uv <https://docs.astral.sh/uv/>`_::
+
+    uv tool install --prerelease=allow py3createtorrent
+    py3createtorrent --help
+
+    # or without installation
+    uvx --prerelease=allow py3createtorrent --help
+
+Using `pipx <https://pipx.pypa.io/>`_::
+
+    pipx install --pip-args="--pre" py3createtorrent
+    py3createtorrent --help
+    
+    # or without installation
+    pipx run --pip-args="--pre" py3createtorrent --help
+
+Via ``pip``::
+
+    pip install --pre py3createtorrent
+    py3createtorrent --help
 
 Alternative: Manual installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -61,15 +76,7 @@ And then install the dependencies::
 
   pip install bencode.py
 
-Then you can execute py3createtorrent.py (it is in the ``src`` folder).
-
-Alternatively, use pipenv::
-
-  pipenv install
-
-Then you can execute py3createtorrent.py with pipenv as follows::
-
-  pipenv run src/py3createtorrent.py
+Then you can execute ``py3createtorrent.py`` (it is in the ``src`` folder).
 
 Basic usage
 -----------
@@ -83,7 +90,7 @@ from `ngosang/trackerslist <https://github.com/ngosang/trackerslist>`_. Example:
 
     py3createtorrent -t best3 file_or_folder
 
-Multiple trackers can also be specified manually by using `-t` multiple times, for example::
+Multiple trackers can also be specified manually by using ``-t`` multiple times, for example::
 
     py3createtorrent -t udp://tracker.opentrackr.org:1337/announce -t udp://tracker.cyberia.is:6969/announce file_or_folder
 
@@ -96,55 +103,54 @@ Syntax:
 
     usage: py3createtorrent.py <target> [-t tracker_url] [options ...]
     
-    py3createtorrent is a comprehensive command line utility for creating torrents.
+    py3createtorrent is a command line utility for creating torrents (v1, v2, hybrid).
     
     positional arguments:
-      target <path>         File or folder for which to create a torrent
+      target                File or folder for which to create a torrent
     
-    optional arguments:
+    options:
       -h, --help            show this help message and exit
-      -t TRACKER_URL, --tracker TRACKER_URL
-                            Add one or multiple tracker (announce) URLs to
-                            the torrent file.
+      -t, --tracker TRACKER_URL
+                            Add one or multiple tracker (announce) URLs (supports 'bestN').
+      --best-trackers-url URL
+                            URL used to fetch trackers when using 'bestN'. [default:
+                            https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt]
       --node HOST,PORT      Add one or multiple DHT bootstrap nodes.
-      -p PIECE_LENGTH, --piece-length PIECE_LENGTH
-                            Set piece size in KiB. [default: 0 = automatic selection]
+      --webseed WEBSEED_URL
+                            Add one or multiple HTTP/FTP URLs as seeds (GetRight-style).
+      -p, --piece-length PIECE_LENGTH
+                            Set piece size in KiB (must be a power of two). [default: 0 = automatic]
       -P, --private         Set the private flag to disable DHT and PEX.
-      -c COMMENT, --comment COMMENT
-                            Add a comment.
-      -s SOURCE, --source SOURCE
-                            Add a source tag.
-      -f, --force           Overwrite existing .torrent files without asking and
-                            disable the piece size, tracker and node validations.
-      -v, --verbose         Enable output of diagnostic information.
-      -q, --quiet           Suppress output, e.g. don't print summary
-      -o PATH, --output PATH
-                            Set the filename and/or output directory of the
-                            created file. [default: <name>.torrent]
-      -e PATH, --exclude PATH
-                            Exclude a specific path (can be repeated to exclude
-                            multiple paths).
+      --protocol {v1,v2,hybrid}
+                            BitTorrent protocol version to generate. [default: hybrid]
+      -o, --output PATH     Set the filename and/or output directory of the created file. [default: <name>.torrent]
+      -e, --exclude PATH    Exclude a specific path (can be repeated to exclude multiple paths).
       --exclude-pattern REGEXP
-                            Exclude paths matching a regular expression (can be repeated
-                            to use multiple patterns).
+                            Exclude paths matching a regular expression (can be repeated to use multiple patterns).
       --exclude-pattern-ci REGEXP
                             Same as --exclude-pattern but case-insensitive.
-      -d TIMESTAMP, --date TIMESTAMP
-                            Overwrite creation date. This option expects a unix timestamp.
-                            Specify -2 to disable the inclusion of a creation date completely.
-                            [default: -1 = current date and time]
-      -n NAME, --name NAME  Set the name of the torrent. This changes the filename for
-                            single file torrents or the root directory name for multi-file torrents.
-                            [default: <basename of target>]
-      --threads THREADS     Set the maximum number of threads to use for hashing pieces.
-                            py3createtorrent will never use more threads than there are CPU cores.
-                            [default: 4]
-      --md5                 Include MD5 hashes in torrent file.
-      --config CONFIG       Specify location of config file.
-                            [default: <home directiory>/.py3createtorrent.cfg]
-      --webseed WEBSEED_URL
-                            Add one or multiple HTTP/FTP urls as seeds (GetRight-style).
-      --version             Show version number of py3createtorrent
+      -n, --name NAME       Set the name of the torrent. [default: <basename of target>]
+      -c, --comment COMMENT
+                            Add a comment.
+      -s, --source SOURCE   Add a source tag.
+      -d, --date TIMESTAMP  Overwrite creation date. Expects a unix timestamp. Specify -2 to disable creation date completely. [default: -1 = current date and
+                            time]
+      --no-created-by       Omit the 'created by' field from the torrent metainfo.
+      -v, --verbose         Enable debug logging output.
+      --version             show program's version number and exit
+
+Protocol version (``--protocol``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Selects which BitTorrent protocol metadata is written to the ``.torrent`` file:
+
+- ``hybrid`` *(default)*: Generates a BEP 52 hybrid torrent compatible with both BitTorrent v1 and v2 clients.
+- ``v1``: Generates a classic BitTorrent v1 torrent (SHA-1 piece hashes only).
+- ``v2``: Generates a pure BitTorrent v2 torrent (BEP 52 SHA-256 Merkle trees only).
+
+Example::
+
+    py3createtorrent --protocol v2 my_data_folder/
 
 Specifying trackers (``-t``, ``--tracker``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -153,19 +159,9 @@ One or multiple tracker URLs can be specified using the ``-t`` or ``--tracker`` 
 
     py3createtorrent -t udp://tracker.opentrackr.org:1337/announce my_data_folder/
 
-This is equivalent to the short form using the :ref:`tracker abbreviation <tracker_abbreviations>` for opentrackr.org::
-
-    py3createtorrent -t opentrackr my_data_folder/
-
 For multiple trackers, just use ``-t`` repeatedly. Multiple tracker example::
 
     py3createtorrent -t udp://tracker.opentrackr.org:1337/announce -t udp://tracker.cyberia.is:6969/announce my_data_folder/
-
-This is equivalent to the short form using the tracker abbreviations::
-
-    py3createtorrent -t opentrackr -t cyberia my_data_folder/
-
-.. automatically_add_best_trackers:
 
 .. _bestN_shortcut:
 
@@ -178,11 +174,29 @@ For example::
 
     py3createtorrent -t best5 my_data_folder/
 
+See :ref:`best_trackers_url` if you want to fetch the tracker list from a different URL.
+
 Trackerless torrents
 """"""""""""""""""""
 
 You can create a trackerless torrent by not specifying any tracker URLs at all (i.e. don't
 use the ``-t`` switch at all).
+
+.. _best_trackers_url:
+
+Best trackers URL (``--best-trackers-url``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Overrides the URL from which tracker URLs are downloaded when using the :ref:`bestN shortcut <bestN_shortcut>`.
+The expected format is a plain text file containing one tracker announce URL per line (empty lines are ignored).
+
+The default URL is::
+
+    https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt
+
+Example::
+
+    py3createtorrent -t best5 --best-trackers-url https://ngosang.github.io/trackerslist/trackers_best_ip.txt my_data_folder/
 
 Specifying DHT bootstrap nodes (``--node``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -197,16 +211,23 @@ Example::
 
 It is recommended to specify some DHT bootstrap nodes for trackerless torrents.
 
-Piece size (``-p``)
-^^^^^^^^^^^^^^^^^^^
+Webseeds (``--webseed``)
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-This switch allows you to specify a custom piece size. The piece size should be
+One or multiple HTTP/FTP URLs can be added as GetRight-style webseeds (stored in the ``url-list`` field)::
+
+    py3createtorrent --webseed https://example.com/files/ my_data_folder/
+
+Piece size (``-p``, ``--piece-length``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This switch allows you to specify a custom piece size in KiB (must be a power of two and at least 16 KiB). The piece size should be
 chosen with care, because it affects the following properties:
 
-* size of the .torrent file
-* network overhead
-* cost of fixing corrupted pieces
-* time it takes until peers start sharing data
+- size of the .torrent file
+- network overhead
+- cost of fixing corrupted pieces
+- time it takes until peers start sharing data
 
 .. note::
 
@@ -218,7 +239,7 @@ Background
 
 In general, the files for which a .torrent is created are sliced up in **pieces**.
 
-For each piece, a 20-byte checksum (based on SHA-1, the Secure Hash Algorithm 1) is
+For each piece, a checksum (20-byte SHA-1 for v1, 32-byte SHA-256 Merkle tree hashes for v2) is
 calculated and stored inside the .torrent file - this, by the way, is the
 time-consuming part of torrent creation. Therefore, the piece size strongly
 correlates with the size of the created .torrent file: The larger the pieces,
@@ -241,24 +262,27 @@ completely can be shared with other peers). Therefore, if the piece size is
 large, it will take longer for any peer to finish downloading a piece and to be
 able to share this piece with other peers.
 
-Private torrents (``-P``)
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Private torrents (``-P``, ``--private``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Private torrents force the BitTorrent clients to only use the specified trackers
 for discovering other peers. Advanced peer discovery methods like DHT or
 peer list exchange are effectively disabled.
 
-Comment (``-c``)
-^^^^^^^^^^^^^^^^
+Comment (``-c``, ``--comment``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The comment is a short text stored in the .torrent file and displayed by most
-BitTorrent clients in the torrent info.
+BitTorrent clients in the torrent info. If omitted, no ``comment`` field is added.
 
-By default py3createtorrent uses "created by py3createtorrent <version>" as
-comment (to change this behavior, consult the :ref:`configuration` section).
+Created-by metadata (``--no-created-by``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Source (``-s``)
-^^^^^^^^^^^^^^^
+By default, py3createtorrent sets the ``created by`` metainfo field to ``py3createtorrent v<version>``.
+Use ``--no-created-by`` to omit this field completely.
+
+Source (``-s``, ``--source``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The source field is a non-standard metainfo field used by private trackers to
 reduce issues (such as misreported stats) caused by cross-seeding.  For
@@ -266,33 +290,16 @@ private trackers that forbid their torrent files from being uploaded elsewhere,
 it ensures that torrent files uploaded to the tracker from a different source
 are unique to the private tracker.
 
-*New in 0.9.7.*
-
-Force (``-f``)
-^^^^^^^^^^^^^^
-
-The force option makes py3createtorrent
-
-- overwrite existing .torrent files without asking for your permission
-- disable checking for uncommon and possibly unsupported piece sizes
-- disable checking for possibly invalid tracker specifications
-- disable checking for possibly invalid node specifications
-
-Verbose (``-v``)
-^^^^^^^^^^^^^^^^
+Verbose (``-v``, ``--verbose``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Verbose mode makes py3createtorrent report about the individual steps it is
 undertaking while creating the .torrent file.
 
 This is particularly useful for debugging purposes.
 
-Quiet (``-q``)
-^^^^^^^^^^^^^^
-
-py3createtorrent will try to stay completely silent on the commandline.
-
-Output path (``-o``)
-^^^^^^^^^^^^^^^^^^^^
+Output path (``-o``, ``--output``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The output path is either the directory in which the .torrent file should be
 saved or the complete path to the destination .torrent file. In the former
@@ -304,8 +311,8 @@ overwritten (using the ``-n`` switch). (In the latter case, the name of the
 By default, py3createtorrent uses the current working directory as the output
 directory.
 
-Exclude path (``-e``)
-^^^^^^^^^^^^^^^^^^^^^
+Exclude path (``-e``, ``--exclude``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This allows for the exclusion of specific files or directories.
 
@@ -317,16 +324,14 @@ Exclude pattern (``--exclude-pattern``, ``--exclude-pattern-ci``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This allows for the exclusion of files or directories that match a certain
-pattern (regular expression).
+regular expression. Patterns are matched against paths relative to the target root
+using forward slashes (``/``).
 
 The switches may be used repeatedly to specify multiple exclusion patterns.
+Use ``--exclude-pattern-ci`` for case-insensitive matching.
 
-*New in version 0.9.5:* The ``--exclude-pattern-ci`` variant (case-insensitive).
-On Windows, the ``--exclude-pattern`` has been made case-sensitive (previously
-it was case-insensitive on Windows and case-sensitive on UNIX etc.).
-
-Creation date (``-d``)
-^^^^^^^^^^^^^^^^^^^^^^
+Creation date (``-d``, ``--date``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This switch allows you to overwrite the creation date saved in the .torrent
 file. You can fake any creation date you like.
@@ -337,8 +342,8 @@ The creation date is specified as `UNIX timestamp
 You can disable storing a creation date altogether by providing a timestamp
 of -2.
 
-Name (``-n``)
-^^^^^^^^^^^^^
+Name (``-n``, ``--name``)
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This setting overwrites the file or directory name stored inside the .torrent
 file. **Thus it affects the file or directory name that will be presented
@@ -355,36 +360,6 @@ this name will also be used to deduce the name of the resulting .torrent file.
    what you're doing.
 
    For most intents and purposes, the ``-o`` switch is probably more suitable.
-
-Threads (``--threads``)
-^^^^^^^^^^^^^^^^^^^^^^^
-
-This controls the *maximum* number of parallel threads that will be used during torrent
-creation. Namely, for hashing the pieces.
-
-py3createtorrent will never use more threads than there are CPU cores on your system.
-
-By default py3createtorrent will try to use up to 4 threads for hashing the pieces
-of the torrent.
-
-MD5 hashes (``--md5``)
-^^^^^^^^^^^^^^^^^^^^^^
-
-As of py3createtorrent 0.9.5 the calculation of MD5 hashes must be explicitly
-requested, because it significantly slows down the torrent creation process (and
-makes the torrent file a little larger, although this is probably negligible).
-
-*New in 0.9.5.*
-
-Path to config (``--config``)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-By default, py3createtorrent tries to load the config file ``.py3createtorrent.cfg``
-from the user's home directory. To use another config file, specify the path with
-``--config``. Use ``--verbose`` for troubleshooting this, if it does not work as
-expected.
-
-*New in 1.0.0.*
 
 Examples
 --------
@@ -407,24 +382,12 @@ Example 1 - from directory, no options, default behaviour
 
    py3createtorrent example -t udp://tracker.opentrackr.org:1337/announce
 
-Alternative, equivalent command using a tracker abbreviation for convenience::
-
-   py3createtorrent example -t opentrackr
-
 **Effect**:
-Creates example.torrent inside the current directory.
+Creates ``example.torrent`` inside the current directory.
 
 In µTorrent it will look like this:
 
 .. image:: _static/example1.png
-
-.. note::
-   Please note: If you do not specify a comment yourself using the ``-c`` / ``--comment``
-   option, py3createtorrent will advertise itself through the comment field, as
-   you can see in the screenshot (Torrent Contents -> Comment: *created with
-   py3createtorrent v0.8*).
-
-   To change this behavior, consult the :ref:`configuration` section.
 
 Example 2 - from directory, excluding subfolders
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -454,14 +417,13 @@ Example 3 - from directory, excluding files
    py3createtorrent -e example\anotherimage.jpg -e example\subfolder\10_more_minutes_please.JPG example -t udp://tracker.opentrackr.org:1337/announce
 
 Alternative, equivalent command using **regular expressions** instead of
-specifying each jpg seperately (also using a tracker abbreviation to make it
-even shorter)::
+specifying each jpg separately::
 
-   py3createtorrent --exclude-pattern "(jpg|JPG)$" example -t opentrackr
+   py3createtorrent --exclude-pattern "\.(jpg|JPG)$" example -t udp://tracker.opentrackr.org:1337/announce
 
 With ``--exclude-pattern-ci`` the pattern-matching will be case-insensitive, so we can use a simplified regular expression::
 
-  py3createtorrent --exclude-pattern-ci "jpg$" example -t opentrackr
+  py3createtorrent --exclude-pattern-ci "\.jpg$" example -t udp://tracker.opentrackr.org:1337/announce
 
 **Effect**:
 Creates ``example.torrent`` inside the current directory. ``example\anotherimage.jpg``
@@ -476,124 +438,3 @@ Creating torrents of single files
 
 It's almost the same as for creating directories, except, of course, you can't
 use the exclude-option anymore.
-
-.. _configuration:
-
-Configuration
--------------
-
-If present, the configuration file ``.py3createtorrent.cfg`` will be loaded from the user's
-home directory. The configuration file uses JSON format. Use ``--config`` to load the config
-from another location. Use ``--verbose`` for troubleshooting this, if it does not work as
-expected.
-
-.. warning::
-
-  Before version 1.0, the configuration had to be changed by manually editing the py3createtorrent.py
-  script file. If you're still using version 0.x, please upgrade or switch to the old documentation
-  of the 0.x branch.
-
-Default
-^^^^^^^
-
-If the configuration file is not present, the following default values will be used:
-
-.. code-block:: json
-
-    {
-      "best_trackers_url": "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt",
-      "tracker_abbreviations": {
-        "opentrackr": "udp://tracker.opentrackr.org:1337/announce",
-        "cyberia": "udp://tracker.cyberia.is:6969/announce"
-      },
-      "advertise": true
-    }
-
-For details on the individual configuration parameters, please refer to the following sub-sections.
-
-Best trackers URL
-^^^^^^^^^^^^^^^^^
-
-You can change the URL from which the best tracker URLs are loaded when using the :ref:`bestN shortcut <bestN_shortcut>`.
-The default URL is::
-
-    https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt
-
-To change it, you can use a config file like this:
-
-.. code-block:: json
-
-    {
-      "best_trackers_url": "https://ngosang.github.io/trackerslist/trackers_best_ip.txt"
-    }
-
-.. _tracker_abbreviations:
-
-Tracker abbreviations
-^^^^^^^^^^^^^^^^^^^^^
-
-Tracker abbrevations allow you to specify one or more tracker URLs with a single
-word, like 'opentrackr' in the default configuration. They add a lot of convenience,
-e.g. look at this neat & clear command::
-
-   C:\Users\Robert\Desktop\Python\createtorrent>py3createtorrent example -t opentrackr -t cyberia
-   Successfully created torrent:
-     Name:             example
-    (...)
-     Primary tracker:  udp://tracker.opentrackr.org:1337/announce
-     Backup trackers:
-       udp://tracker.cyberia.is:6969/announce
-
-In this case, py3createtorrent recognizes the tracker abbreviations 'opentrackr' and
-'cyberia' and automatically inserts the according tracker announce URLs.
-
-.. note::
-
-   Single abbreviations may be replaced by multiple tracker announce URLs. This
-   way you can also create sort of "tracker groups" for different kinds of
-   torrents.
-
-   Example configuration:
-   
-   .. code-block:: json
-
-    {
-        "tracker_abbreviations": {
-            "mytrackergroup": [
-                "udp://tracker.opentrackr.org:1337/announce",
-                "udp://tracker.cyberia.is:6969/announce"
-            ],
-            "opentrackr": "udp://tracker.opentrackr.org:1337/announce",
-            "cyberia": "udp://tracker.cyberia.is:6969/announce"
-        }
-    }
-
-   Just specify lists of announce URLs instead of a single announce URL to define
-   such groups.
-
-Advertise setting
-^^^^^^^^^^^^^^^^^
-
-The ``advertise`` setting defines whether py3createtorrent is allowed to advertise
-itself through the comment field, if the user hasn't specified a comment. Possible
-values are ``true`` (the default) or ``false`` - without any quotes.
-
-To disable advertising, you can use the following in your config file:
-
-.. code-block:: json
-
-    {
-      "advertise": false
-    }
-
-If you want to disable advertising for a single torrent only, you can use the
-``--comment`` option to specify an empty comment::
-
-   py3createtorrent --comment "" ...
-
-or::
-
-   py3createtorrent -c "" ...
-
-py3createtorrent will not advertise itself in this case, because you explicitly
-specified the empty comment.

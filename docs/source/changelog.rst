@@ -1,6 +1,31 @@
 Changelog
 =========
 
+Version 2.0.0
+-------------
+
+*Release date: none - work in progress*
+
+- added: full support for **BitTorrent v2** and **hybrid (v1 + v2)** torrents (BEP 52) via the new
+  ``--protocol {v1,v2,hybrid}`` option (default: ``hybrid``).
+- added: ``--best-trackers-url`` CLI option to override the source URL used when resolving ``bestN`` tracker shortcuts.
+- added: ``--no-created-by`` CLI option to omit the ``created by`` metainfo field.
+- changed: ``--exclude-pattern`` and ``--exclude-pattern-ci`` now match against POSIX-normalized paths relative to
+  the target root instead of absolute system paths.
+- changed: existing ``.torrent`` files will always be overwritten without asking the user.
+- removed: options ``--md5``, ``--threads``, ``-f`` / ``--force``, and ``-q`` / ``--quiet``.
+- removed: configuration file support (``.py3createtorrent.cfg`` / ``--config``) and tracker abbreviations in favor
+  of explicit CLI options.
+- removed: support for Python versions older than 3.11.
+- for developers:
+
+  - complete rewrite using Python 3.11+ features (``pathlib``, ``dataclasses``, ``StrEnum``) and an
+    object-oriented API (``TorrentSpec``, ``create_torrent``).
+  - switched from ``pipenv`` / ``Pipfile`` to ``uv`` / ``pyproject.toml``.
+  - locked dependencies are now tracked in the repo (``uv.lock``).
+  - Python version is pinned to 3.13 via ``.python-version`` (respected by ``uv``).
+  - implemented completely new test suite ``tests/test_integration.py``.
+
 Version 1.2.1
 -------------
 
