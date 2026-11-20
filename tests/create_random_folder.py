@@ -36,11 +36,16 @@ def create_random_folder(
     if create_cachedir_tag:
         cachedir_tag.tag(path)
 
+    generated_filenames: set[str] = set()
+    filename = fake.file_name()
     for _ in range(number_of_files):
-        filename = fake.file_name()
+        generated_filenames.add(filename)
         size = random.randint(min_file_size, max_file_size)
         logger.debug("Creating random file: % 20s of size: % 10d bytes...", filename, size)
         create_random_file(path.joinpath(filename), size)
+
+        while filename in generated_filenames:
+            filename = fake.file_name()
 
 
 def main():
