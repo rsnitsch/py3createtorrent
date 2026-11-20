@@ -1,10 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "py3createtorrent"
 version = "2.0.0a1"
+description = "Create torrents via command line!"
+readme = "README.md"
+license = "LGPL-3.0-or-later"
 requires-python = ">=3.11"
+authors = [
+    { name = "Robert Nitsch", email = "mail@robertnitsch.de" },
+]
+keywords = ["torrents", "commandline", "shell", "script"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: System Administrators",
+    "Topic :: Communications :: File Sharing",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Programming Language :: Python :: 3 :: Only",
+]
 dependencies = [
     "bencode.py~=4.1",
 ]
+
+[project.scripts]
+py3createtorrent = "py3createtorrent:main"
+
+[project.urls]
+Homepage = "https://github.com/rsnitsch/py3createtorrent"
+Documentation = "https://py3createtorrent.readthedocs.io/en/latest/user.html"
+"Bug Reports" = "https://github.com/rsnitsch/py3createtorrent/issues"
+Source = "https://github.com/rsnitsch/py3createtorrent"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+py-modules = ["py3createtorrent"]
 
 [dependency-groups]
 dev = [
