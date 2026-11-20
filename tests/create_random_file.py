@@ -29,13 +29,13 @@ def parse_size(size: str):
     return letter_to_unit[letter.upper()] * int(number)
 
 
-def create_random_file(path: Path, size: int, seed: int = 0, overwrite: bool = False):
+def create_random_file(path: Path, size: int, seed: int = 0, overwrite: bool = False) -> bool:
     if size < 0:
         raise ValueError("size is negative")
 
     if path.is_file() and not overwrite:
-        logger.warning("Destination file %s already exists - skipping.")
-        return
+        logger.warning("Destination file %s already exists - skipping.", path)
+        return False
 
     random.seed(seed)
 
@@ -50,6 +50,8 @@ def create_random_file(path: Path, size: int, seed: int = 0, overwrite: bool = F
                 fh.write(data)
             else:
                 break
+
+    return True
 
 
 def main():
