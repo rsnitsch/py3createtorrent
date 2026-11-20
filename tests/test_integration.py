@@ -3,8 +3,8 @@
 Integration test runner for py3createtorrent v2.0.0.
 
 Tests v1, v2, and hybrid torrent creation against single-file and multi-file
-fixtures, verifies Bencode/BEP-52 metadata invariants, and runs `uvx torrentfile`
-as well as `libtorrent` verification checks.
+fixtures, verifies Bencode/BEP-52 metadata invariants, and runs `libtorrent`
+verification checks.
 """
 
 from __future__ import annotations
