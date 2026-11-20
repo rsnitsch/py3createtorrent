@@ -15,7 +15,7 @@ py3createtorrent
    :target: https://github.com/rsnitsch/py3createtorrent/actions/workflows/pip-audit.yml
    :alt: Dependency Security Audit
 
-.. |docs| image:: https://readthedocs.org/projects/py3createtorrent/badge/?version=latest
+.. |docs| image:: https://img.shields.io/readthedocs/py3createtorrent/latest.svg
    :target: https://py3createtorrent.readthedocs.io/en/latest/
    :alt: Documentation Status
 
