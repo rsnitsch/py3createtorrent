@@ -34,27 +34,37 @@ Recommended: Isolated installation using uv or pipx
 Using `uv <https://docs.astral.sh/uv/>`_ or `pipx <https://pipx.pypa.io/>`_ is the recommended way to install
 command line tools like py3createtorrent in an isolated environment without affecting system packages.
 
-With ``uv``::
+.. note::
 
-  uv tool install py3createtorrent
-  py3createtorrent --help
+   You're looking at the documentation of the latest 2.0 release (alpha/unstable). Therefore,
+   the following commands contain special prerelease-options like ``--prerelease``, ``--pre``,
+   and ``--pip-args``.
 
-Or run directly without permanent installation::
+   Alternatively, you can find the docs for the stable version here (without v2/hybrid torrent support):
+   https://py3createtorrent.readthedocs.io/en/v1.2.1/user.html
 
-  uvx py3createtorrent --help
+**Recommended (isolated CLI installation via uv or pipx):**
 
-With ``pipx``::
+Using `uv <https://docs.astral.sh/uv/>`_::
 
-  pipx install py3createtorrent
+    uv tool install --prerelease=allow py3createtorrent
+    py3createtorrent --help
 
-Alternative: Installation using pip
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    # or without installation
+    uvx --prerelease=allow py3createtorrent --help
 
-You can also install py3createtorrent using ``pip``::
+Using `pipx <https://pipx.pypa.io/>`_::
 
-  pip install py3createtorrent
+    pipx install --pip-args="--pre" py3createtorrent
+    py3createtorrent --help
+    
+    # or without installation
+    pipx run --pip-args="--pre" py3createtorrent --help
 
-After that, you can use ``py3createtorrent`` on your commandline.
+Via ``pip``::
+
+    pip install --pre py3createtorrent
+    py3createtorrent --help
 
 Alternative: Manual installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
