@@ -46,7 +46,6 @@ py-modules = ["py3createtorrent"]
 
 [dependency-groups]
 dev = [
-    "build",
     "cachedir-tag>=0.0.5",
     "faker",
     "libtorrent>=2.0.10; python_version < '3.14'",
@@ -55,7 +54,6 @@ dev = [
     "pip-audit>=2.10.1",
     "pytest>=8.0",
     "sphinx~=9.2; python_version >= '3.13'",
-    "twine",
 ]
 
 [tool.pyright]
