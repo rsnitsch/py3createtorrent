@@ -288,6 +288,13 @@ def run_external_torrentfile_check(torrent_path: Path, data_path: Path) -> None:
             f"STDOUT: {result.stdout}\nSTDERR: {result.stderr}"
         )
 
+    combined_output = f"{result.stdout}\n{result.stderr}"
+    if "100.0%" not in combined_output:
+        raise AssertionError(
+            f"`torrentfile recheck` did not report 100.0% match for {torrent_path.name}:\n"
+            f"STDOUT: {result.stdout}\nSTDERR: {result.stderr}"
+        )
+
 
 def verify_with_libtorrent_offline(
     torrent_path: Path,
