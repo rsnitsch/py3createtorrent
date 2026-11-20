@@ -741,6 +741,8 @@ def main() -> None:
         format="%(levelname)s: %(message)s",
     )
 
+    logger.debug("py3createtorrent version: %s", __version__)
+
     spec = TorrentSpec(
         target=args.target,
         trackers=args.trackers,
