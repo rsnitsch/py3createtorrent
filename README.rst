@@ -1,27 +1,24 @@
 py3createtorrent
 ================
 
-|pypi| |python| |audit| |docs| |license|
+.. list-table::
+   :widths: auto
 
-.. |pypi| image:: https://img.shields.io/pypi/v/py3createtorrent.svg
-   :target: https://pypi.org/project/py3createtorrent/
-   :alt: PyPI
-
-.. |python| image:: https://img.shields.io/pypi/pyversions/py3createtorrent.svg
-   :target: https://pypi.org/project/py3createtorrent/
-   :alt: Python Versions
-
-.. |audit| image:: https://github.com/rsnitsch/py3createtorrent/actions/workflows/pip-audit.yml/badge.svg?branch=master
-   :target: https://github.com/rsnitsch/py3createtorrent/actions/workflows/pip-audit.yml
-   :alt: Dependency Security Audit
-
-.. |docs| image:: https://img.shields.io/readthedocs/py3createtorrent/latest.svg
-   :target: https://py3createtorrent.readthedocs.io/en/latest/
-   :alt: Documentation Status
-
-.. |license| image:: https://img.shields.io/badge/License-LGPL_v3-blue.svg
-   :target: https://www.gnu.org/licenses/lgpl-3.0
-   :alt: License: LGPL v3
+   * - .. image:: https://img.shields.io/pypi/v/py3createtorrent.svg
+          :target: https://pypi.org/project/py3createtorrent/
+          :alt: PyPI
+     - .. image:: https://img.shields.io/pypi/pyversions/py3createtorrent.svg
+          :target: https://pypi.org/project/py3createtorrent/
+          :alt: Python Versions
+     - .. image:: https://github.com/rsnitsch/py3createtorrent/actions/workflows/pip-audit.yml/badge.svg?branch=master
+          :target: https://github.com/rsnitsch/py3createtorrent/actions/workflows/pip-audit.yml
+          :alt: Dependency Security Audit
+     - .. image:: https://img.shields.io/readthedocs/py3createtorrent/latest.svg
+          :target: https://py3createtorrent.readthedocs.io/en/latest/
+          :alt: Documentation Status
+     - .. image:: https://img.shields.io/badge/License-LGPL_v3-blue.svg
+          :target: https://www.gnu.org/licenses/lgpl-3.0
+          :alt: License: LGPL v3
 
 *Create torrents via command line!*
 
