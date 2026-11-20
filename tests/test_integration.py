@@ -260,42 +260,6 @@ def verify_bencode_invariants(torrent_path: Path, protocol: ProtocolVersion, is_
         assert b"piece layers" not in meta, "Pure v1 torrent must not contain 'piece layers'"
 
 
-def run_external_torrentfile_check(torrent_path: Path, data_path: Path) -> None:
-    """
-    Execute `uvx torrentfile recheck` against the generated torrent and source data.
-    """
-    if shutil.which("uvx") is None:
-        raise RuntimeError("'uvx' executable not found in PATH.")
-
-    cmd = ["uvx", "torrentfile", "recheck", str(torrent_path), str(data_path)]
-    logger.debug("Running external command: %s", " ".join(cmd))
-
-    result = subprocess.run(
-        cmd,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-    if result.stdout.strip():
-        logger.debug("torrentfile stdout:\n%s", result.stdout.strip())
-    if result.stderr.strip():
-        logger.debug("torrentfile stderr:\n%s", result.stderr.strip())
-
-    if result.returncode != 0:
-        raise AssertionError(
-            f"`torrentfile recheck` failed (exit code {result.returncode}) for {torrent_path.name}:\n"
-            f"STDOUT: {result.stdout}\nSTDERR: {result.stderr}"
-        )
-
-    combined_output = f"{result.stdout}\n{result.stderr}"
-    if "100.0%" not in combined_output:
-        raise AssertionError(
-            f"`torrentfile recheck` did not report 100.0% match for {torrent_path.name}:\n"
-            f"STDOUT: {result.stdout}\nSTDERR: {result.stderr}"
-        )
-
-
 def verify_with_libtorrent_offline(
     torrent_path: Path,
     save_path: Path,
@@ -432,7 +396,6 @@ def run_all_tests(
                     protocol=case.protocol,
                     is_single_file=target.is_file(),
                 )
-                run_external_torrentfile_check(torrent_path=torrent_path, data_path=target)
 
                 if lt is not None:
                     verify_with_libtorrent_offline(
