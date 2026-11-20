@@ -13,7 +13,6 @@ Contents:
 
    user
    changelog
-   developer
 
 Indices and tables
 ==================
