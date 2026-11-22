@@ -364,6 +364,7 @@ def run_all_tests(
     passed = 0
     failed = 0
 
+    time_start = time.time()
     try:
         for case in TEST_CASES:
             target = testdata_dir / case.target_rel_path
@@ -416,7 +417,9 @@ def run_all_tests(
         else:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
+    duration = time.time() - time_start
     logger.info("Summary: %d passed, %d failed (total %d)", passed, failed, len(TEST_CASES))
+    logger.info("Duration: %.1f seconds", duration)
     return failed == 0
 
 
