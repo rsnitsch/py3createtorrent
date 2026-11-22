@@ -3,8 +3,8 @@
 Integration test runner for py3createtorrent v2.0.0.
 
 Tests v1, v2, and hybrid torrent creation against single-file and multi-file
-fixtures, verifies Bencode/BEP-52 metadata invariants, and runs `uvx torrentfile`
-as well as `libtorrent` verification checks.
+fixtures, verifies Bencode/BEP-52 metadata invariants, and runs `libtorrent`
+verification checks.
 """
 
 from __future__ import annotations
@@ -13,7 +13,6 @@ import argparse
 import hashlib
 import logging
 import shutil
-import subprocess
 import sys
 import tempfile
 import time
@@ -365,6 +364,7 @@ def run_all_tests(
     passed = 0
     failed = 0
 
+    time_start = time.time()
     try:
         for case in TEST_CASES:
             target = testdata_dir / case.target_rel_path
@@ -417,7 +417,9 @@ def run_all_tests(
         else:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
+    duration = time.time() - time_start
     logger.info("Summary: %d passed, %d failed (total %d)", passed, failed, len(TEST_CASES))
+    logger.info("Duration: %.1f seconds", duration)
     return failed == 0
 
 

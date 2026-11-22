@@ -1,6 +1,28 @@
 py3createtorrent
 ================
 
+|pypi| |python| |audit| |docs| |license|
+
+.. |pypi| image:: https://img.shields.io/pypi/v/py3createtorrent.svg
+   :target: https://pypi.org/project/py3createtorrent/
+   :alt: PyPI
+
+.. |python| image:: https://img.shields.io/pypi/pyversions/py3createtorrent.svg
+   :target: https://pypi.org/project/py3createtorrent/
+   :alt: Python Versions
+
+.. |audit| image:: https://github.com/rsnitsch/py3createtorrent/actions/workflows/pip-audit.yml/badge.svg?branch=master
+   :target: https://github.com/rsnitsch/py3createtorrent/actions/workflows/pip-audit.yml
+   :alt: Dependency Security Audit
+
+.. |docs| image:: https://img.shields.io/readthedocs/py3createtorrent/latest.svg
+   :target: https://py3createtorrent.readthedocs.io/en/latest/
+   :alt: Documentation Status
+
+.. |license| image:: https://img.shields.io/badge/License-LGPL_v3-blue.svg
+   :target: https://www.gnu.org/licenses/lgpl-3.0
+   :alt: License: LGPL v3
+
 *Create torrents via command line!*
 
 py3createtorrent is a comprehensive shell/commandline utility for creating torrents (Linux & Windows).
@@ -69,7 +91,7 @@ Via ``pip``::
 Install py3createtorrent 1.2 (stable)
 -------------------------------------
 
-py3createtorrent 1.2 requires Python 3.8. Python 3.5 to Python 3.7 might be possible if you
+py3createtorrent 1.2 requires Python 3.8 or later. Python 3.5 to Python 3.7 might be possible if you
 install the ``typing-extensions`` module.
 
 Note: The stable 1.2 version comes without v2/hybrid torrent support.
