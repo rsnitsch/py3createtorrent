@@ -136,6 +136,7 @@ Syntax:
       -d, --date TIMESTAMP  Overwrite creation date. Expects a unix timestamp. Specify -2 to disable creation date completely. [default: -1 = current date and
                             time]
       --no-created-by       Omit the 'created by' field from the torrent metainfo.
+      --threads N           Number of worker threads used for hashing. [default: automatic]
       -v, --verbose         Enable debug logging output.
       --version             show program's version number and exit
 
@@ -360,6 +361,15 @@ this name will also be used to deduce the name of the resulting .torrent file.
    what you're doing.
 
    For most intents and purposes, the ``-o`` switch is probably more suitable.
+
+Threads (``--threads``)
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Set the number of worker threads used for hashing files. Must be at least ``1``.
+
+By default, the thread count is chosen automatically based on the
+available CPU cores (up to 32). Set this to ``1`` to enforce sequential
+disk reads, which can improve throughput on spinning hard drives (HDDs).
 
 Examples
 --------

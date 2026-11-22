@@ -13,7 +13,7 @@ Version 2.0.0
 - changed: ``--exclude-pattern`` and ``--exclude-pattern-ci`` now match against POSIX-normalized paths relative to
   the target root instead of absolute system paths.
 - changed: existing ``.torrent`` files will always be overwritten without asking the user.
-- removed: options ``--md5``, ``--threads``, ``-f`` / ``--force``, and ``-q`` / ``--quiet``.
+- removed: options ``--md5``, ``-f`` / ``--force``, and ``-q`` / ``--quiet``.
 - removed: configuration file support (``.py3createtorrent.cfg`` / ``--config``) and tracker abbreviations in favor
   of explicit CLI options.
 - removed: support for Python versions older than 3.11.

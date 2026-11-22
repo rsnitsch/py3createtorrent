@@ -90,6 +90,7 @@ class TorrentSpec:
     piece_length: int = 0
     private: bool = False
     protocol: ProtocolVersion = ProtocolVersion.HYBRID
+    threads: int | None = None
     output: Path | None = None
     name: str | None = None
     comment: str | None = None
@@ -665,6 +666,9 @@ def create_torrent(spec: TorrentSpec) -> tuple[Path, dict[str, Any], int]:
             )
         info["source"] = source
 
+    if spec.threads is not None and spec.threads < 1:
+        raise ValueError(f"Thread count must be at least 1 (got {spec.threads}).")
+
     # 1. Hash the files for v1 and/or v2.
     v1_pieces, v1_files, piece_layers = hash_files(
         entries=entries,
@@ -673,6 +677,7 @@ def create_torrent(spec: TorrentSpec) -> tuple[Path, dict[str, Any], int]:
         include_v1=include_v1,
         include_v2=include_v2,
         align_to_piece_boundaries=(spec.protocol == ProtocolVersion.HYBRID),
+        max_workers=spec.threads,
     )
 
     if include_v2:
@@ -910,6 +915,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Omit the 'created by' field from the torrent metainfo.",
     )
     parser.add_argument(
+        "--threads",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Number of worker threads used for hashing. [default: automatic]",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -947,6 +959,7 @@ def main() -> None:
         piece_length=args.piece_length,
         private=args.private,
         protocol=args.protocol,
+        threads=args.threads,
         output=args.output,
         name=args.name,
         comment=args.comment,
