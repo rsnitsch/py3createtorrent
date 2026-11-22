@@ -54,6 +54,7 @@ logger = logging.getLogger(__name__)
 KIB = 2**10
 MIB = KIB * KIB
 BLOCK_SIZE = 16 * KIB  # BEP 52 fixed leaf block size (16 KiB)
+READ_CHUNK_SIZE = 4 * MIB  # Cap single read buffer to 4 MiB (always a multiple of BLOCK_SIZE)
 DEFAULT_BEST_TRACKERS_URL = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
 NAME_PATTERN = re.compile(r"^[A-Z0-9_\-., ()]+$", re.IGNORECASE)
 SOURCE_PATTERN = re.compile(r"^[A-Z0-9_\-., ]+$", re.IGNORECASE)
@@ -165,22 +166,34 @@ def compute_v2_file_hashes(file_path: Path, piece_length: int) -> tuple[bytes, b
     piece_depth = blocks_per_piece.bit_length() - 1
     file_size = file_path.stat().st_size
 
+    # Read up to 4 MiB at once, but align to piece_length for smaller pieces
+    read_size = min(piece_length, READ_CHUNK_SIZE)
+
     if file_size <= piece_length:
         block_hashes: list[bytes] = []
         with file_path.open("rb") as fh:
-            while block := fh.read(BLOCK_SIZE):
-                block_hashes.append(hashlib.sha256(block).digest())
+            while chunk := fh.read(read_size):
+                mv = memoryview(chunk)
+                for offset in range(0, len(mv), BLOCK_SIZE):
+                    block_hashes.append(hashlib.sha256(mv[offset : offset + BLOCK_SIZE]).digest())
         return merkle_root(block_hashes, leaf_depth=0), None
 
     piece_hashes: list[bytes] = []
     with file_path.open("rb") as fh:
         while True:
             block_hashes = []
-            for _ in range(blocks_per_piece):
-                block = fh.read(BLOCK_SIZE)
-                if not block:
+            bytes_remaining_in_piece = piece_length
+
+            while bytes_remaining_in_piece > 0:
+                to_read = min(read_size, bytes_remaining_in_piece)
+                chunk = fh.read(to_read)
+                if not chunk:
                     break
-                block_hashes.append(hashlib.sha256(block).digest())
+                bytes_remaining_in_piece -= len(chunk)
+
+                mv = memoryview(chunk)
+                for offset in range(0, len(mv), BLOCK_SIZE):
+                    block_hashes.append(hashlib.sha256(mv[offset : offset + BLOCK_SIZE]).digest())
 
             if not block_hashes:
                 break
@@ -363,30 +376,50 @@ def build_v1_pieces_and_files(
     """
     v1_pieces = bytearray()
     v1_files: list[dict[str, Any]] = []
-    buffer = bytearray()
+    hasher = hashlib.sha1()
+    bytes_in_current_piece = 0
 
     # Find index of the last non-empty file; trailing padding after it is forbidden in BEP 52
     last_non_empty_idx = max((i for i, e in enumerate(entries) if e.size > 0), default=-1)
+    read_size = min(piece_length, READ_CHUNK_SIZE)
+    zero_pad = b"\x00" * read_size if align_to_piece_boundaries else b""
 
     for idx, entry in enumerate(entries):
         logger.debug("Hashing v1: %s", "/".join(entry.rel_parts))
         with entry.abs_path.open("rb") as fh:
-            while chunk := fh.read(piece_length - len(buffer)):
-                buffer.extend(chunk)
-                if len(buffer) == piece_length:
-                    v1_pieces.extend(hashlib.sha1(buffer).digest())
-                    buffer.clear()
+            while chunk := fh.read(read_size):
+                mv = memoryview(chunk)
+                offset = 0
+                while offset < len(mv):
+                    needed = piece_length - bytes_in_current_piece
+                    take = min(needed, len(mv) - offset)
+                    hasher.update(mv[offset : offset + take])
+                    bytes_in_current_piece += take
+                    offset += take
+
+                    if bytes_in_current_piece == piece_length:
+                        v1_pieces.extend(hasher.digest())
+                        hasher = hashlib.sha1()
+                        bytes_in_current_piece = 0
 
         if not is_single_file:
             v1_files.append({"length": entry.size, "path": entry.rel_parts})
 
             # In hybrid torrents, pad every non-empty file before the last non-empty file
             # to a multiple of piece_length.
-            if align_to_piece_boundaries and entry.size > 0 and idx < last_non_empty_idx and len(buffer) > 0:
-                pad_len = piece_length - len(buffer)
-                buffer.extend(b"\x00" * pad_len)
-                v1_pieces.extend(hashlib.sha1(buffer).digest())
-                buffer.clear()
+            if align_to_piece_boundaries and entry.size > 0 and idx < last_non_empty_idx and bytes_in_current_piece > 0:
+                pad_len = piece_length - bytes_in_current_piece
+                remaining_pad = pad_len
+                zero_mv = memoryview(zero_pad)
+                while remaining_pad > 0:
+                    step = min(remaining_pad, read_size)
+                    hasher.update(zero_mv[:step])
+                    remaining_pad -= step
+
+                v1_pieces.extend(hasher.digest())
+                hasher = hashlib.sha1()
+                bytes_in_current_piece = 0
+
                 v1_files.append(
                     {
                         "attr": "p",
@@ -395,8 +428,8 @@ def build_v1_pieces_and_files(
                     }
                 )
 
-    if buffer:
-        v1_pieces.extend(hashlib.sha1(buffer).digest())
+    if bytes_in_current_piece > 0:
+        v1_pieces.extend(hasher.digest())
 
     return bytes(v1_pieces), (None if is_single_file else v1_files)
 
