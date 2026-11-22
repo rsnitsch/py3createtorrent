@@ -158,51 +158,144 @@ def merkle_root(hashes: list[bytes], pad_to: int | None = None, leaf_depth: int 
     return layer[0]
 
 
-def compute_v2_file_hashes(file_path: Path, piece_length: int) -> tuple[bytes, bytes | None]:
+def hash_files(
+    entries: list[FileEntry],
+    piece_length: int,
+    is_single_file: bool,
+    include_v1: bool,
+    include_v2: bool,
+    align_to_piece_boundaries: bool,
+) -> tuple[bytes | None, list[dict[str, Any]] | None, dict[bytes, bytes]]:
     """
-    Compute (pieces_root, piece_layers) for a single non-empty file according to BEP 52.
+    Hash all files in a single pass over disk I/O, computing v1 SHA-1 pieces/files
+    and/or v2 SHA-256 Merkle roots and piece layers simultaneously.
     """
+    read_size = min(piece_length, READ_CHUNK_SIZE)
     blocks_per_piece = piece_length // BLOCK_SIZE
     piece_depth = blocks_per_piece.bit_length() - 1
-    file_size = file_path.stat().st_size
 
-    # Read up to 4 MiB at once, but align to piece_length for smaller pieces
-    read_size = min(piece_length, READ_CHUNK_SIZE)
+    # v1 state
+    v1_pieces = bytearray()
+    v1_files: list[dict[str, Any]] = []
+    v1_hasher = hashlib.sha1() if include_v1 else None
+    v1_bytes_in_piece = 0
+    last_non_empty_idx = max((i for i, e in enumerate(entries) if e.size > 0), default=-1) if include_v1 else -1
+    zero_pad_mv = memoryview(b"\x00" * read_size) if (include_v1 and align_to_piece_boundaries) else None
 
-    if file_size <= piece_length:
-        block_hashes: list[bytes] = []
-        with file_path.open("rb") as fh:
-            while chunk := fh.read(read_size):
-                mv = memoryview(chunk)
-                for offset in range(0, len(mv), BLOCK_SIZE):
-                    block_hashes.append(hashlib.sha256(mv[offset : offset + BLOCK_SIZE]).digest())
-        return merkle_root(block_hashes, leaf_depth=0), None
+    # v2 state
+    piece_layers: dict[bytes, bytes] = {}
 
-    piece_hashes: list[bytes] = []
-    with file_path.open("rb") as fh:
-        while True:
-            block_hashes = []
-            bytes_remaining_in_piece = piece_length
+    for idx, entry in enumerate(entries):
+        logger.debug("Hashing: %s", "/".join(entry.rel_parts))
 
-            while bytes_remaining_in_piece > 0:
-                to_read = min(read_size, bytes_remaining_in_piece)
-                chunk = fh.read(to_read)
-                if not chunk:
-                    break
-                bytes_remaining_in_piece -= len(chunk)
+        # Per-file v2 accumulators
+        v2_active = include_v2 and entry.size > 0
+        v2_piece_hashes: list[bytes] = []
+        v2_current_piece_blocks: list[bytes] = []
+        v2_block_hasher = hashlib.sha256() if v2_active else None
+        v2_bytes_in_block = 0
 
-                mv = memoryview(chunk)
-                for offset in range(0, len(mv), BLOCK_SIZE):
-                    block_hashes.append(hashlib.sha256(mv[offset : offset + BLOCK_SIZE]).digest())
+        if entry.size > 0:
+            with entry.abs_path.open("rb") as fh:
+                while chunk := fh.read(read_size):
+                    mv = memoryview(chunk)
 
-            if not block_hashes:
-                break
+                    # 1. Feed v1 stream
+                    if v1_hasher is not None:
+                        offset = 0
+                        while offset < len(mv):
+                            needed = piece_length - v1_bytes_in_piece
+                            take = min(needed, len(mv) - offset)
+                            v1_hasher.update(mv[offset : offset + take])
+                            v1_bytes_in_piece += take
+                            offset += take
 
-            piece_hashes.append(merkle_root(block_hashes, pad_to=blocks_per_piece, leaf_depth=0))
+                            if v1_bytes_in_piece == piece_length:
+                                v1_pieces.extend(v1_hasher.digest())
+                                v1_hasher = hashlib.sha1()
+                                v1_bytes_in_piece = 0
 
-    root = merkle_root(piece_hashes, leaf_depth=piece_depth)
-    layers = b"".join(piece_hashes)
-    return root, layers
+                    # 2. Feed v2 per-file 16 KiB Merkle leaf blocks
+                    if v2_active and v2_block_hasher is not None:
+                        offset = 0
+                        while offset < len(mv):
+                            # Fast path: aligned 16 KiB block directly from chunk
+                            if v2_bytes_in_block == 0 and (len(mv) - offset) >= BLOCK_SIZE:
+                                v2_current_piece_blocks.append(
+                                    hashlib.sha256(mv[offset : offset + BLOCK_SIZE]).digest()
+                                )
+                                offset += BLOCK_SIZE
+                            else:
+                                needed = BLOCK_SIZE - v2_bytes_in_block
+                                take = min(needed, len(mv) - offset)
+                                v2_block_hasher.update(mv[offset : offset + take])
+                                v2_bytes_in_block += take
+                                offset += take
+
+                                if v2_bytes_in_block == BLOCK_SIZE:
+                                    v2_current_piece_blocks.append(v2_block_hasher.digest())
+                                    v2_block_hasher = hashlib.sha256()
+                                    v2_bytes_in_block = 0
+
+                            if len(v2_current_piece_blocks) == blocks_per_piece:
+                                v2_piece_hashes.append(
+                                    merkle_root(v2_current_piece_blocks, pad_to=blocks_per_piece, leaf_depth=0)
+                                )
+                                v2_current_piece_blocks.clear()
+
+        # Finalize v2 tree for this file
+        if v2_active and v2_block_hasher is not None:
+            if v2_bytes_in_block > 0:
+                v2_current_piece_blocks.append(v2_block_hasher.digest())
+
+            if entry.size < piece_length:
+                entry.v2_pieces_root = merkle_root(v2_current_piece_blocks, leaf_depth=0)
+            else:
+                if v2_current_piece_blocks:
+                    v2_piece_hashes.append(merkle_root(v2_current_piece_blocks, pad_to=blocks_per_piece, leaf_depth=0))
+                root = merkle_root(v2_piece_hashes, leaf_depth=piece_depth)
+                entry.v2_pieces_root = root
+                if len(v2_piece_hashes) > 1:
+                    piece_layers[root] = b"".join(v2_piece_hashes)
+
+        # Finalize v1 file entry and hybrid BEP 47 padding
+        if v1_hasher is not None and not is_single_file:
+            v1_files.append({"length": entry.size, "path": entry.rel_parts})
+
+            if (
+                align_to_piece_boundaries
+                and zero_pad_mv is not None
+                and entry.size > 0
+                and idx < last_non_empty_idx
+                and v1_bytes_in_piece > 0
+            ):
+                pad_len = piece_length - v1_bytes_in_piece
+                remaining_pad = pad_len
+                while remaining_pad > 0:
+                    step = min(remaining_pad, read_size)
+                    v1_hasher.update(zero_pad_mv[:step])
+                    remaining_pad -= step
+
+                v1_pieces.extend(v1_hasher.digest())
+                v1_hasher = hashlib.sha1()
+                v1_bytes_in_piece = 0
+
+                v1_files.append(
+                    {
+                        "attr": "p",
+                        "length": pad_len,
+                        "path": [".pad", str(pad_len)],
+                    }
+                )
+
+    if v1_hasher is not None and v1_bytes_in_piece > 0:
+        v1_pieces.extend(v1_hasher.digest())
+
+    return (
+        bytes(v1_pieces) if include_v1 else None,
+        (None if (not include_v1 or is_single_file) else v1_files),
+        piece_layers,
+    )
 
 
 def _normalize_path_key(path: Path) -> str:
@@ -364,76 +457,6 @@ def parse_nodes(raw_nodes: list[str], private: bool) -> list[list[str | int]]:
     return parsed
 
 
-def build_v1_pieces_and_files(
-    entries: list[FileEntry],
-    piece_length: int,
-    is_single_file: bool,
-    align_to_piece_boundaries: bool,
-) -> tuple[bytes, list[dict[str, Any]] | None]:
-    """
-    Generate v1 SHA-1 piece hashes and (for multi-file) the 'files' list.
-    Inserts BEP 47 '.pad' entries when align_to_piece_boundaries is True (hybrid mode).
-    """
-    v1_pieces = bytearray()
-    v1_files: list[dict[str, Any]] = []
-    hasher = hashlib.sha1()
-    bytes_in_current_piece = 0
-
-    # Find index of the last non-empty file; trailing padding after it is forbidden in BEP 52
-    last_non_empty_idx = max((i for i, e in enumerate(entries) if e.size > 0), default=-1)
-    read_size = min(piece_length, READ_CHUNK_SIZE)
-    zero_pad = b"\x00" * read_size if align_to_piece_boundaries else b""
-
-    for idx, entry in enumerate(entries):
-        logger.debug("Hashing v1: %s", "/".join(entry.rel_parts))
-        with entry.abs_path.open("rb") as fh:
-            while chunk := fh.read(read_size):
-                mv = memoryview(chunk)
-                offset = 0
-                while offset < len(mv):
-                    needed = piece_length - bytes_in_current_piece
-                    take = min(needed, len(mv) - offset)
-                    hasher.update(mv[offset : offset + take])
-                    bytes_in_current_piece += take
-                    offset += take
-
-                    if bytes_in_current_piece == piece_length:
-                        v1_pieces.extend(hasher.digest())
-                        hasher = hashlib.sha1()
-                        bytes_in_current_piece = 0
-
-        if not is_single_file:
-            v1_files.append({"length": entry.size, "path": entry.rel_parts})
-
-            # In hybrid torrents, pad every non-empty file before the last non-empty file
-            # to a multiple of piece_length.
-            if align_to_piece_boundaries and entry.size > 0 and idx < last_non_empty_idx and bytes_in_current_piece > 0:
-                pad_len = piece_length - bytes_in_current_piece
-                remaining_pad = pad_len
-                zero_mv = memoryview(zero_pad)
-                while remaining_pad > 0:
-                    step = min(remaining_pad, read_size)
-                    hasher.update(zero_mv[:step])
-                    remaining_pad -= step
-
-                v1_pieces.extend(hasher.digest())
-                hasher = hashlib.sha1()
-                bytes_in_current_piece = 0
-
-                v1_files.append(
-                    {
-                        "attr": "p",
-                        "length": pad_len,
-                        "path": [".pad", str(pad_len)],
-                    }
-                )
-
-    if bytes_in_current_piece > 0:
-        v1_pieces.extend(hasher.digest())
-
-    return bytes(v1_pieces), (None if is_single_file else v1_files)
-
-
 def build_file_tree(entries: list[FileEntry], is_single_file: bool) -> dict[str, Any]:
     """
     Construct the BEP 52 'file tree' nested dictionary structure.
@@ -518,35 +541,29 @@ def create_torrent(spec: TorrentSpec) -> tuple[Path, dict[str, Any], int]:
             )
         info["source"] = source
 
-    # 1. BitTorrent v2 metadata
-    piece_layers: dict[bytes, bytes] = {}
+    # 1. Hash the files for v1 and/or v2.
+    v1_pieces, v1_files, piece_layers = hash_files(
+        entries=entries,
+        piece_length=piece_length,
+        is_single_file=is_single_file,
+        include_v1=include_v1,
+        include_v2=include_v2,
+        align_to_piece_boundaries=(spec.protocol == ProtocolVersion.HYBRID),
+    )
+
     if include_v2:
         info["meta version"] = 2
-        for entry in entries:
-            if entry.size > 0:
-                logger.debug("Hashing v2 Merkle tree: %s", "/".join(entry.rel_parts))
-                root, layers = compute_v2_file_hashes(entry.abs_path, piece_length)
-                entry.v2_pieces_root = root
-                if layers is not None:
-                    piece_layers[root] = layers
-
         info["file tree"] = build_file_tree(entries, is_single_file)
 
-    # 2. BitTorrent v1 metadata
     if include_v1:
-        v1_pieces, v1_files = build_v1_pieces_and_files(
-            entries=entries,
-            piece_length=piece_length,
-            is_single_file=is_single_file,
-            align_to_piece_boundaries=(spec.protocol == ProtocolVersion.HYBRID),
-        )
+        assert v1_pieces is not None
         info["pieces"] = v1_pieces
         if is_single_file:
             info["length"] = total_size
         else:
             info["files"] = v1_files
 
-    # 3. Outer metainfo dictionary
+    # 2. Outer metainfo dictionary
     metainfo: dict[str, Any] = {
         "info": info,
     }
