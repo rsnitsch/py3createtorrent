@@ -271,43 +271,50 @@ def _hash_file_slice(
     return _ChunkResult(v1_hashes=bytes(v1_pieces), v2_piece_hashes=v2_piece_hashes)
 
 
-def _hash_v1_unaligned_stream(
-    entries: list[FileEntry],
-    piece_length: int,
-    is_single_file: bool,
-    executor: ThreadPoolExecutor,
-) -> tuple[bytes, list[dict[str, Any]] | None]:
+@dataclass(slots=True)
+class _FileSegment:
+    abs_path: Path
+    file_offset: int
+    length: int
+
+
+def _hash_v1_stream_slice(segments: list[_FileSegment], piece_length: int) -> bytes:
     """
-    Parallel v1 hashing when files are concatenated without piece alignment (pure v1 mode).
-    Reads sequentially into piece-sized buffers and hashes pieces across worker threads.
+    Hash a contiguous range of pieces spanning one or more files without padding.
     """
-    v1_files: list[dict[str, Any]] = []
-    futures: list[Future[bytes]] = []
-    buffer = bytearray()
+    v1_pieces = bytearray()
+    hasher = hashlib.sha1()
+    bytes_in_piece = 0
+    read_size = min(piece_length, READ_CHUNK_SIZE)
 
-    def _sha1_digest(data: bytes) -> bytes:
-        return hashlib.sha1(data).digest()
+    for seg in segments:
+        remaining = seg.length
+        with seg.abs_path.open("rb") as fh:
+            if seg.file_offset > 0:
+                fh.seek(seg.file_offset)
+            while remaining > 0:
+                chunk = fh.read(min(read_size, remaining))
+                if not chunk:
+                    break
+                remaining -= len(chunk)
+                mv = memoryview(chunk)
+                offset = 0
+                while offset < len(mv):
+                    needed = piece_length - bytes_in_piece
+                    take = min(needed, len(mv) - offset)
+                    hasher.update(mv[offset : offset + take])
+                    bytes_in_piece += take
+                    offset += take
 
-    for entry in entries:
-        logger.debug("Hashing v1 stream: %s", "/".join(entry.rel_parts))
-        if not is_single_file:
-            v1_files.append({"length": entry.size, "path": entry.rel_parts})
+                    if bytes_in_piece == piece_length:
+                        v1_pieces.extend(hasher.digest())
+                        hasher = hashlib.sha1()
+                        bytes_in_piece = 0
 
-        if entry.size > 0:
-            with entry.abs_path.open("rb") as fh:
-                while chunk := fh.read(piece_length - len(buffer)):
-                    buffer.extend(chunk)
-                    if len(buffer) == piece_length:
-                        piece_bytes = bytes(buffer)
-                        buffer.clear()
-                        futures.append(executor.submit(_sha1_digest, piece_bytes))
+    if bytes_in_piece > 0:
+        v1_pieces.extend(hasher.digest())
 
-    if buffer:
-        last_bytes = bytes(buffer)
-        futures.append(executor.submit(_sha1_digest, last_bytes))
-
-    v1_pieces = b"".join(f.result() for f in futures)
-    return v1_pieces, (None if is_single_file else v1_files)
+    return bytes(v1_pieces)
 
 
 def hash_files(
@@ -325,22 +332,46 @@ def hash_files(
     """
     workers = max_workers or min(32, (os.cpu_count() or 4))
 
+    # Target ~16 MiB per parallel slice, always aligned to piece_length
+    pieces_per_slice = max(1, (16 * MIB) // piece_length)
+    slice_bytes = pieces_per_slice * piece_length
+
     with ThreadPoolExecutor(max_workers=workers) as executor:
         # Pure v1 multi-file torrents concatenate files without piece-boundary padding
         if include_v1 and not include_v2 and not align_to_piece_boundaries and not is_single_file:
-            v1_pieces, v1_files_stream = _hash_v1_unaligned_stream(entries, piece_length, is_single_file, executor)
-            return v1_pieces, v1_files_stream, {}
+            v1_files_stream: list[dict[str, Any]] = []
+            slice_futures: list[Future[bytes]] = []
+            current_segments: list[_FileSegment] = []
+            bytes_in_slice = 0
+
+            for entry in entries:
+                logger.debug("Scheduling v1 stream: %s", "/".join(entry.rel_parts))
+                v1_files_stream.append({"length": entry.size, "path": entry.rel_parts})
+                file_offset = 0
+                rem_file = entry.size
+                while rem_file > 0:
+                    take = min(slice_bytes - bytes_in_slice, rem_file)
+                    current_segments.append(_FileSegment(entry.abs_path, file_offset, take))
+                    file_offset += take
+                    rem_file -= take
+                    bytes_in_slice += take
+
+                    if bytes_in_slice == slice_bytes:
+                        slice_futures.append(executor.submit(_hash_v1_stream_slice, current_segments, piece_length))
+                        current_segments = []
+                        bytes_in_slice = 0
+
+            if current_segments:
+                slice_futures.append(executor.submit(_hash_v1_stream_slice, current_segments, piece_length))
+
+            return b"".join(f.result() for f in slice_futures), v1_files_stream, {}
 
         blocks_per_piece = piece_length // BLOCK_SIZE
         piece_depth = blocks_per_piece.bit_length() - 1
         last_non_empty_idx = max((i for i, e in enumerate(entries) if e.size > 0), default=-1)
 
-        # Target ~16 MiB per parallel slice for large files, always aligned to piece_length
-        pieces_per_slice = max(1, (16 * MIB) // piece_length)
-        slice_bytes = pieces_per_slice * piece_length
-
         # Submit all slice tasks across all files
-        file_tasks: list[tuple[int, FileEntry, list[Any], bool]] = []
+        file_tasks: list[tuple[int, FileEntry, list[Future[_ChunkResult]], bool]] = []
         for idx, entry in enumerate(entries):
             logger.debug("Scheduling hash tasks: %s", "/".join(entry.rel_parts))
             if entry.size == 0:
