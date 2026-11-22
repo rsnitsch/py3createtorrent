@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "py3createtorrent"
-version = "2.0.0a1"
+version = "2.0.0a2"
 description = "Create torrents via command line!"
 readme = "README.md"
 license = "LGPL-3.0-or-later"
