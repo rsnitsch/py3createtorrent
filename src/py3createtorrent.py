@@ -21,7 +21,7 @@ import time
 import tomllib
 import urllib.error
 import urllib.request
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from enum import StrEnum
 from importlib.metadata import PackageNotFoundError, version
@@ -281,8 +281,11 @@ def _hash_v1_unaligned_stream(
     Reads sequentially into piece-sized buffers and hashes pieces across worker threads.
     """
     v1_files: list[dict[str, Any]] = []
-    futures = []
+    futures: list[Future[bytes]] = []
     buffer = bytearray()
+
+    def _sha1_digest(data: bytes) -> bytes:
+        return hashlib.sha1(data).digest()
 
     for entry in entries:
         logger.debug("Hashing v1 stream: %s", "/".join(entry.rel_parts))
@@ -296,11 +299,11 @@ def _hash_v1_unaligned_stream(
                     if len(buffer) == piece_length:
                         piece_bytes = bytes(buffer)
                         buffer.clear()
-                        futures.append(executor.submit(lambda b: hashlib.sha1(b).digest(), piece_bytes))
+                        futures.append(executor.submit(_sha1_digest, piece_bytes))
 
     if buffer:
         last_bytes = bytes(buffer)
-        futures.append(executor.submit(lambda b: hashlib.sha1(b).digest(), last_bytes))
+        futures.append(executor.submit(_sha1_digest, last_bytes))
 
     v1_pieces = b"".join(f.result() for f in futures)
     return v1_pieces, (None if is_single_file else v1_files)
@@ -324,8 +327,8 @@ def hash_files(
     with ThreadPoolExecutor(max_workers=workers) as executor:
         # Pure v1 multi-file torrents concatenate files without piece-boundary padding
         if include_v1 and not include_v2 and not align_to_piece_boundaries and not is_single_file:
-            v1_pieces, v1_files = _hash_v1_unaligned_stream(entries, piece_length, is_single_file, executor)
-            return v1_pieces, v1_files, {}
+            v1_pieces, v1_files_stream = _hash_v1_unaligned_stream(entries, piece_length, is_single_file, executor)
+            return v1_pieces, v1_files_stream, {}
 
         blocks_per_piece = piece_length // BLOCK_SIZE
         piece_depth = blocks_per_piece.bit_length() - 1
@@ -351,7 +354,7 @@ def hash_files(
                 and (entry.size % piece_length != 0)
             )
 
-            futures = []
+            futures: list[Future[_ChunkResult]] = []
             offset = 0
             while offset < entry.size:
                 chunk_len = min(slice_bytes, entry.size - offset)
