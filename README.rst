@@ -137,14 +137,14 @@ py3createtorrent v2.0 is one of the fastest torrent creation tools available.
 
 Here are the benchmark results for creating a torrent for a folder containing 10.5 GB in 101 files:
 
-========================= ================== ====== ======
-Command                   Mean Wall Time [s] Change Factor
-========================= ================== ====== ======
-``py3createtorrent v2.0`` 7.516 ± 0.137             
-``mkbrr``                 7.133 ± 0.063      -5.1%  
-``torf-cli``              9.618 ± 0.096      +28.0% 
-``torrenttools``          9.632 ± 0.051      +28.2% 
-========================= ================== ====== ======
+============================= ================== ====== ======
+Command                       Mean Wall Time [s] Change Factor
+============================= ================== ====== ======
+``py3createtorrent v2.0.0a2`` 7.516 ± 0.137             1
+``mkbrr 1.28.0``              7.133 ± 0.063      -5.1%  0.95
+``torf-cli 5.2.1``            9.618 ± 0.096      +28.0% 1.28
+``torrenttools v0.6.2``       9.632 ± 0.051      +28.2% 1.28
+============================= ================== ====== ======
 
 Plot:
 
