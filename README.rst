@@ -148,7 +148,7 @@ Command                       Mean Wall Time [s] Change Factor
 
 Plot:
 
-.. image:: :/benchmark.png
+.. image:: ./benchmark.png
    :alt: Plot of benchmark results
 
 System specs:
