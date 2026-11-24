@@ -13,3 +13,6 @@ parameter_scan.json
 parameter_scan.md
 plot_utils.py
 plot_whisker.py
+tests/random_folder_benchmark/
+*.torrent
+*.exe
