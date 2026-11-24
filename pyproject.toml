@@ -49,8 +49,6 @@ dev = [
     "cachedir-tag>=0.0.5",
     "faker",
     "libtorrent>=2.0.10; python_version < '3.14'",
-    "matplotlib",
-    "pandas",
     "pip-audit>=2.10.1",
     "pytest>=8.0",
     "sphinx~=9.2; python_version >= '3.13'",
