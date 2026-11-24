@@ -5,3 +5,11 @@ dist/
 src/py3createtorrent.egg-info
 tests/testdata/
 .idea/
+benchmark.json
+benchmark.md
+benchmark.rst
+benchmark.torrent
+parameter_scan.json
+parameter_scan.md
+plot_utils.py
+plot_whisker.py
