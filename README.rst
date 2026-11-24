@@ -129,3 +129,32 @@ https://py3createtorrent.readthedocs.io/en/latest/user.html
 For 1.2 (stable):
 
 https://py3createtorrent.readthedocs.io/en/v1.2.1/user.html
+
+Performance
+-----------
+
+py3createtorrent v2.0 is one of the fastest torrent creation tools available.
+
+Here are the benchmark results for creating a torrent for a folder containing 10.5 GB in 101 files:
+
+========================= ================== ====== ======
+Command                   Mean Wall Time [s] Change Factor
+========================= ================== ====== ======
+``py3createtorrent v2.0`` 7.516 ± 0.137             
+``mkbrr``                 7.133 ± 0.063      -5.1%  
+``torf-cli``              9.618 ± 0.096      +28.0% 
+``torrenttools``          9.632 ± 0.051      +28.2% 
+========================= ================== ====== ======
+
+Plot:
+
+.. image:: :/benchmark.png
+   :alt: Plot of benchmark results
+
+System specs:
+
+- AMD Ryzen 7 7735HS (3.2 GHz, 8 cores)
+- 16 GB DDR5 RAM
+- Micron 2400 SSD
+
+The benchmarking code is in ``.\benchmark.ps1``.
