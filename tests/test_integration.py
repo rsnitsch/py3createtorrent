@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 """
-Integration test runner for py3createtorrent v2.0.0.
-
 Tests v1, v2, and hybrid torrent creation against single-file and multi-file
 fixtures, verifies Bencode/BEP-52 metadata invariants, and runs `libtorrent`
 verification checks.
@@ -9,45 +7,38 @@ verification checks.
 
 from __future__ import annotations
 
-import argparse
 import hashlib
 import logging
 import shutil
-import sys
-import tempfile
 import time
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 
-try:
-    from bencodepy import decode as bdecode
-    from bencodepy import encode as bencode
-except ImportError as exc:
-    sys.exit(f"ERROR: bencodepy is required to run verification checks: {exc}")
-
 import cachedir_tag
+import pytest
+from bencodepy import decode as bdecode
+from bencodepy import encode as bencode
 
 try:
     import libtorrent as lt
 except ImportError:
     lt = None  # type: ignore[assignment]
 
-# Adjust import if py3createtorrent.py lives in src/ or project root
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(Path(PROJECT_ROOT) / "src"))
+
+from py3createtorrent import ProtocolVersion, TorrentSpec, create_torrent
 
 from create_random_file import create_random_file
 from create_random_folder import create_random_folder
 
-from py3createtorrent import ProtocolVersion, TorrentSpec, create_torrent  # noqa: E402
-
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 logger = logging.getLogger(__name__)
 type BencodeValue = int | bytes | list[BencodeValue] | dict[bytes, BencodeValue]
 
 
 @dataclass(frozen=True, slots=True)
-class TestCase:
+class TorrentCase:
     name: str
     target_rel_path: str
     protocol: ProtocolVersion
@@ -55,28 +46,28 @@ class TestCase:
 
 
 TEST_CASES = [
-    TestCase("single_file_16k_v2", "random_file_16k.dat", ProtocolVersion.V2),
-    TestCase("single_file_17k_v2", "random_file_17k.dat", ProtocolVersion.V2),
-    TestCase("single_file_48k_v2", "random_file_48k.dat", ProtocolVersion.V2),
-    TestCase("single_file_64k_v2", "random_file_64k.dat", ProtocolVersion.V2),
-    TestCase("single_file_65k_v2", "random_file_65k.dat", ProtocolVersion.V2),
-    TestCase("single_file_65k_v2", "random_file_65k.dat", ProtocolVersion.V2, 32),
-    TestCase("single_file_100k_v2", "random_file_100k.dat", ProtocolVersion.V2),
-    TestCase("single_file_100k_v2", "random_file_100k.dat", ProtocolVersion.V2, 32),
-    TestCase("single_file_v1", "random_file_50m.dat", ProtocolVersion.V1),
-    TestCase("single_file_v2", "random_file_50m.dat", ProtocolVersion.V2),
-    TestCase("single_file_hybrid", "random_file_50m.dat", ProtocolVersion.HYBRID),
-    TestCase("multi_file_v1", "random_folder_big_files", ProtocolVersion.V1),
-    TestCase("multi_file_v2", "random_folder_big_files", ProtocolVersion.V2),
-    TestCase("multi_file_hybrid", "random_folder_big_files", ProtocolVersion.HYBRID),
-    TestCase("multi_file_v1", "random_folder_tiny_files", ProtocolVersion.V1),
-    TestCase("multi_file_v2", "random_folder_tiny_files", ProtocolVersion.V2),
-    TestCase("multi_file_hybrid", "random_folder_tiny_files", ProtocolVersion.HYBRID),
-    TestCase("multi_file_hybrid", "random_folder_tiny_files", ProtocolVersion.HYBRID, 16),
-    TestCase("multi_file_hybrid", "random_folder_tiny_files", ProtocolVersion.HYBRID, 32),
-    TestCase("multi_file_hybrid_with_empty_files", "random_folder_with_empty_files", ProtocolVersion.HYBRID),
-    TestCase("multi_file_hybrid_with_subfolder", "random_folder_with_subfolder", ProtocolVersion.HYBRID),
-    TestCase("multi_file_hybrid_with_subfolder", "random_folder_with_subfolder", ProtocolVersion.HYBRID, 16),
+    TorrentCase("single_file_16k_v2", "random_file_16k.dat", ProtocolVersion.V2),
+    TorrentCase("single_file_17k_v2", "random_file_17k.dat", ProtocolVersion.V2),
+    TorrentCase("single_file_48k_v2", "random_file_48k.dat", ProtocolVersion.V2),
+    TorrentCase("single_file_64k_v2", "random_file_64k.dat", ProtocolVersion.V2),
+    TorrentCase("single_file_65k_v2", "random_file_65k.dat", ProtocolVersion.V2),
+    TorrentCase("single_file_65k_v2", "random_file_65k.dat", ProtocolVersion.V2, 32),
+    TorrentCase("single_file_100k_v2", "random_file_100k.dat", ProtocolVersion.V2),
+    TorrentCase("single_file_100k_v2", "random_file_100k.dat", ProtocolVersion.V2, 32),
+    TorrentCase("single_file_v1", "random_file_50m.dat", ProtocolVersion.V1),
+    TorrentCase("single_file_v2", "random_file_50m.dat", ProtocolVersion.V2),
+    TorrentCase("single_file_hybrid", "random_file_50m.dat", ProtocolVersion.HYBRID),
+    TorrentCase("multi_file_v1", "random_folder_big_files", ProtocolVersion.V1),
+    TorrentCase("multi_file_v2", "random_folder_big_files", ProtocolVersion.V2),
+    TorrentCase("multi_file_hybrid", "random_folder_big_files", ProtocolVersion.HYBRID),
+    TorrentCase("multi_file_v1", "random_folder_tiny_files", ProtocolVersion.V1),
+    TorrentCase("multi_file_v2", "random_folder_tiny_files", ProtocolVersion.V2),
+    TorrentCase("multi_file_hybrid", "random_folder_tiny_files", ProtocolVersion.HYBRID),
+    TorrentCase("multi_file_hybrid", "random_folder_tiny_files", ProtocolVersion.HYBRID, 16),
+    TorrentCase("multi_file_hybrid", "random_folder_tiny_files", ProtocolVersion.HYBRID, 32),
+    TorrentCase("multi_file_hybrid_with_empty_files", "random_folder_with_empty_files", ProtocolVersion.HYBRID),
+    TorrentCase("multi_file_hybrid_with_subfolder", "random_folder_with_subfolder", ProtocolVersion.HYBRID),
+    TorrentCase("multi_file_hybrid_with_subfolder", "random_folder_with_subfolder", ProtocolVersion.HYBRID, 16),
 ]
 
 
@@ -341,133 +332,58 @@ def verify_with_libtorrent_offline(
     )
 
 
-def run_all_tests(
-    testdata_dir: Path,
-    keep_artifacts: bool = False,
-    require_libtorrent: bool = False,
-) -> bool:
-    """
-    Run the full integration test matrix. Returns True if all tests pass.
-    """
+@pytest.fixture(scope="session")
+def testdata_dir() -> Path:
+    """Generate random test fixtures once per test session."""
     ensure_testdata_is_generated()
+    return PROJECT_ROOT / "tests" / "testdata"
 
+
+@pytest.fixture(scope="session")
+def is_libtorrent_present():
     if lt is None:
-        msg = "libtorrent is not installed; skipping libtorrent verification."
-        if require_libtorrent:
-            logger.error(msg)
-            return False
-        logger.warning(msg)
-
-    tmp_dir = Path(tempfile.mkdtemp(prefix="py3ct_test_"))
-    logger.info("Using temporary workspace: %s", tmp_dir)
-
-    passed = 0
-    failed = 0
-
-    time_start = time.time()
-    try:
-        for case in TEST_CASES:
-            target = testdata_dir / case.target_rel_path
-            if not target.exists():
-                logger.error("[%s] Missing test fixture: %s", case.name, target)
-                failed += 1
-                continue
-
-            logger.info("Running test case: %-22s (protocol=%s)", case.name, case.protocol.value)
-
-            try:
-                case_dir = tmp_dir / case.name
-                case_dir.mkdir(parents=True, exist_ok=True)
-
-                spec = TorrentSpec(
-                    target=target,
-                    trackers=["best3"],
-                    piece_length=case.piece_size,
-                    private=False,
-                    protocol=case.protocol,
-                    output=case_dir,
-                )
-
-                torrent_path, _, total_size = create_torrent(spec)
-                logger.debug("  Created %s (%d bytes source data)", torrent_path, total_size)
-
-                verify_bencode_invariants(
-                    torrent_path=torrent_path,
-                    protocol=case.protocol,
-                    is_single_file=target.is_file(),
-                )
-
-                if lt is not None:
-                    verify_with_libtorrent_offline(
-                        torrent_path=torrent_path,
-                        save_path=target.parent,
-                        protocol=case.protocol,
-                    )
-
-                logger.info("  [PASS] %s", case.name)
-                passed += 1
-
-            except Exception as exc:
-                logger.error("  [FAIL] %s: %s", case.name, exc)
-                failed += 1
-
-    finally:
-        if keep_artifacts:
-            logger.info("Keeping generated test artifacts in: %s", tmp_dir)
-        else:
-            shutil.rmtree(tmp_dir, ignore_errors=True)
-
-    duration = time.time() - time_start
-    logger.info("Summary: %d passed, %d failed (total %d)", passed, failed, len(TEST_CASES))
-    logger.info("Duration: %.1f seconds", duration)
-    return failed == 0
+        warnings.warn(
+            "libtorrent is not installed; skipping libtorrent offline verification.",
+            UserWarning,
+            stacklevel=2,
+        )
+        return False
+    else:
+        return True
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Integration test runner for py3createtorrent v2.0.0",
-    )
-    parser.add_argument(
-        "--testdata",
-        type=Path,
-        default=PROJECT_ROOT / "tests" / "testdata",
-        help="Path to testdata directory containing random_file.dat and random_folder.",
-    )
-    parser.add_argument(
-        "--keep-artifacts",
-        action="store_true",
-        default=False,
-        help="Do not delete temporary generated .torrent files after running.",
-    )
-    parser.add_argument(
-        "--require-libtorrent",
-        action="store_true",
-        default=False,
-        help="Fail the test run if libtorrent is not installed.",
-    )
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        default=False,
-        help="Enable verbose debug logging.",
+def _case_id(case: TorrentCase) -> str:
+    # Generate a unique, readable test ID for pytest output
+    if case.piece_size:
+        return f"{case.name}_ps{case.piece_size}"
+    return case.name
+
+
+@pytest.mark.parametrize("case", TEST_CASES, ids=_case_id)
+def test_create_torrent(case: TorrentCase, testdata_dir: Path, tmp_path: Path) -> None:
+    target = testdata_dir / case.target_rel_path
+    assert target.exists(), f"Missing test fixture: {target}"
+
+    spec = TorrentSpec(
+        target=target,
+        trackers=["best3"],
+        piece_length=case.piece_size,
+        private=False,
+        protocol=case.protocol,
+        output=tmp_path,
     )
 
-    args = parser.parse_args()
+    torrent_path, _, _ = create_torrent(spec)
 
-    logging.basicConfig(
-        level=logging.DEBUG if args.verbose else logging.INFO,
-        format="%(asctime)s | %(name)s | [%(levelname)s] %(message)s",
-        datefmt="%H:%M:%S",
+    verify_bencode_invariants(
+        torrent_path=torrent_path,
+        protocol=case.protocol,
+        is_single_file=target.is_file(),
     )
 
-    success = run_all_tests(
-        testdata_dir=args.testdata,
-        keep_artifacts=args.keep_artifacts,
-        require_libtorrent=args.require_libtorrent,
-    )
-    sys.exit(0 if success else 1)
-
-
-if __name__ == "__main__":
-    main()
+    if lt is not None:
+        verify_with_libtorrent_offline(
+            torrent_path=torrent_path,
+            save_path=target.parent,
+            protocol=case.protocol,
+        )
