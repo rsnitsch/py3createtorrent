@@ -47,7 +47,7 @@ py-modules = ["py3createtorrent"]
 [dependency-groups]
 dev = [
     "cachedir-tag>=0.0.5",
-    "faker",
+    "faker>=40.63",
     "libtorrent>=2.0.10; python_version < '3.14'",
     "pip-audit>=2.10.1",
     "pytest>=8.0",
