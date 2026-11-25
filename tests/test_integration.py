@@ -359,7 +359,7 @@ def _case_id(case: TorrentCase) -> str:
 
 
 @pytest.mark.parametrize("case", TEST_CASES, ids=_case_id)
-def test_create_torrent(case: TorrentCase, testdata_dir: Path, tmp_path: Path) -> None:
+def test_create_torrent(case: TorrentCase, testdata_dir: Path, tmp_path: Path, is_libtorrent_present: bool) -> None:
     target = testdata_dir / case.target_rel_path
     assert target.exists(), f"Missing test fixture: {target}"
 
@@ -380,7 +380,8 @@ def test_create_torrent(case: TorrentCase, testdata_dir: Path, tmp_path: Path) -
         is_single_file=target.is_file(),
     )
 
-    if lt is not None:
+    if is_libtorrent_present:
+        assert lt is not None, "lt (libtorrent) should not be None"
         verify_with_libtorrent_offline(
             torrent_path=torrent_path,
             save_path=target.parent,
