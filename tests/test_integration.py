@@ -73,12 +73,11 @@ TEST_CASES = [
 
 def ensure_testdata_is_generated():
     testdata_path = PROJECT_ROOT / "tests" / "testdata"
-    logger.info("Creating fresh set of random testdata here: %s", testdata_path)
-
-    # Empty first. Always start with freshly generated testdata.
     if testdata_path.is_dir():
-        shutil.rmtree(testdata_path)
+        logger.info("Testdata directory already exists. Nothing to do.")
+        return
 
+    logger.info("Creating fresh set of random testdata here: %s", testdata_path)
     testdata_path.mkdir()
     cachedir_tag.tag(testdata_path)
 
