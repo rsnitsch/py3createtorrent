@@ -11,6 +11,7 @@ on:
       - '.github/workflows/pip-audit.yml'
   pull_request:
     paths:
+      - 'uv.lock'
       - 'pyproject.toml'
       - '.github/workflows/pip-audit.yml'
   schedule:
@@ -40,7 +41,7 @@ jobs:
 
       - name: Run pip-audit
         run: |
-          echo "## pip-audit Ergebnis ($(uv run python --version))" >> "$GITHUB_STEP_SUMMARY"
+          echo "## pip-audit result ($(uv run python --version))" >> "$GITHUB_STEP_SUMMARY"
           uvx pip-audit -r requirements.txt --strict --desc --format markdown >> "$GITHUB_STEP_SUMMARY" \
-            || (echo "❌ Schwachstellen gefunden – Details in der Tabelle oben." >> "$GITHUB_STEP_SUMMARY" && exit 1)
-          echo "✅ Keine bekannten Schwachstellen gefunden." >> "$GITHUB_STEP_SUMMARY"
+            || (echo "❌ Vulnerabilities found – details in the table above." >> "$GITHUB_STEP_SUMMARY" && exit 1)
+          echo "✅ No vulnerabilities found." >> "$GITHUB_STEP_SUMMARY"
