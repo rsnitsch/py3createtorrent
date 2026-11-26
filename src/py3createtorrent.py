@@ -330,7 +330,10 @@ def hash_files(
     Hash all files in a single pass over disk I/O using a ThreadPoolExecutor,
     computing v1 SHA-1 pieces/files and/or v2 SHA-256 Merkle roots and piece layers.
     """
-    workers = max_workers or min(32, (os.cpu_count() or 4))
+    cpu_count = os.cpu_count()
+    if cpu_count is None and max_workers is None:
+        logger.warning("Cannot determine the number of logical CPUs. Using 4 threads as fallback...")
+    workers = max_workers or min(32, (cpu_count or 4))
 
     # Target ~16 MiB per parallel slice, always aligned to piece_length
     pieces_per_slice = max(1, (16 * MIB) // piece_length)
