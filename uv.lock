@@ -236,7 +236,7 @@ wheels = [
 
 [[package]]
 name = "cyclonedx-python-lib"
-version = "11.12.0"
+version = "11.13.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "license-expression" },
@@ -245,9 +245,9 @@ dependencies = [
     { name = "sortedcontainers" },
     { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/17/40/6509e6cfd7f2f3255501690f46375fdd224949e21fd1e96f4f4c8a9041b1/cyclonedx_python_lib-11.12.0.tar.gz", hash = "sha256:16767c4039de90c04e9f03348f8f0ed4b8ff842eaa7eefcad3a95685f970dacf", size = 1445378, upload-time = "2026-08-13T07:52:18.675Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4e/7f/a09cf54454f1ab46c3c0c37626a8cff9258b24835a6ed9054dfc22ba8e6c/cyclonedx_python_lib-11.13.0.tar.gz", hash = "sha256:f347c0499befdef9f8265fecc796907c1cbe211bd7d94f576e1596a70d040c36", size = 1468611, upload-time = "2026-11-26T11:15:50.356Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cf/f0/b2cb999244f2f4194df63ecff6939228178fa63a33be809c412684ca8db7/cyclonedx_python_lib-11.12.0-py3-none-any.whl", hash = "sha256:0e807521a921a5c3cb8ce1153f8a61d29eedfe76a46aac2796b7c6b573391a54", size = 529453, upload-time = "2026-08-13T07:52:16.836Z" },
+    { url = "https://files.pythonhosted.org/packages/8f/af/29802c29d7232c14fb5ade323054c0704dc17fcd5d1645e99fa903948f17/cyclonedx_python_lib-11.13.0-py3-none-any.whl", hash = "sha256:e0aaeb8c9c2303af93764cefb4bc7b845ab77673540e7aaa6a650e43733ad7a7", size = 539788, upload-time = "2026-11-26T11:15:48.855Z" },
 ]
 
 [[package]]
