@@ -331,6 +331,13 @@ using forward slashes (``/``).
 The switches may be used repeatedly to specify multiple exclusion patterns.
 Use ``--exclude-pattern-ci`` for case-insensitive matching.
 
+Example (how to exclude all ``.jpg`` files)::
+
+    py3createtorrent --exclude-pattern "\.(jpg|JPG)$" -t best3 my_folder/
+
+    # The case-insensitive variant allows for a simpler regular expression:
+    py3createtorrent --exclude-pattern-ci "\.jpg$" -t best3 my_folder/
+
 Creation date (``-d``, ``--date``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -367,8 +374,8 @@ Threads (``--threads``)
 
 Set the number of worker threads used for hashing files. Must be at least ``1``.
 
-By default, the thread count is chosen automatically based on the
-available CPU cores (up to 32). Set this to ``1`` to enforce sequential
+By default, the thread count is chosen automatically based on the available
+logical CPU cores on your system (up to 32). Set this to ``1`` to enforce sequential
 disk reads, which can improve throughput on spinning hard drives (HDDs).
 
 Examples
