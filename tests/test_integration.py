@@ -26,11 +26,10 @@ try:
 except ImportError:
     lt = None  # type: ignore[assignment]
 
-
-from py3createtorrent import ProtocolVersion, TorrentSpec, create_torrent, main
-
 from create_random_file import create_random_file
 from create_random_folder import create_random_folder
+
+from py3createtorrent import ProtocolVersion, TorrentSpec, create_torrent, main
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 logger = logging.getLogger(__name__)
