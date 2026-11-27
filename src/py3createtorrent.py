@@ -971,8 +971,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main() -> None:
-    args = parse_args()
+def main(argv: list[str] | None = None) -> None:
+    args = parse_args(argv)
 
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.WARNING,

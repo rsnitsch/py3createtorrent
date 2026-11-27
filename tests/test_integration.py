@@ -9,12 +9,12 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import shutil
 import time
 import warnings
+from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 import cachedir_tag
 import pytest
@@ -27,7 +27,7 @@ except ImportError:
     lt = None  # type: ignore[assignment]
 
 
-from py3createtorrent import ProtocolVersion, TorrentSpec, create_torrent
+from py3createtorrent import ProtocolVersion, TorrentSpec, create_torrent, main
 
 from create_random_file import create_random_file
 from create_random_folder import create_random_folder
@@ -45,7 +45,7 @@ class TorrentCase:
     piece_size: int = 0
 
 
-TEST_CASES = [
+TEST_CASES_SINGLE_FILE = [
     TorrentCase("single_file_16k_v2", "random_file_16k.dat", ProtocolVersion.V2),
     TorrentCase("single_file_17k_v2", "random_file_17k.dat", ProtocolVersion.V2),
     TorrentCase("single_file_48k_v2", "random_file_48k.dat", ProtocolVersion.V2),
@@ -57,6 +57,9 @@ TEST_CASES = [
     TorrentCase("single_file_v1", "random_file_50m.dat", ProtocolVersion.V1),
     TorrentCase("single_file_v2", "random_file_50m.dat", ProtocolVersion.V2),
     TorrentCase("single_file_hybrid", "random_file_50m.dat", ProtocolVersion.HYBRID),
+]
+
+TEST_CASES_MULTI_FILE = [
     TorrentCase("multi_file_v1", "random_folder_big_files", ProtocolVersion.V1),
     TorrentCase("multi_file_v2", "random_folder_big_files", ProtocolVersion.V2),
     TorrentCase("multi_file_hybrid", "random_folder_big_files", ProtocolVersion.HYBRID),
@@ -70,6 +73,8 @@ TEST_CASES = [
     TorrentCase("multi_file_hybrid_with_subfolder", "random_folder_with_subfolder", ProtocolVersion.HYBRID, 16),
 ]
 
+TEST_CASES = TEST_CASES_SINGLE_FILE + TEST_CASES_MULTI_FILE
+
 
 def ensure_testdata_is_generated():
     testdata_path = PROJECT_ROOT / "tests" / "testdata"
@@ -80,6 +85,7 @@ def ensure_testdata_is_generated():
     logger.info("Creating fresh set of random testdata here: %s", testdata_path)
     testdata_path.mkdir()
     cachedir_tag.tag(testdata_path)
+    (testdata_path / "empty_folder").mkdir()
 
     seed = 0
     KIB = 2**10
@@ -387,3 +393,165 @@ def test_create_torrent(case: TorrentCase, testdata_dir: Path, tmp_path: Path, i
             save_path=target.parent,
             protocol=case.protocol,
         )
+
+
+def test_cli(testdata_dir: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    target = testdata_dir / TEST_CASES_SINGLE_FILE[0].target_rel_path
+
+    main([str(target), "--output", str(tmp_path)])
+    captured = capsys.readouterr()
+
+    expected_outputs = [
+        "Name",
+        "Protocol",
+        "Size",
+        "Pieces",
+        "Comment",
+        "Private",
+        "Creation date",
+        "DHT bootstrap nodes",
+        "Webseeds",
+        "Primary tracker",
+        "Backup trackers",
+    ]
+    for expected_output in expected_outputs:
+        assert expected_output in captured.out, f"cli stdout is missing expected output '{expected_output}'"
+
+
+def test_comment(testdata_dir: Path, tmp_path: Path):
+    target = testdata_dir / TEST_CASES_SINGLE_FILE[0].target_rel_path
+    spec = TorrentSpec(target=target, output=tmp_path, comment="my_comment")
+    _, metainfo, _ = create_torrent(spec)
+    assert "comment" in metainfo, "metainfo['comment'] does not exist"
+    assert metainfo["comment"] == "my_comment", "metainfo['comment'] does not have expected value"
+
+
+def test_date(testdata_dir: Path, tmp_path: Path):
+    target = testdata_dir / TEST_CASES_SINGLE_FILE[0].target_rel_path
+    spec = TorrentSpec(target=target, output=tmp_path, date=1337)
+    _, metainfo, _ = create_torrent(spec)
+    assert "creation date" in metainfo, "metainfo['creation date'] does not exist"
+    assert metainfo["creation date"] == 1337, "metainfo['creation date'] does not have expected value"
+
+
+def test_date_disabled(testdata_dir: Path, tmp_path: Path):
+    target = testdata_dir / TEST_CASES_SINGLE_FILE[0].target_rel_path
+    spec = TorrentSpec(target=target, output=tmp_path, date=-2)
+    _, metainfo, _ = create_torrent(spec)
+    assert "creation date" not in metainfo, "metainfo['creation date'] should not exist"
+
+
+def test_date_invalid(testdata_dir: Path, tmp_path: Path):
+    target = testdata_dir / TEST_CASES_SINGLE_FILE[0].target_rel_path
+
+    spec = TorrentSpec(target=target, output=tmp_path, date=-3)
+    with pytest.raises(ValueError, match="Invalid date"):
+        create_torrent(spec)
+
+    spec = TorrentSpec(target=target, output=tmp_path, date=-2)
+    _, metainfo, _ = create_torrent(spec)
+    assert "creation date" not in metainfo, "metainfo['creation date'] should not exist"
+
+
+def test_node(testdata_dir: Path, tmp_path: Path):
+    target = testdata_dir / TEST_CASES_SINGLE_FILE[0].target_rel_path
+    spec = TorrentSpec(target=target, output=tmp_path, nodes=["host,1337"])
+    _, metainfo, _ = create_torrent(spec)
+    assert "nodes" in metainfo, "metainfo['nodes'] does not exist"
+    assert isinstance(metainfo["nodes"], list), "metainfo['nodes'] is not a list"
+    assert metainfo["nodes"][0] == ["host", 1337], "metainfo['nodes'] does not contain the correct node"
+
+
+@pytest.mark.parametrize(
+    ("private", "nodes", "expectation"),
+    [
+        pytest.param(
+            True,
+            ["host,123"],
+            pytest.raises(ValueError, match="private torrent"),
+            id="private_with_nodes",
+        ),
+        pytest.param(
+            False,
+            ["invalid_node_spec"],
+            pytest.raises(ValueError, match="Invalid format"),
+            id="invalid_format",
+        ),
+        pytest.param(
+            False,
+            ["host,non_numeric_port"],
+            pytest.raises(ValueError, match="Invalid port number"),
+            id="non_numeric_port",
+        ),
+        pytest.param(
+            False,
+            ["host,0"],
+            pytest.raises(ValueError, match="Port number out of range"),
+            id="port_too_low",
+        ),
+        pytest.param(
+            False,
+            ["host,65536"],
+            pytest.raises(ValueError, match="Port number out of range"),
+            id="port_too_high",
+        ),
+    ],
+)
+def test_nodes_that_are_invalid(
+    testdata_dir: Path,
+    tmp_path: Path,
+    private: bool,
+    nodes: list[str],
+    expectation: AbstractContextManager[Any],
+) -> None:
+    target = testdata_dir / TEST_CASES_SINGLE_FILE[0].target_rel_path
+    spec = TorrentSpec(target=target, private=private, nodes=nodes, output=tmp_path)
+
+    with expectation:
+        create_torrent(spec)
+
+
+def test_piece_length_invalid(testdata_dir: Path, tmp_path: Path):
+    target = testdata_dir / TEST_CASES_SINGLE_FILE[0].target_rel_path
+
+    # Less than 16 KiB
+    spec = TorrentSpec(target=target, output=tmp_path, piece_length=15)
+    with pytest.raises(ValueError, match="Piece length"):
+        create_torrent(spec)
+
+    # Not a power of 2
+    spec = TorrentSpec(target=target, output=tmp_path, piece_length=17)
+    with pytest.raises(ValueError, match="Piece length"):
+        create_torrent(spec)
+
+
+def test_private(testdata_dir: Path, tmp_path: Path):
+    target = testdata_dir / TEST_CASES_SINGLE_FILE[0].target_rel_path
+    spec = TorrentSpec(target=target, output=tmp_path, private=True)
+    _, metainfo, _ = create_torrent(spec)
+    assert "private" in metainfo["info"], "metainfo['info'] does not have 'private'"
+    assert metainfo["info"]["private"] == 1, "metainfo['info']['private'] is not 1"
+
+
+def test_source(testdata_dir: Path, tmp_path: Path):
+    target = testdata_dir / TEST_CASES_SINGLE_FILE[0].target_rel_path
+    spec = TorrentSpec(target=target, output=tmp_path, source="my_source")
+    _, metainfo, _ = create_torrent(spec)
+    assert "source" in metainfo["info"], "metainfo['info'] does not have 'source'"
+    assert metainfo["info"]["source"] == "my_source", "metainfo['info']['source'] does not have expected value"
+
+    spec = TorrentSpec(target=target, output=tmp_path, source="%")
+    with pytest.raises(ValueError, match="Invalid source"):
+        create_torrent(spec)
+
+
+def test_target_does_not_exist(testdata_dir: Path, tmp_path: Path):
+    spec = TorrentSpec(testdata_dir / "non_existent_folder", output=tmp_path)
+    with pytest.raises(FileNotFoundError):
+        create_torrent(spec)
+
+
+def test_target_empty(testdata_dir: Path, tmp_path: Path):
+    spec = TorrentSpec(testdata_dir / "empty_folder", output=tmp_path)
+    with pytest.raises(ValueError, match="Cannot create torrent for 0-byte data"):
+        create_torrent(spec)
