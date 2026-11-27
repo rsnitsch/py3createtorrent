@@ -14,7 +14,7 @@ import warnings
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, TypeAlias, cast
 
 import cachedir_tag
 import pytest
@@ -34,7 +34,7 @@ from create_random_folder import create_random_folder
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 logger = logging.getLogger(__name__)
-type BencodeValue = int | bytes | list[BencodeValue] | dict[bytes, BencodeValue]
+BencodeValue: TypeAlias = int | bytes | list["BencodeValue"] | dict[bytes, "BencodeValue"]
 
 
 @dataclass(frozen=True, slots=True)
