@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import hashlib
+import io
+import urllib
 
 import pytest
 
@@ -14,6 +16,7 @@ from py3createtorrent import (
     is_power_of_two,
     merkle_root,
     parse_nodes,
+    resolve_trackers,
 )
 
 
@@ -71,3 +74,25 @@ def test_parse_nodes_valid() -> None:
         ["127.0.0.1", 6881],
         ["router.bittorrent.com", 6881],
     ]
+
+
+def test_resolve_trackers_best_and_dedup(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_body = b"http://t1.example/announce\n\nhttp://t2.example/announce\nhttp://t3.example/announce\n"
+
+    def fake_urlopen(url: str, timeout: int = 15) -> io.BytesIO:
+        assert url == "https://example.com/trackers.txt"
+        return io.BytesIO(fake_body)
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+
+    result = resolve_trackers(
+        ["http://t2.example/announce", "best2", "best0", "http://t1.example/announce"],
+        best_trackers_url="https://example.com/trackers.txt",
+    )
+    # Order preserved, duplicates removed, best0 ignored
+    assert result == ["http://t2.example/announce", "http://t1.example/announce"]
+
+
+def test_resolve_trackers_empty_url_raises() -> None:
+    with pytest.raises(ValueError, match="Best trackers URL must not be empty"):
+        resolve_trackers(["best3"], best_trackers_url="   ")
