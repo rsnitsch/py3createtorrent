@@ -64,6 +64,8 @@ TEST_CASES: list[TorrentCase] = [
     *_all_protocols("multi_edge_32k", "folder_edge_cases", piece_size=32),
     # Nested subfolders with empty files
     *_all_protocols("multi_nested_16k", "folder_nested", piece_size=16),
+    # Multi-file folder exceeding 16 MiB slice boundary (tests parallel slicing & file seeks)
+    *_all_protocols("multi_slice_17m", "folder_multi_slice"),
 ]
 
 

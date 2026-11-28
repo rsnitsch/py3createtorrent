@@ -15,7 +15,7 @@ try:
 except ImportError:
     lt = None  # type: ignore[assignment]
 
-from py3createtorrent import BLOCK_SIZE, KIB, READ_CHUNK_SIZE
+from py3createtorrent import BLOCK_SIZE, KIB, MIB, READ_CHUNK_SIZE
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 TESTDATA_DIR = PROJECT_ROOT / "tests" / "testdata"
@@ -161,6 +161,16 @@ def integration_testdata(testdata_dir: Path) -> Path:
             "sub_b/deep/empty_at_end.txt": 0,
         },
         seed=300,
+    )
+
+    # Multi-file folder exceeding the 16 MiB parallel slice boundary
+    ensure_folder_with_files_exists(
+        testdata_dir / "folder_multi_slice",
+        {
+            "file_17m.dat": 17 * MIB,
+            "file_1k.dat": KIB,
+        },
+        seed=350,
     )
 
     return testdata_dir
