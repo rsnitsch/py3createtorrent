@@ -100,6 +100,22 @@ def empty_folder(testdata_dir: Path) -> Path:
 
 
 @pytest.fixture(scope="session")
+def exclude_test_folder(testdata_dir: Path) -> Path:
+    """Provide a small directory with mixed filenames/subfolders for exclusion tests."""
+    return ensure_folder_with_files_exists(
+        testdata_dir / "folder_for_excludes",
+        {
+            "keep.txt": KIB,
+            "ignore_me.tmp": KIB,
+            "README.MD": KIB,
+            "sub/nested.log": KIB,
+            "sub/data.bin": KIB,
+        },
+        seed=400,
+    )
+
+
+@pytest.fixture(scope="session")
 def integration_testdata(testdata_dir: Path) -> Path:
     """
     Ensure all targeted single-file and multi-file edge-case fixtures exist

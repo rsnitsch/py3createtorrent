@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from py3createtorrent import TorrentSpec, create_torrent
+from py3createtorrent import ProtocolVersion, TorrentSpec, create_torrent
 
 
 def test_comment(sample_file: Path, tmp_path: Path) -> None:
@@ -48,6 +48,86 @@ def test_date_disabled(sample_file: Path, tmp_path: Path) -> None:
 def test_date_invalid(sample_file: Path, tmp_path: Path) -> None:
     spec = TorrentSpec(target=sample_file, output=tmp_path, date=-3)
     with pytest.raises(ValueError, match="Invalid date"):
+        create_torrent(spec)
+
+
+def _included_rel_paths(metainfo: dict[str, Any]) -> set[str]:
+    # Extract POSIX-style relative paths from v1 metainfo['info']['files']
+    return {"/".join(entry["path"]) for entry in metainfo["info"]["files"]}
+
+
+def test_exclude_explicit_paths(exclude_test_folder: Path, tmp_path: Path) -> None:
+    spec = TorrentSpec(
+        target=exclude_test_folder,
+        output=tmp_path,
+        protocol=ProtocolVersion.V1,
+        exclude=[
+            exclude_test_folder / "ignore_me.tmp",
+            exclude_test_folder / "sub",
+        ],
+    )
+    _, metainfo, _ = create_torrent(spec)
+    assert _included_rel_paths(metainfo) == {"keep.txt", "README.MD"}
+
+
+def test_exclude_target_itself_raises(exclude_test_folder: Path, tmp_path: Path) -> None:
+    spec = TorrentSpec(
+        target=exclude_test_folder,
+        output=tmp_path,
+        exclude=[exclude_test_folder],
+    )
+    with pytest.raises(ValueError, match="Cannot exclude the target directory itself"):
+        create_torrent(spec)
+
+
+def test_exclude_pattern_case_sensitive(exclude_test_folder: Path, tmp_path: Path) -> None:
+    spec = TorrentSpec(
+        target=exclude_test_folder,
+        output=tmp_path,
+        protocol=ProtocolVersion.V1,
+        # Lowercase '.md$' must NOT match 'README.MD'
+        exclude_pattern=[r"\.tmp$", r"^sub/", r"\.md$"],
+    )
+    _, metainfo, _ = create_torrent(spec)
+    assert _included_rel_paths(metainfo) == {"keep.txt", "README.MD"}
+
+
+def test_exclude_pattern_case_insensitive(exclude_test_folder: Path, tmp_path: Path) -> None:
+    spec = TorrentSpec(
+        target=exclude_test_folder,
+        output=tmp_path,
+        protocol=ProtocolVersion.V1,
+        exclude_pattern_ci=[r"\.md$", r"\.log$"],
+    )
+    _, metainfo, _ = create_torrent(spec)
+    assert _included_rel_paths(metainfo) == {"keep.txt", "ignore_me.tmp", "sub/data.bin"}
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "error_match"),
+    [
+        ({"exclude_pattern": ["[invalid"]}, "Invalid regular expression"),
+        ({"exclude_pattern_ci": ["[invalid"]}, "Invalid case-insensitive regular expression"),
+    ],
+)
+def test_exclude_pattern_invalid_regex(
+    exclude_test_folder: Path,
+    tmp_path: Path,
+    kwargs: dict[str, list[str]],
+    error_match: str,
+) -> None:
+    spec = TorrentSpec(target=exclude_test_folder, output=tmp_path, **kwargs)
+    with pytest.raises(ValueError, match=error_match):
+        create_torrent(spec)
+
+
+def test_exclude_all_files_raises(exclude_test_folder: Path, tmp_path: Path) -> None:
+    spec = TorrentSpec(
+        target=exclude_test_folder,
+        output=tmp_path,
+        exclude_pattern=[r".*"],
+    )
+    with pytest.raises(ValueError, match="Cannot create torrent for 0-byte data"):
         create_torrent(spec)
 
 
