@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import logging
 from contextlib import AbstractContextManager
 from pathlib import Path
 from typing import Any
@@ -78,6 +79,37 @@ def test_exclude_target_itself_raises(exclude_test_folder: Path, tmp_path: Path)
     )
     with pytest.raises(ValueError, match="Cannot exclude the target directory itself"):
         create_torrent(spec)
+
+
+def test_exclude_non_existent_path_logs_warning(
+    exclude_test_folder: Path,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    missing_path = exclude_test_folder / "does_not_exist.txt"
+    spec = TorrentSpec(
+        target=exclude_test_folder,
+        output=tmp_path,
+        exclude=[missing_path],
+    )
+
+    with caplog.at_level(logging.WARNING):
+        create_torrent(spec)
+
+    assert "excluding a path that does not exist" in caplog.text
+
+
+def test_exclude_on_single_file_target_logs_warning(
+    sample_file: Path, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    spec = TorrentSpec(
+        target=sample_file, output=tmp_path, exclude=[sample_file.parent / "any_exclude_not_matchin_target.txt"]
+    )
+
+    with caplog.at_level(logging.WARNING):
+        create_torrent(spec)
+
+    assert "not possible when creating a torrent for a single file" in caplog.text
 
 
 def test_exclude_pattern_case_sensitive(exclude_test_folder: Path, tmp_path: Path) -> None:
@@ -161,6 +193,48 @@ def test_nodes_invalid(
         create_torrent(spec)
 
 
+def test_output_file(sample_file: Path, tmp_path: Path) -> None:
+    output_path = tmp_path / "explicit_output_path.torrent"
+    assert not output_path.is_file()
+    spec = TorrentSpec(target=sample_file, output=output_path)
+    create_torrent(spec)
+    assert output_path.is_file()
+
+
+def test_output_default_cwd(
+    sample_file: Path,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Switch working directory to tmp_path so the default output does not pollute the repo
+    monkeypatch.chdir(tmp_path)
+    expected_torrent_location = tmp_path / f"{sample_file.name}.torrent"
+    assert not expected_torrent_location.is_file()
+
+    spec = TorrentSpec(target=sample_file, output=None)
+    create_torrent(spec)
+
+    assert expected_torrent_location.is_file()
+
+
+def test_output_directory(sample_file: Path, tmp_path: Path) -> None:
+    output_path = tmp_path / "existing_output_directory"
+    output_path.mkdir()
+    assert output_path.is_dir()
+    expected_torrent_location = output_path / f"{sample_file.name}.torrent"
+    assert not expected_torrent_location.is_file()
+    spec = TorrentSpec(target=sample_file, output=output_path)
+    create_torrent(spec)
+    assert expected_torrent_location.is_file()
+
+
+def test_output_missing_parent_dir(sample_file: Path, tmp_path: Path) -> None:
+    output_path = tmp_path / "missing_parent" / "custom.torrent"
+    spec = TorrentSpec(target=sample_file, output=output_path)
+    with pytest.raises(FileNotFoundError, match="Output directory does not exist"):
+        create_torrent(spec)
+
+
 @pytest.mark.parametrize("piece_length", [15, 17, -1])
 def test_piece_length_invalid(sample_file: Path, tmp_path: Path, piece_length: int) -> None:
     spec = TorrentSpec(target=sample_file, output=tmp_path, piece_length=piece_length)
@@ -193,4 +267,10 @@ def test_target_does_not_exist(testdata_dir: Path, tmp_path: Path) -> None:
 def test_target_empty(empty_folder: Path, tmp_path: Path) -> None:
     spec = TorrentSpec(empty_folder, output=tmp_path)
     with pytest.raises(ValueError, match="Cannot create torrent for 0-byte data"):
+        create_torrent(spec)
+
+
+def test_threads(sample_file: Path, tmp_path: Path) -> None:
+    spec = TorrentSpec(target=sample_file, output=tmp_path, threads=0)
+    with pytest.raises(ValueError, match="Thread count"):
         create_torrent(spec)
