@@ -33,7 +33,7 @@ def _get_version() -> str:
     try:
         # Installed as a package (uv tool, pipx, pip, editable install)
         return version("py3createtorrent")
-    except PackageNotFoundError:
+    except PackageNotFoundError:  # pragma: no cover
         # src/py3createtorrent.py is executed directly
         pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
         if pyproject.is_file():
@@ -47,7 +47,7 @@ __version__ = _get_version()
 
 try:
     from bencodepy import encode as bencode
-except ImportError as exc:
+except ImportError:  # pragma: no cover
     sys.exit("ERROR: bencodepy module could not be imported.\nPlease install it using: pip install bencode.py")
 
 
@@ -234,7 +234,9 @@ def _hash_file_slice(
                         v2_bytes_in_block += take
                         offset += take
 
-                        if v2_bytes_in_block == BLOCK_SIZE:
+                        # Defensive code against exotic file systems where a read NOT at EOF
+                        # does not return the requested number of bytes.
+                        if v2_bytes_in_block == BLOCK_SIZE:  # pragma: no cover
                             v2_current_piece_blocks.append(v2_block_hasher.digest())
                             v2_block_hasher = hashlib.sha256()
                             v2_bytes_in_block = 0
@@ -1011,7 +1013,7 @@ def main(argv: list[str] | None = None) -> None:
     print_summary(metainfo, total_size, spec.protocol)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     try:
         main()
     except KeyboardInterrupt:
