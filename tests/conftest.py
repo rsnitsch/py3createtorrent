@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 import random
 import shutil
+import sys
 import warnings
 from pathlib import Path
 
@@ -178,11 +179,17 @@ def integration_testdata(testdata_dir: Path) -> Path:
 
 @pytest.fixture(scope="session")
 def is_libtorrent_present() -> bool:
-    if lt is None:
-        warnings.warn(
-            "libtorrent is not installed; skipping libtorrent offline verification.",
-            UserWarning,
-            stacklevel=2,
-        )
-        return False
-    return True
+    if lt is not None:
+        return True
+
+    py_ver = sys.version_info[:2]
+    if (3, 11) <= py_ver <= (3, 13):
+        # Fail tests if libtorrent is missing on supported Python versions
+        pytest.fail(f"libtorrent is required on Python {py_ver[0]}.{py_ver[1]}, but could not be imported.")
+
+    warnings.warn(
+        f"libtorrent is not installed on Python {py_ver[0]}.{py_ver[1]}; skipping libtorrent offline verification.",
+        UserWarning,
+        stacklevel=2,
+    )
+    return False
